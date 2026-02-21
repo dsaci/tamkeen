@@ -1,0 +1,135 @@
+{
+    "levels": [
+        {
+            "id": "PRIMARY",
+            "name_ar": "التعليم الابتدائي",
+            "name_en": "Primary Education"
+        },
+        {
+            "id": "MIDDLE",
+            "name_ar": "التعليم المتوسط",
+            "name_en": "Middle Education"
+        },
+        {
+            "id": "SECONDARY",
+            "name_ar": "التعليم الثانوي",
+            "name_en": "Secondary Education"
+        }
+    ],
+    "years": [
+        {
+            "id": "1AP",
+            "level_id": "PRIMARY",
+            "name_ar": "السنة الأولى ابتدائي",
+            "ordering": 1
+        },
+        {
+            "id": "2AP",
+            "level_id": "PRIMARY",
+            "name_ar": "السنة الثانية ابتدائي",
+            "ordering": 2
+        },
+        {
+            "id": "3AP",
+            "level_id": "PRIMARY",
+            "name_ar": "السنة الثالثة ابتدائي",
+            "ordering": 3
+        },
+        {
+            "id": "4AP",
+            "level_id": "PRIMARY",
+            "name_ar": "السنة الرابعة ابتدائي",
+            "ordering": 4
+        },
+        {
+            "id": "5AP",
+            "level_id": "PRIMARY",
+            "name_ar": "السنة الخامسة ابتدائي",
+            "ordering": 5
+        },
+        {
+            "id": "1AM",
+            "level_id": "MIDDLE",
+            "name_ar": "السنة الأولى متوسط",
+            "ordering": 6
+        },
+        {
+            "id": "2AM",
+            "level_id": "MIDDLE",
+            "name_ar": "السنة الثانية متوسط",
+            "ordering": 7
+        },
+        {
+            "id": "3AM",
+            "level_id": "MIDDLE",
+            "name_ar": "السنة الثالثة متوسط",
+            "ordering": 8
+        },
+        {
+            "id": "4AM",
+            "level_id": "MIDDLE",
+            "name_ar": "السنة الرابعة متوسط",
+            "ordering": 9
+        },
+        {
+            "id": "1AS",
+            "level_id": "SECONDARY",
+            "name_ar": "السنة الأولى ثانوي",
+            "ordering": 10
+        },
+        {
+            "id": "2AS",
+            "level_id": "SECONDARY",
+            "name_ar": "السنة الثانية ثانوي",
+            "ordering": 11
+        },
+        {
+            "id": "3AS",
+            "level_id": "SECONDARY",
+            "name_ar": "السنة الثالثة ثانوي",
+            "ordering": 12
+        }
+    ],
+    "streams": [
+        {
+            "id": "TCST",
+            "name_ar": "جذع مشترك علوم وتكنولوجيا",
+            "name_en": "Common Core Science & Tech"
+        },
+        {
+            "id": "TCL",
+            "name_ar": "جذع مشترك آداب",
+            "name_en": "Common Core Letters"
+        },
+        {
+            "id": "SC",
+            "name_ar": "علوم تجريبية",
+            "name_en": "Experimental Sciences"
+        },
+        {
+            "id": "MATH",
+            "name_ar": "رياضيات",
+            "name_en": "Mathematics"
+        },
+        {
+            "id": "TM",
+            "name_ar": "تقني رياضي",
+            "name_en": "Technical Math"
+        },
+        {
+            "id": "GE",
+            "name_ar": "تسيير واقتصاد",
+            "name_en": "Management & Economy"
+        },
+        {
+            "id": "LE",
+            "name_ar": "لغات أجنبية",
+            "name_en": "Foreign Languages"
+        },
+        {
+            "id": "LP",
+            "name_ar": "آداب وفلسفة",
+            "name_en": "Letters & Philosophy"
+        }
+    ]
+}

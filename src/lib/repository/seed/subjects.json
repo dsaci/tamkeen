@@ -1,0 +1,117 @@
+[
+    {
+        "id": "AR",
+        "name_ar": "اللغة العربية",
+        "category": "LANGUAGES"
+    },
+    {
+        "id": "MA",
+        "name_ar": "الرياضيات",
+        "category": "SCIENCES"
+    },
+    {
+        "id": "FR",
+        "name_ar": "اللغة الفرنسية",
+        "category": "LANGUAGES"
+    },
+    {
+        "id": "EN",
+        "name_ar": "اللغة الإنجليزية",
+        "category": "LANGUAGES"
+    },
+    {
+        "id": "IS",
+        "name_ar": "التربية الإسلامية",
+        "category": "HUMANITIES"
+    },
+    {
+        "id": "HI",
+        "name_ar": "التاريخ",
+        "category": "HUMANITIES"
+    },
+    {
+        "id": "EO",
+        "name_ar": "الجغرافيا",
+        "category": "HUMANITIES"
+    },
+    {
+        "id": "CV",
+        "name_ar": "التربية المدنية",
+        "category": "HUMANITIES"
+    },
+    {
+        "id": "PH",
+        "name_ar": "العلوم الفيزيائية",
+        "category": "SCIENCES"
+    },
+    {
+        "id": "SN",
+        "name_ar": "علوم الطبيعة والحياة",
+        "category": "SCIENCES"
+    },
+    {
+        "id": "SP",
+        "name_ar": "التربية البدنية",
+        "category": "0THERS"
+    },
+    {
+        "id": "AR_PL",
+        "name_ar": "التربية التشكيلية",
+        "category": "OTHERS"
+    },
+    {
+        "id": "MU",
+        "name_ar": "التربية الموسيقية",
+        "category": "OTHERS"
+    },
+    {
+        "id": "IN",
+        "name_ar": "الإعلام الآلي",
+        "category": "SCIENCES"
+    },
+    {
+        "id": "TM_MECH",
+        "name_ar": "هندسة ميكانيكية",
+        "category": "TECH"
+    },
+    {
+        "id": "TM_CIVIL",
+        "name_ar": "هندسة مدنية",
+        "category": "TECH"
+    },
+    {
+        "id": "TM_ELEC",
+        "name_ar": "هندسة كهربائية",
+        "category": "TECH"
+    },
+    {
+        "id": "TM_PROC",
+        "name_ar": "هندسة طرائق",
+        "category": "TECH"
+    },
+    {
+        "id": "MAN",
+        "name_ar": "التسيير المحاسبي والمالي",
+        "category": "ECONOMY"
+    },
+    {
+        "id": "LAW",
+        "name_ar": "القانون",
+        "category": "ECONOMY"
+    },
+    {
+        "id": "ECO",
+        "name_ar": "الاقتصاد والمناجمنت",
+        "category": "ECONOMY"
+    },
+    {
+        "id": "PHI",
+        "name_ar": "الفلسفة",
+        "category": "HUMANITIES"
+    },
+    {
+        "id": "AM",
+        "name_ar": "اللغة الأمازيغية",
+        "category": "LANGUAGES"
+    }
+]

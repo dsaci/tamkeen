@@ -1,0 +1,185 @@
+[
+    {
+        "year_id": "5AP",
+        "subject_id": "AR",
+        "coefficient": 2,
+        "weekly_hours": 6.5
+    },
+    {
+        "year_id": "5AP",
+        "subject_id": "MA",
+        "coefficient": 2,
+        "weekly_hours": 4.5
+    },
+    {
+        "year_id": "5AP",
+        "subject_id": "FR",
+        "coefficient": 1,
+        "weekly_hours": 3
+    },
+    {
+        "year_id": "5AP",
+        "subject_id": "EN",
+        "coefficient": 1,
+        "weekly_hours": 1.5
+    },
+    {
+        "year_id": "5AP",
+        "subject_id": "IS",
+        "coefficient": 1,
+        "weekly_hours": 1.5
+    },
+    {
+        "year_id": "5AP",
+        "subject_id": "HI",
+        "coefficient": 1,
+        "weekly_hours": 1.5
+    },
+    {
+        "year_id": "5AP",
+        "subject_id": "CV",
+        "coefficient": 1,
+        "weekly_hours": 1
+    },
+    {
+        "year_id": "5AP",
+        "subject_id": "SP",
+        "coefficient": 1,
+        "weekly_hours": 1
+    },
+    {
+        "year_id": "5AP",
+        "subject_id": "SN",
+        "coefficient": 1,
+        "weekly_hours": 1.5
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "AR",
+        "coefficient": 5,
+        "weekly_hours": 4
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "MA",
+        "coefficient": 4,
+        "weekly_hours": 4
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "FR",
+        "coefficient": 3,
+        "weekly_hours": 3
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "EN",
+        "coefficient": 2,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "PH",
+        "coefficient": 2,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "SN",
+        "coefficient": 2,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "IS",
+        "coefficient": 2,
+        "weekly_hours": 1
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "HI",
+        "coefficient": 2,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "CV",
+        "coefficient": 1,
+        "weekly_hours": 1
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "SP",
+        "coefficient": 1,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "4AM",
+        "subject_id": "AM",
+        "coefficient": 2,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "MA",
+        "coefficient": 7,
+        "weekly_hours": 7
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "PH",
+        "coefficient": 6,
+        "weekly_hours": 5
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "AR",
+        "coefficient": 3,
+        "weekly_hours": 3
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "FR",
+        "coefficient": 2,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "EN",
+        "coefficient": 2,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "PHI",
+        "coefficient": 2,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "SP",
+        "coefficient": 1,
+        "weekly_hours": 2
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "IS",
+        "coefficient": 2,
+        "weekly_hours": 1
+    },
+    {
+        "year_id": "3AS",
+        "stream_id": "MATH",
+        "subject_id": "HI",
+        "coefficient": 2,
+        "weekly_hours": 2
+    }
+]
