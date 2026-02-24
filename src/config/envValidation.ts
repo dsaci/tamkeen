@@ -33,7 +33,7 @@ export function validateEnvironment(): void {
     const errors: string[] = [];
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || supabaseUrl.trim() === '') {
         errors.push('VITE_SUPABASE_URL is missing or empty.');
