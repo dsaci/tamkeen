@@ -11,7 +11,7 @@ export type AppMode = 'offline' | 'hybrid' | 'cloud';
  * Defaults to 'offline' if not set.
  */
 export function getMode(): AppMode {
-    const mode = (import.meta.env.VITE_MODE || 'offline').toLowerCase().trim();
+    const mode = (import.meta.env.VITE_MODE || 'cloud').toLowerCase().trim();
     if (mode === 'hybrid' || mode === 'cloud') return mode;
     return 'offline';
 }
