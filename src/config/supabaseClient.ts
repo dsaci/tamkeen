@@ -38,7 +38,8 @@ export function getSupabaseClient(): SupabaseClient | null {
         auth: {
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: true, // REQUIRED for OAuth callback (reads #access_token from URL)
+            detectSessionInUrl: true,
+            flowType: 'pkce', // Prevents Chrome bounce tracking mitigation issues
         },
     });
 

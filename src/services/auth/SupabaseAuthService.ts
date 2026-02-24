@@ -43,10 +43,10 @@ export class SupabaseAuthService implements AuthService {
         if (!client) return { success: false, error: 'Supabase client not available.' };
 
         try {
-            // Safe redirect URL: fallback to localhost for Electron (file:// origins)
-            const redirectUrl = window.location.origin.startsWith('http')
+            const origin = window.location.origin.startsWith('http')
                 ? window.location.origin
-                : 'http://localhost:5173'; // Vite dev server fallback for Electron
+                : 'http://localhost:5173';
+            const redirectUrl = `${origin}/auth/callback`;
 
             const { data, error } = await client.auth.signInWithOAuth({
                 provider: 'google',
