@@ -23,8 +23,11 @@ export function getSupabaseClient(): SupabaseClient | null {
         return supabaseInstance;
     }
 
-    const url = import.meta.env.VITE_SUPABASE_URL;
-    const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const url = import.meta.env.VITE_SUPABASE_URL
+        || 'https://kqfyovljkjdxqyvpzqum.supabase.co';
+    const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+        || import.meta.env.VITE_SUPABASE_ANON_KEY
+        || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZnlvdmxqa2pkeHF5dnB6cXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDYyMTksImV4cCI6MjA4NTY4MjIxOX0.aVoohtaslgXArVWAKhOh7yqYlm_iPCT7fehq1_iVhPM';
 
     if (!url || !key) {
         console.error('[Supabase] Cannot initialize: missing URL or ANON_KEY.');

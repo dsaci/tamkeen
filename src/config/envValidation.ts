@@ -32,8 +32,11 @@ export function validateEnvironment(): void {
 
     const errors: string[] = [];
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        || 'https://kqfyovljkjdxqyvpzqum.supabase.co';
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+        || import.meta.env.VITE_SUPABASE_ANON_KEY
+        || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZnlvdmxqa2pkeHF5dnB6cXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDYyMTksImV4cCI6MjA4NTY4MjIxOX0.aVoohtaslgXArVWAKhOh7yqYlm_iPCT7fehq1_iVhPM';
 
     if (!supabaseUrl || supabaseUrl.trim() === '') {
         errors.push('VITE_SUPABASE_URL is missing or empty.');
