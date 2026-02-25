@@ -1,6 +1,7 @@
 
 import * as jspdfModule from 'jspdf';
 const jsPDF = (jspdfModule as any).jsPDF || (jspdfModule as any).default || jspdfModule;
+import html2canvas from 'html2canvas';
 import { Session, TeacherProfile } from '../../types';
 
 export const exportDailyJournalToPDF = async (
@@ -9,12 +10,6 @@ export const exportDailyJournalToPDF = async (
     dayName: string,
     sessions: Session[]
 ) => {
-    // التحقق من وجود مكتبة html2canvas
-    const html2canvas = (window as any).html2canvas;
-    if (!html2canvas) {
-        alert("يرجى التأكد من الاتصال بالإنترنت لتحميل مكتبة الطباعة (html2canvas).");
-        return;
-    }
 
     // وقت الاستخراج
     const exportTime = new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
