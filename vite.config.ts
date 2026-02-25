@@ -8,7 +8,7 @@ export default defineConfig({
     host: '0.0.0.0'
   },
   plugins: [react()],
-  base: './', // Required for Electron file:// protocol
+  base: '/', // Absolute paths required for Vercel SPA routing
   build: {
     outDir: 'dist',
     emptyOutDir: true,
