@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TeacherProfile } from '../../types';
-import { Settings, Moon, Save, Check, Download, Upload } from 'lucide-react';
+import { Settings, Moon, Save, Check, Download, Key, Eye, EyeOff } from 'lucide-react';
 import { getDailyJournal } from '../services/dailyJournal.service';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -15,9 +15,16 @@ export default function SettingsView({ profile, onUpdate, darkMode, setDarkMode 
    const auth = useAuth();
    const [isSaving, setIsSaving] = useState(false);
    const [saved, setSaved] = useState(false);
-
-   // Example of editable field state
    const [name, setName] = useState(profile.name);
+   const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('tamkeen_gemini_key') || '');
+   const [showKey, setShowKey] = useState(false);
+   const [keySaved, setKeySaved] = useState(false);
+
+   const saveGeminiKey = () => {
+      localStorage.setItem('tamkeen_gemini_key', geminiKey.trim());
+      setKeySaved(true);
+      setTimeout(() => setKeySaved(false), 2000);
+   };
 
    const handleSave = async () => {
       const updated = { ...profile, name };
@@ -95,6 +102,31 @@ export default function SettingsView({ profile, onUpdate, darkMode, setDarkMode 
                      value={name}
                      onChange={e => setName(e.target.value)}
                   />
+               </div>
+
+               <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl space-y-4">
+                  <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                     <Key size={20} className="text-amber-500" />
+                     مفتاح Gemini API (للمذكرة الذكية)
+                  </h3>
+                  <p className="text-xs text-slate-500">احصل عليه مجاناً من <span className="text-indigo-600 font-bold">aistudio.google.com</span></p>
+                  <div className="flex gap-2">
+                     <div className="relative flex-1">
+                        <input
+                           type={showKey ? 'text' : 'password'}
+                           placeholder="AIza..."
+                           className="w-full p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600 outline-none text-slate-900 dark:text-white font-mono text-sm"
+                           value={geminiKey}
+                           onChange={e => setGeminiKey(e.target.value)}
+                        />
+                        <button onClick={() => setShowKey(!showKey)} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                           {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                     </div>
+                     <button onClick={saveGeminiKey} className={`px-5 py-3 rounded-xl font-bold text-sm transition-all ${keySaved ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white hover:bg-amber-600'}`}>
+                        {keySaved ? <Check size={18} /> : 'حفظ'}
+                     </button>
+                  </div>
                </div>
 
                <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl space-y-4">

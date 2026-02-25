@@ -52,10 +52,16 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
       return;
     }
 
+    const apiKey = localStorage.getItem('tamkeen_gemini_key') || '';
+    if (!apiKey) {
+      alert("يرجى إضافة مفتاح Gemini API في صفحة الإعدادات أولاً.\n(احصل عليه مجاناً من aistudio.google.com)");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const ai = new GoogleGenAI({ apiKey });
       const prompt = `أنت خبير بيداغوجي ومفتش تربوي بوزارة التربية الوطنية الجزائرية.
       قم بتوليد "مذكرة بيداغوجية" رسمية كاملة لدرس بـ ${profile.level === 'PRIMARY' ? 'التعليم الابتدائي' : profile.level === 'MIDDLE' ? 'التعليم المتوسط' : 'التعليم الثانوي'}.
 
@@ -94,14 +100,18 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
       });
 
-      let text = response.response.text() || "{}";
+      let text = response.text || "{}";
       text = text.replace(/```json/g, '').replace(/```/g, '').replace(/[\n\r]/g, '').trim();
       const result = JSON.parse(text);
       setGeneratedMemo(result);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("حدث خطأ أثناء التوليد البيداغوجي. يرجى المحاولة لاحقاً.");
+      if (error?.message?.includes('API_KEY')) {
+        alert("مفتاح API غير صالح. يرجى التحقق من المفتاح في صفحة الإعدادات.");
+      } else {
+        alert("حدث خطأ أثناء التوليد البيداغوجي. يرجى المحاولة لاحقاً.\n" + error?.message);
+      }
     } finally {
       setIsLoading(false);
     }
