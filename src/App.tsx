@@ -110,23 +110,13 @@ const App: React.FC = () => {
 
   const profile = auth.profile;
 
-  // Keep URL at base path — prevent external URL changes
   const setTab = (tab: TabType) => {
     setActiveTab(tab);
-    // Reset URL to base path if it changed
-    const basePath = window.location.pathname === '/' ? '/' : '/';
-    if (window.location.pathname !== basePath) {
-      window.history.replaceState(null, '', basePath);
-    }
   };
 
   useEffect(() => {
     preloadFonts();
     if (window.innerWidth >= 1024) setSidebarOpen(true);
-    // Reset URL on initial load
-    if (window.location.pathname !== '/') {
-      window.history.replaceState(null, '', '/');
-    }
   }, []);
 
   useEffect(() => {
