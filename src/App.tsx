@@ -499,7 +499,7 @@ const App: React.FC = () => {
           </div>
         )}
       </div>
-      <SystemStatusMonitor auth={auth} unreadCount={unreadCount} lastError={lastError} />
+      {auth.isAdmin && <SystemStatusMonitor auth={auth} unreadCount={unreadCount} lastError={lastError} />}
     </>
   );
 };
