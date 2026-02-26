@@ -143,3 +143,38 @@ export interface StudentScore {
   scoresBySubject?: Record<string, Record<string, any>>;
   status?: string;
 }
+
+// --- RESOURCE BANK ---
+
+export interface Resource {
+  id: string;
+  subject: string;
+  level: string;
+  grade: string;
+  unit?: string;
+  activity: string;
+  title: string;
+  normalized_title: string;
+  objective?: string;
+  content?: string;
+  tools?: string;
+  method?: string;
+  source: 'admin' | 'ai' | 'user';
+  usage_count: number;
+  created_at?: string;
+  updated_at?: string;
+  files?: ResourceFile[];
+}
+
+export interface ResourceFile {
+  id: string;
+  resource_id: string;
+  file_name: string;
+  file_type: string;
+  media_type: 'document' | 'video';
+  file_url: string;
+  file_size?: number;
+  duration_seconds?: number;
+  uploaded_by?: string;
+  uploaded_at?: string;
+}

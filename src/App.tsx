@@ -16,7 +16,8 @@ import PlansView from './lib/views/Plans';
 import SettingsView from './lib/views/Settings';
 import AbsenceView from './lib/views/Absence';
 import { syncService } from './services/SyncService';
-import ResourcesView from './lib/views/Resources';
+import ResourceBankView from './lib/views/ResourceBankView';
+import AdminResourceManager from './features/admin/AdminResourceManager';
 import DashboardView from './lib/views/Dashboard';
 import GradingView from './lib/views/Grading';
 import SmartMemoView from './lib/views/SmartMemo';
@@ -369,23 +370,26 @@ const App: React.FC = () => {
               {activeTab === 'memo' && <SmartMemoView profile={profile} />}
               {activeTab === 'grading' && <GradingView profile={profile} />}
               {activeTab === 'absence' && <AbsenceView profile={profile} lang={lang} />}
-              {activeTab === 'resources' && <ResourcesView profile={profile} lang={lang} />}
+              {activeTab === 'resources' && <ResourceBankView profile={profile} />}
               {activeTab === 'annual' && <PlansView profile={profile} lang={lang} type="annual" />}
               {activeTab === 'settings' && <SettingsView profile={profile} onUpdate={(p) => auth.updateProfile(p)} darkMode={darkMode} setDarkMode={setDarkMode} />}
               {activeTab === 'admin' && <AdminPanel />}
               {activeTab === 'messages' && <MessagesPanel />}
               {activeTab === 'database' && (
-                <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-700 shadow-sm animate-in fade-in">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-2xl">
-                      <Database size={24} />
+                <div className="space-y-8 animate-in fade-in">
+                  <AdminResourceManager profile={profile} />
+                  <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-2xl">
+                        <Database size={24} />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black text-slate-900 dark:text-white">قاعدة البيانات المحلية</h2>
+                        <p className="text-xs text-slate-500">عرض مباشر للبيانات المحلية (SQLite)</p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-xl font-black text-slate-900 dark:text-white">قاعدة البيانات</h2>
-                      <p className="text-xs text-slate-500">عرض مباشر للبيانات المحلية (SQLite)</p>
-                    </div>
+                    <RepositoryConfig />
                   </div>
-                  <RepositoryConfig />
                 </div>
               )}
             </div>
