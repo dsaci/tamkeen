@@ -6,7 +6,6 @@
 
 import { getSupabaseClient } from '../config/supabaseClient';
 import { Resource, ResourceFile } from '../types';
-import { GoogleGenAI } from '@google/genai';
 
 // ── Title Normalization ──
 
@@ -244,6 +243,7 @@ export async function generateAndSaveResource(params: {
     if (!apiKey) return null;
 
     try {
+        const { GoogleGenAI } = await import('@google/genai');
         const ai = new GoogleGenAI({ apiKey });
 
         const levelLabel = params.level === 'PRIMARY'
