@@ -48,26 +48,26 @@ export const LoginForm = () => {
             const client = getSupabaseClient();
             if (!client) throw new Error('لا يمكن الاتصال بالخادم');
 
-            // Perform all lookups in parallel for maximum speed and robustness
-            const queries = [
-                // 1. Dedicated column (Ideal/Indexed)
-                client.from('profiles').select('email').eq('tamkeen_id', tamkeenId).maybeSingle(),
-                // 2. Metadata JSONB (camelCase)
-                client.from('profiles').select('email').contains('metadata', { tamkeenId }).maybeSingle(),
-                // 3. Metadata JSONB (snake_case)
-                client.from('profiles').select('email').contains('metadata', { tamkeen_id: tamkeenId }).maybeSingle()
-            ];
+            // Perform lookup via secure RPC (Best Performance & Bypasses RLS)
+            let { data: rpcData, error: rpcError } = await client
+                .rpc('get_user_email_by_tamkeen_id', { p_tamkeen_id: tamkeenId });
 
-            const results = await Promise.all(queries);
+            let profileData = rpcData?.[0] || rpcData; // Handle both single and array returns
 
-            // Find the first successful result that actually returned an email
-            // We ignore errors (like 400 if column doesn't exist) to allow fallbacks to work
-            const successfulResult = results.find(r => !r.error && r.data?.email);
-            const profileData = successfulResult?.data;
-            const finalError = results.every(r => r.error) ? results[0].error : null;
+            // Local fallback if RPC fails (e.g., not yet deployed or schema mismatch)
+            if (!profileData?.email) {
+                console.warn('[QR Login] RPC failed, trying local fallback...', rpcError);
+                const queries = [
+                    client.from('profiles').select('email').eq('tamkeen_id', tamkeenId).maybeSingle(),
+                    client.from('profiles').select('email').contains('metadata', { tamkeenId }).maybeSingle(),
+                    client.from('profiles').select('email').contains('metadata', { tamkeen_id: tamkeenId }).maybeSingle()
+                ];
+                const results = await Promise.all(queries);
+                const successfulResult = results.find(r => !r.error && r.data?.email);
+                profileData = successfulResult?.data;
+            }
 
             if (!profileData?.email) {
-                console.error('[QR Login] All lookups failed or returned empty:', results.map(r => r.error));
                 throw new Error('المعرف الرقمي غير صحيح أو غير مسجل. تأكد من الرمز.');
             }
 
