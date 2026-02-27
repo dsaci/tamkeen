@@ -237,50 +237,54 @@ const App: React.FC = () => {
             <p className="text-xs text-emerald-700 font-bold uppercase tracking-widest mb-8 opacity-90 text-center">الكراس اليومي الرقمي الموحد</p>
 
             <div
-              className="w-full bg-emerald-50/50 dark:bg-slate-800/40 rounded-[2.5rem] p-5 border border-emerald-100 dark:border-slate-700 flex flex-col items-center group relative cursor-pointer transition-all active:scale-95 shadow-sm hover:shadow-md hover:border-emerald-300"
+              className="w-full bg-emerald-50/50 dark:bg-slate-800/40 rounded-[2rem] p-3 border border-emerald-100 dark:border-slate-700 flex flex-col items-center group relative cursor-pointer transition-all duration-500 shadow-sm hover:shadow-lg hover:border-emerald-300 hover:p-5 hover:rounded-[2.5rem]"
               onClick={() => setShowIdCard(true)}
             >
-              <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-              <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-500 rounded-full"></div>
-              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-2">المعرف الرقمي الموحد</p>
+              <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></div>
+              <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+              <p className="text-[8px] font-black text-emerald-600 uppercase tracking-[0.15em] mb-1 group-hover:text-[9px] group-hover:tracking-[0.2em] group-hover:mb-2 transition-all duration-300">المعرف الرقمي الموحد</p>
 
-              {/* QR Code */}
-              <div className="bg-white p-2 rounded-2xl shadow-inner mb-2">
+              {/* QR Code - small default, larger on hover */}
+              <div className="bg-white p-1 rounded-xl shadow-inner mb-1 group-hover:p-2 group-hover:rounded-2xl group-hover:mb-2 transition-all duration-300">
                 <QRCodeCanvas
                   value={`tamkeen://${profile.tamkeenId}`}
-                  size={80}
+                  size={40}
                   level="M"
                   includeMargin={false}
                   bgColor="#ffffff"
                   fgColor="#1b4332"
+                  className="transition-all duration-300 group-hover:w-[70px] group-hover:h-[70px]"
+                  style={{ width: 40, height: 40 }}
                 />
               </div>
 
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black font-mono tracking-widest text-slate-600 dark:text-slate-400 truncate max-w-[120px]">
+              <div className="flex items-center gap-1.5 transition-all duration-300">
+                <span className="text-[8px] font-bold font-mono tracking-wider text-slate-500 dark:text-slate-400 truncate max-w-[100px] group-hover:text-[10px] group-hover:font-black group-hover:tracking-widest transition-all duration-300">
                   {profile.tamkeenId}
                 </span>
-                <button onClick={copyId} className="p-1.5 bg-emerald-600 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-emerald-700">
-                  {copied ? <Check size={10} /> : <Copy size={10} />}
+                <button onClick={copyId} className="p-1 bg-emerald-600 rounded-md text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-emerald-700">
+                  {copied ? <Check size={8} /> : <Copy size={8} />}
                 </button>
               </div>
 
-              <div className="w-full space-y-1.5 mt-2 border-t border-emerald-100 dark:border-slate-700 pt-2">
-                <div className="flex items-center gap-2">
-                  <Wifi size={10} className="text-emerald-500 flex-shrink-0" />
-                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400">متصل بجديد وزارة التربية الوطنية</span>
+              {/* Hidden by default, shown on hover */}
+              <div className="max-h-0 overflow-hidden group-hover:max-h-40 transition-all duration-500 w-full">
+                <div className="space-y-1 mt-2 border-t border-emerald-100 dark:border-slate-700 pt-2">
+                  <div className="flex items-center gap-1.5">
+                    <Wifi size={8} className="text-emerald-500 flex-shrink-0" />
+                    <span className="text-[7px] font-bold text-slate-500 dark:text-slate-400">متصل بجديد وزارة التربية الوطنية</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck size={8} className="text-indigo-500 flex-shrink-0" />
+                    <span className="text-[7px] font-bold text-slate-500 dark:text-slate-400">التوثيق الرسمي للمستندات</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Fingerprint size={8} className="text-amber-500 flex-shrink-0" />
+                    <span className="text-[7px] font-bold text-slate-500 dark:text-slate-400">البصمة الرقمية لحماية حقوقك</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={10} className="text-indigo-500 flex-shrink-0" />
-                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400">التوثيق الرسمي للمستندات المطبوعة</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Fingerprint size={10} className="text-amber-500 flex-shrink-0" />
-                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400">البصمة الرقمية لحماية حقوقك الفكرية</span>
-                </div>
+                <p className="text-[7px] text-slate-400 mt-1.5 font-bold text-center">امسح QR للدخول الفوري</p>
               </div>
-
-              <p className="text-[8px] text-slate-400 mt-2 font-bold group-hover:text-emerald-600 transition-colors text-center">امسح QR للدخول الفوري من أي جهاز</p>
             </div>
           </div>
 

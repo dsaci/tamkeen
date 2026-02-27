@@ -68,7 +68,7 @@ export async function listResources(filters?: {
 
     let query = client
         .from('resource_bank')
-        .select('*, files(*)');
+        .select('id, subject, level, grade, unit, activity, title, objective, content, tools, method, source, usage_count, created_at');
 
     if (filters?.subject) query = query.eq('subject', filters.subject);
     if (filters?.level) query = query.eq('level', filters.level);
@@ -76,7 +76,7 @@ export async function listResources(filters?: {
     if (filters?.activity) query = query.eq('activity', filters.activity);
     if (filters?.search) query = query.ilike('title', `%${filters.search}%`);
 
-    query = query.order('usage_count', { ascending: false }).limit(50);
+    query = query.order('usage_count', { ascending: false }).limit(20);
 
     const { data, error } = await query;
     if (error) {
