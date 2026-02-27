@@ -4,8 +4,20 @@ import {
     FileText, Film, Download, Layers, ChevronDown, BookOpen,
     Target, Wrench, ArrowRight
 } from 'lucide-react';
-import { TeacherProfile, Resource } from '../../types';
+import { TeacherProfile, Resource, SchoolLevel } from '../../types';
 import { listResources, smartFetchResource } from '../../services/resourceBankService';
+
+const LEVEL_OPTIONS: { id: SchoolLevel; label: string }[] = [
+    { id: 'PRIMARY', label: 'ابتدائي' },
+    { id: 'MIDDLE', label: 'متوسط' },
+    { id: 'HIGH', label: 'ثانوي' },
+];
+
+const GRADES_BY_LEVEL: Record<SchoolLevel, string[]> = {
+    PRIMARY: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'],
+    MIDDLE: ['السنة الأولى متوسط', 'السنة الثانية متوسط', 'السنة الثالثة متوسط', 'السنة الرابعة متوسط'],
+    HIGH: ['السنة الأولى ثانوي', 'السنة الثانية ثانوي', 'السنة الثالثة ثانوي'],
+};
 
 interface Props {
     profile: TeacherProfile;
@@ -20,6 +32,7 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
 
     // Filters
     const [filterSubject, setFilterSubject] = useState(profile.teachingSubject || '');
+    const [filterLevel, setFilterLevel] = useState<SchoolLevel>(profile.level || 'PRIMARY');
     const [filterGrade, setFilterGrade] = useState(profile.grades?.[0] || '');
     const [filterActivity, setFilterActivity] = useState('');
     const [searchTitle, setSearchTitle] = useState('');
@@ -27,13 +40,21 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
     // Load resources on mount and filter change
     useEffect(() => {
         loadResources();
-    }, [filterSubject, filterGrade, filterActivity]);
+    }, [filterSubject, filterLevel, filterGrade, filterActivity]);
+
+    // Reset grade when level changes
+    useEffect(() => {
+        const newGrades = GRADES_BY_LEVEL[filterLevel] || [];
+        if (!newGrades.includes(filterGrade)) {
+            setFilterGrade(newGrades[0] || '');
+        }
+    }, [filterLevel]);
 
     const loadResources = async () => {
         setIsLoading(true);
         const results = await listResources({
             subject: filterSubject || undefined,
-            level: profile.level,
+            level: filterLevel,
             grade: filterGrade || undefined,
             activity: filterActivity || undefined,
         });
@@ -49,7 +70,7 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
 
         const result = await smartFetchResource({
             subject: filterSubject,
-            level: profile.level,
+            level: filterLevel,
             grade: filterGrade,
             activity: filterActivity,
             title: searchTitle,
@@ -67,7 +88,7 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
         setIsFetching(false);
     };
 
-    const levelLabel = profile.level === 'PRIMARY' ? 'ابتدائي' : profile.level === 'MIDDLE' ? 'متوسط' : 'ثانوي';
+    const levelLabel = filterLevel === 'PRIMARY' ? 'ابتدائي' : filterLevel === 'MIDDLE' ? 'متوسط' : 'ثانوي';
 
     const commonActivities = [
         'فهم المنطوق', 'فهم المكتوب', 'إنتاج كتابي', 'إنتاج شفهي',
@@ -105,7 +126,21 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
                     <h3 className="font-black text-slate-800 dark:text-white">تصفية البحث</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    {/* Level */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase pr-2">الطور الدراسي</label>
+                        <select
+                            value={filterLevel}
+                            onChange={e => setFilterLevel(e.target.value as SchoolLevel)}
+                            className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                        >
+                            {LEVEL_OPTIONS.map(l => (
+                                <option key={l.id} value={l.id}>{l.label}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     {/* Subject */}
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase pr-2">المادة</label>
@@ -119,13 +154,14 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
 
                     {/* Grade */}
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase pr-2">المستوى</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase pr-2">المستوى (السنة)</label>
                         <select
                             value={filterGrade}
                             onChange={e => setFilterGrade(e.target.value)}
                             className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
                         >
-                            {profile.grades?.map(g => (
+                            <option value="">الكل</option>
+                            {(GRADES_BY_LEVEL[filterLevel] || []).map(g => (
                                 <option key={g} value={g}>{g}</option>
                             ))}
                         </select>

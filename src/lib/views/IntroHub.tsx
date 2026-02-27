@@ -140,12 +140,12 @@ export default function IntroHub({ profile, onNavigate, darkMode, toggleDarkMode
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 w-full animate-in slide-in-from-bottom-20 duration-1000 delay-150 fade-in fill-mode-backwards">
+        <div className="flex flex-wrap justify-center gap-6 w-full max-w-5xl mx-auto animate-in slide-in-from-bottom-20 duration-1000 delay-150 fade-in fill-mode-backwards">
           {CARDS.filter(card => card.id !== 'database' || isAdmin).map((card, idx) => (
             <button
               key={card.id}
               onClick={() => onNavigate(card.id as TabType)}
-              className={`relative group flex flex-col items-start p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl hover:shadow-2xl ${card.shadow} transition-all duration-300 hover:-translate-y-3 text-right overflow-hidden`}
+              className={`relative group flex flex-col items-start p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl hover:shadow-2xl ${card.shadow} transition-all duration-300 hover:-translate-y-3 text-right overflow-hidden w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]`}
               style={{ animationDelay: `${idx * 100}ms` }}
             >
               <div className={`w-16 h-16 rounded-[1.5rem] bg-gradient-to-br ${card.color} text-white flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
