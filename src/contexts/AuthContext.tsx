@@ -70,19 +70,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Detect if we're returning from a Magic Link (OTP) email
-        // Supabase puts the token in the URL hash: #access_token=...&type=magiclink
-        const hash = window.location.hash;
-        const isAuthCallback = hash.includes('access_token') || hash.includes('error=');
-
-        if (isAuthCallback) {
-          console.log('[Auth] Magic Link callback detected, processing token...');
-          // Give Supabase client ~300ms to auto-parse the hash and set the session
-          await new Promise(resolve => setTimeout(resolve, 300));
-          // Clean the hash from URL for a nicer UX (without triggering a reload)
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
-        }
-
         const sessionInfo = await authService.getSession();
         applySession(sessionInfo);
 
