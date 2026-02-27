@@ -6,7 +6,7 @@ import {
 import { TeacherProfile, Resource, ResourceFile } from '../../types';
 import {
     listResources, addResource, updateResource, deleteResource,
-    uploadFile, deleteFile
+    uploadFileWithProgress, deleteFile
 } from '../../services/resourceBankService';
 
 interface Props {
@@ -24,6 +24,8 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
     const [filterGrade, setFilterGrade] = useState('');
     const [uploadingFor, setUploadingFor] = useState<string | null>(null);
     const [tempFiles, setTempFiles] = useState<File[]>([]);
+    const [uploadProgress, setUploadProgress] = useState<Record<number, number>>({});
+    const [currentUploadName, setCurrentUploadName] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const formFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,10 +89,15 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
         if (editingId) {
             const success = await updateResource(editingId, form);
             if (success) {
-                // Upload any temp files
-                for (const file of tempFiles) {
-                    await uploadFile(editingId, file);
+                // Upload any temp files with progress
+                for (let i = 0; i < tempFiles.length; i++) {
+                    setCurrentUploadName(tempFiles[i].name);
+                    await uploadFileWithProgress(editingId, tempFiles[i], (percent) => {
+                        setUploadProgress(prev => ({ ...prev, [i]: percent }));
+                    });
                 }
+                setUploadProgress({});
+                setCurrentUploadName('');
                 await loadResources();
                 resetForm();
             } else {
@@ -99,10 +106,15 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
         } else {
             const result = await addResource(form);
             if (result) {
-                // Upload any temp files
-                for (const file of tempFiles) {
-                    await uploadFile(result.id, file);
+                // Upload any temp files with progress
+                for (let i = 0; i < tempFiles.length; i++) {
+                    setCurrentUploadName(tempFiles[i].name);
+                    await uploadFileWithProgress(result.id, tempFiles[i], (percent) => {
+                        setUploadProgress(prev => ({ ...prev, [i]: percent }));
+                    });
                 }
+                setUploadProgress({});
+                setCurrentUploadName('');
                 await loadResources();
                 resetForm();
             } else {
@@ -149,7 +161,13 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
             return;
         }
 
-        const result = await uploadFile(uploadingFor, file);
+        setCurrentUploadName(file.name);
+        const result = await uploadFileWithProgress(uploadingFor, file, (percent) => {
+            setUploadProgress({ 0: percent });
+        });
+        setUploadProgress({});
+        setCurrentUploadName('');
+
         if (result) {
             await loadResources();
             alert(`✅ تم رفع ${file.name} بنجاح`);
@@ -361,17 +379,32 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
                         </label>
 
                         {tempFiles.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
+                            <div className="space-y-2">
                                 {tempFiles.map((file, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                        {['video/mp4', 'video/webm'].includes(file.type) || file.name.endsWith('.mp4') ? <Film size={14} className="text-rose-500" /> : <FileText size={14} className="text-blue-500" />}
-                                        <span className="truncate max-w-[150px]">{file.name}</span>
-                                        <button
-                                            onClick={() => setTempFiles(prev => prev.filter((_, i) => i !== idx))}
-                                            className="text-slate-400 hover:text-rose-500 mr-2"
-                                        >
-                                            <X size={14} />
-                                        </button>
+                                    <div key={idx} className="flex flex-col bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                            {['video/mp4', 'video/webm'].includes(file.type) || file.name.endsWith('.mp4') ? <Film size={14} className="text-rose-500" /> : <FileText size={14} className="text-blue-500" />}
+                                            <span className="truncate flex-1">{file.name}</span>
+                                            <span className="text-[9px] text-slate-400">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                                            {uploadProgress[idx] !== undefined ? (
+                                                <span className="text-[10px] font-black text-emerald-600">{uploadProgress[idx]}%</span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setTempFiles(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="text-slate-400 hover:text-rose-500"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            )}
+                                        </div>
+                                        {uploadProgress[idx] !== undefined && (
+                                            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300 ease-out"
+                                                    style={{ width: `${uploadProgress[idx]}%` }}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -384,8 +417,17 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
                         disabled={isSaving}
                         className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-sm shadow-lg flex items-center justify-center gap-3 hover:bg-emerald-700 transition disabled:opacity-50 border-b-4 border-emerald-800"
                     >
-                        {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                        {editingId ? 'حفظ التعديلات' : 'إضافة المورد'}
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="animate-spin" size={18} />
+                                {currentUploadName ? `جاري رفع ${currentUploadName}...` : 'جاري الحفظ...'}
+                            </>
+                        ) : (
+                            <>
+                                <Save size={18} />
+                                {editingId ? 'حفظ التعديلات' : 'إضافة المورد'}
+                            </>
+                        )}
                     </button>
                 </div>
             )}

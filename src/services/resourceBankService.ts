@@ -156,6 +156,15 @@ export async function uploadFile(
     file: File,
     uploadedBy?: string
 ): Promise<ResourceFile | null> {
+    return uploadFileWithProgress(resourceId, file, undefined, uploadedBy);
+}
+
+export async function uploadFileWithProgress(
+    resourceId: string,
+    file: File,
+    onProgress?: (percent: number) => void,
+    uploadedBy?: string
+): Promise<ResourceFile | null> {
     const client = getSupabaseClient();
     if (!client) return null;
 
@@ -163,18 +172,53 @@ export async function uploadFile(
     const mediaType: 'document' | 'video' = ['mp4', 'webm'].includes(ext) ? 'video' : 'document';
     const filePath = `resources/${resourceId}/${Date.now()}_${file.name}`;
 
-    // Upload to storage
-    const { error: uploadError } = await client.storage
-        .from('pedagogical-files')
-        .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false,
-        });
+    // Get the Supabase URL & key for XHR upload
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kqfyovljkjdxqyvpzqum.supabase.co';
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+        || import.meta.env.VITE_SUPABASE_ANON_KEY
+        || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZnlvdmxqa2pkeHF5dnB6cXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDYyMTksImV4cCI6MjA4NTY4MjIxOX0.aVoohtaslgXArVWAKhOh7yqYlm_iPCT7fehq1_iVhPM';
 
-    if (uploadError) {
+    // Get session token for auth header
+    const { data: sessionData } = await client.auth.getSession();
+    const accessToken = sessionData?.session?.access_token || supabaseKey;
+
+    try {
+        // XHR upload with progress
+        await new Promise<void>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            const uploadUrl = `${supabaseUrl}/storage/v1/object/pedagogical-files/${filePath}`;
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable && onProgress) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    onProgress(percent);
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve();
+                } else {
+                    reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error('Network error during upload'));
+
+            xhr.open('POST', uploadUrl, true);
+            xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+            xhr.setRequestHeader('x-upsert', 'false');
+            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+            xhr.setRequestHeader('Cache-Control', 'max-age=3600');
+            xhr.send(file);
+        });
+    } catch (uploadError) {
         console.error('[ResourceBank] Upload error:', uploadError);
+        onProgress?.(0);
         return null;
     }
+
+    onProgress?.(100);
 
     // Get public URL
     const { data: urlData } = client.storage
