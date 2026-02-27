@@ -24,6 +24,7 @@ import SmartMemoView from './lib/views/SmartMemo';
 import IntroHub from './lib/views/IntroHub';
 import LandingPage from './lib/views/LandingPage';
 import RepositoryConfig from './lib/views/RepositoryConfig'; // New Repository View
+import { QRCodeCanvas } from 'qrcode.react';
 import InspirationBanner from './legacy_components/InspirationBanner';
 import LoadingScreen from './legacy_components/LoadingScreen';
 import { AdminPanel } from './features/admin/AdminPanel';
@@ -236,21 +237,50 @@ const App: React.FC = () => {
             <p className="text-xs text-emerald-700 font-bold uppercase tracking-widest mb-8 opacity-90 text-center">الكراس اليومي الرقمي الموحد</p>
 
             <div
-              className="w-full bg-emerald-50/50 dark:bg-slate-800/40 rounded-[2.5rem] p-6 border border-emerald-100 dark:border-slate-700 flex flex-col items-center group relative cursor-pointer transition-all active:scale-95 shadow-sm hover:shadow-md hover:border-emerald-300"
+              className="w-full bg-emerald-50/50 dark:bg-slate-800/40 rounded-[2.5rem] p-5 border border-emerald-100 dark:border-slate-700 flex flex-col items-center group relative cursor-pointer transition-all active:scale-95 shadow-sm hover:shadow-md hover:border-emerald-300"
               onClick={() => setShowIdCard(true)}
             >
               <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
               <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-500 rounded-full"></div>
-              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-3">هوية العبور الرقمي</p>
-              <div className="flex items-center gap-3">
-                <span className="text-xl font-black font-mono tracking-widest text-slate-900 dark:text-white truncate max-w-[120px]">
+              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-2">المعرف الرقمي الموحد</p>
+
+              {/* QR Code */}
+              <div className="bg-white p-2 rounded-2xl shadow-inner mb-2">
+                <QRCodeCanvas
+                  value={`tamkeen://${profile.tamkeenId}`}
+                  size={80}
+                  level="M"
+                  includeMargin={false}
+                  bgColor="#ffffff"
+                  fgColor="#1b4332"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-black font-mono tracking-widest text-slate-600 dark:text-slate-400 truncate max-w-[120px]">
                   {profile.tamkeenId}
                 </span>
-                <button onClick={copyId} className="p-2 bg-emerald-600 rounded-xl text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-emerald-700">
-                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                <button onClick={copyId} className="p-1.5 bg-emerald-600 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-emerald-700">
+                  {copied ? <Check size={10} /> : <Copy size={10} />}
                 </button>
               </div>
-              <p className="text-[9px] text-slate-400 mt-2 font-bold group-hover:text-emerald-600 transition-colors">اضغط للعرض والتحقق</p>
+
+              <div className="w-full space-y-1.5 mt-2 border-t border-emerald-100 dark:border-slate-700 pt-2">
+                <div className="flex items-center gap-2">
+                  <Wifi size={10} className="text-emerald-500 flex-shrink-0" />
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400">متصل بجديد وزارة التربية الوطنية</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={10} className="text-indigo-500 flex-shrink-0" />
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400">التوثيق الرسمي للمستندات المطبوعة</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Fingerprint size={10} className="text-amber-500 flex-shrink-0" />
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400">البصمة الرقمية لحماية حقوقك الفكرية</span>
+                </div>
+              </div>
+
+              <p className="text-[8px] text-slate-400 mt-2 font-bold group-hover:text-emerald-600 transition-colors text-center">امسح QR للدخول الفوري من أي جهاز</p>
             </div>
           </div>
 

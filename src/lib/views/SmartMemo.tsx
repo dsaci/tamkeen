@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { PenTool, Zap, Download, RefreshCw, FileText, Sparkles, Layers, BookOpen, Target, CheckCircle2, ChevronLeft, Layout } from 'lucide-react';
-import { TeacherProfile } from '../../types';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { PenTool, Zap, Download, RefreshCw, FileText, Sparkles, Layers, BookOpen, Target, CheckCircle2, ChevronLeft, Layout, Database, X, Loader2 } from 'lucide-react';
+import { TeacherProfile, Resource } from '../../types';
 import { GoogleGenAI } from "@google/genai";
 import { TamkeenLogo } from '../../legacy_components/TamkeenLogo';
-import { addResource } from '../../services/resourceBankService';
+import { addResource, listResources } from '../../services/resourceBankService';
 
 interface MemoData {
   memoNumber: string;
@@ -44,8 +44,62 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
   const [generatedMemo, setGeneratedMemo] = useState<MemoContent | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [resourceSuggestions, setResourceSuggestions] = useState<Resource[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const memoRef = useRef<HTMLDivElement>(null);
   const printTemplateRef = useRef<HTMLDivElement>(null);
+
+  // Auto-search resource bank when subject/activity/topic changes
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      if (formData.subject || formData.activity || formData.topic) {
+        setIsSearching(true);
+        try {
+          const results = await listResources({
+            subject: formData.subject || undefined,
+            activity: formData.activity || undefined,
+            search: formData.topic || undefined,
+          });
+          setResourceSuggestions(results.slice(0, 5));
+          if (results.length > 0) setShowSuggestions(true);
+        } catch (err) {
+          console.warn('[SmartMemo] Resource search error:', err);
+        }
+        setIsSearching(false);
+      } else {
+        setResourceSuggestions([]);
+      }
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [formData.subject, formData.activity, formData.topic]);
+
+  const applyResourceSuggestion = useCallback((resource: Resource) => {
+    setFormData(prev => ({
+      ...prev,
+      topic: resource.title || prev.topic,
+      activity: resource.activity || prev.activity,
+      subject: resource.subject || prev.subject,
+      unit: resource.unit || prev.unit,
+      support: resource.tools || prev.support,
+    }));
+    // If resource has content, auto-build a memo from it
+    if (resource.content || resource.objective) {
+      setGeneratedMemo({
+        competencies: resource.objective || '',
+        objectives: resource.objective ? resource.objective.split('،').map((s: string) => s.trim()) : [],
+        values: '',
+        steps: [{
+          stage: 'محتوى المورد',
+          teacherActivity: resource.content || '',
+          studentActivity: '',
+          competency: resource.objective || '',
+          method: resource.method || ''
+        }]
+      });
+    }
+    setShowSuggestions(false);
+  }, []);
 
   const generateMemo = async () => {
     if (!formData.topic || !formData.activity) {
@@ -234,10 +288,42 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             <input type="text" placeholder="مثال: فهم المنطوق، قراءة معبرة، حساب..." value={formData.activity} onChange={e => setFormData({ ...formData, activity: e.target.value })} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl font-black text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all dark:text-white" />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 relative">
             <label className="text-[10px] font-black text-slate-400 uppercase pr-2">الموضوع / عنوان الدرس:</label>
             <input type="text" placeholder="عنوان الدرس بدقة..." value={formData.topic} onChange={e => setFormData({ ...formData, topic: e.target.value })} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl font-black text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all dark:text-white" />
+            {isSearching && (
+              <div className="absolute left-4 top-1/2 translate-y-2">
+                <Loader2 size={14} className="animate-spin text-emerald-500" />
+              </div>
+            )}
           </div>
+
+          {/* Resource Bank Suggestions */}
+          {resourceSuggestions.length > 0 && showSuggestions && (
+            <div className="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-2 animate-in slide-in-from-top-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                  <Database size={14} />
+                  <span className="text-[10px] font-black uppercase">اقتراحات من بنك الموارد</span>
+                  <span className="text-[9px] bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full font-black">{resourceSuggestions.length}</span>
+                </div>
+                <button onClick={() => setShowSuggestions(false)} className="text-slate-400 hover:text-rose-500"><X size={14} /></button>
+              </div>
+              {resourceSuggestions.map(res => (
+                <button
+                  key={res.id}
+                  onClick={() => applyResourceSuggestion(res)}
+                  className="w-full text-right p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-emerald-400 hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-slate-800 dark:text-white group-hover:text-emerald-700 transition-colors">{res.title}</span>
+                    <span className="text-[9px] font-bold text-slate-400">{res.activity}</span>
+                  </div>
+                  {res.objective && <p className="text-[10px] text-slate-500 mt-1 truncate">{res.objective}</p>}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase pr-2">السندات والوسائل:</label>
