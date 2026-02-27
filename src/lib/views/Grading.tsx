@@ -36,26 +36,26 @@ const GradingView: React.FC<Props> = ({ profile }) => {
   const isMiddle = profile.level === 'MIDDLE';
   const isHigh = profile.level === 'HIGH';
 
-  const isPrimaryArabic = isPrimary && profile.teachingSubject.includes('عربية');
-  const isPrimaryForeign = isPrimary && (profile.teachingSubject.includes('فرنسية') || profile.teachingSubject.includes('إنجليزية'));
-  const isPrimaryPE = isPrimary && profile.teachingSubject.includes('بدنية');
+  const isPrimaryArabic = isPrimary && (profile.teachingSubject?.includes('عربية') ?? false);
+  const isPrimaryForeign = isPrimary && ((profile.teachingSubject?.includes('فرنسية') || profile.teachingSubject?.includes('إنجليزية')) ?? false);
+  const isPrimaryPE = isPrimary && (profile.teachingSubject?.includes('بدنية') ?? false);
 
   const canHaveDualSubject = isMiddle && (profile.teachingSubject === 'اللغة العربية' || profile.teachingSubject === 'التاريخ والجغرافيا');
-  const [activeSubject, setActiveSubject] = useState(profile.teachingSubject);
+  const [activeSubject, setActiveSubject] = useState(profile.teachingSubject || '');
 
   const [activeMode, setActiveMode] = useState<'CONTINUOUS' | 'TEST' | 'EXAM' | 'ACQUISITION'>(
     isPrimary ? (isPrimaryPE ? 'CONTINUOUS' : 'EXAM') : 'TEST'
   );
 
   const getAvailableGrades = () => {
-    if (isPrimaryArabic) return profile.grades;
+    if (isPrimaryArabic) return profile.grades || [];
     if (isPrimaryForeign) return ['3 ابتدائي', '4 ابتدائي', '5 ابتدائي'];
     if (isPrimaryPE) return ['1 ابتدائي', '2 ابتدائي', '3 ابتدائي', '4 ابتدائي', '5 ابتدائي'];
-    return profile.grades;
+    return profile.grades || [];
   };
 
-  const availableGrades = getAvailableGrades();
-  const [activeGrade, setActiveGrade] = useState<string>(availableGrades[0] || '');
+  const availableGrades = getAvailableGrades() || [];
+  const [activeGrade, setActiveGrade] = useState<string>(availableGrades?.[0] || '');
   const [selectedGroup, setSelectedGroup] = useState<string>('1');
   const [searchTerm, setSearchTerm] = useState('');
   const [isImporting, setIsImporting] = useState(false);
