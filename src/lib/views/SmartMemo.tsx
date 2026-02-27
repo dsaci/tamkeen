@@ -304,6 +304,12 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             <h3 className="font-black text-slate-800 dark:text-white text-sm">معطيات المذكرة البيداغوجية</h3>
           </div>
 
+          {/* Auto-filled from profile */}
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 space-y-1">
+            <p><strong className="text-emerald-700 dark:text-emerald-400">المؤسسة:</strong> {profile.institution}</p>
+            <p><strong className="text-emerald-700 dark:text-emerald-400">الطور:</strong> {levelLabel} | <strong className="text-emerald-700 dark:text-emerald-400">الولاية:</strong> {profile.province?.split('-')[1] || profile.province}</p>
+          </div>
+
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1">
               <label className={labelCls}>رقم المذكرة</label>
@@ -311,7 +317,13 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             </div>
             <div className="space-y-1">
               <label className={labelCls}>المدة الزمنية</label>
-              <input type="text" value={formData.duration} onChange={e => setFormData({ ...formData, duration: e.target.value })} className={inputCls} />
+              <select value={formData.duration} onChange={e => setFormData({ ...formData, duration: e.target.value })} className={inputCls}>
+                <option value="30 دقيقة">30 دقيقة</option>
+                <option value="45 دقيقة">45 دقيقة</option>
+                <option value="60 دقيقة">60 دقيقة</option>
+                <option value="90 دقيقة">90 دقيقة</option>
+                <option value="120 دقيقة">120 دقيقة</option>
+              </select>
             </div>
             <div className="space-y-1">
               <label className={labelCls}>تاريخ الإنجاز</label>
@@ -322,11 +334,20 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className={labelCls}>المادة</label>
-              <input type="text" value={formData.subject} onChange={e => setFormData({ ...formData, subject: e.target.value })} className={inputCls} />
+              <select value={formData.subject} onChange={e => setFormData({ ...formData, subject: e.target.value })} className={inputCls}>
+                <option value={profile.teachingSubject}>{profile.teachingSubject}</option>
+                {['لغة عربية', 'رياضيات', 'لغة فرنسية', 'لغة إنجليزية', 'علوم طبيعية', 'علوم فيزيائية', 'تاريخ وجغرافيا', 'تربية إسلامية', 'تربية مدنية', 'تربية فنية', 'تربية بدنية', 'تربية موسيقية', 'تربية تكنولوجية', 'إعلام آلي', 'فلسفة'].filter(s => s !== profile.teachingSubject).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1">
               <label className={labelCls}>المستوى / القسم</label>
-              <input type="text" value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })} className={inputCls} />
+              <select value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })} className={inputCls}>
+                {profile.grades?.map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -336,7 +357,12 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
           </div>
           <div className="space-y-1">
             <label className={labelCls}>النشاط</label>
-            <input type="text" placeholder="فهم المنطوق، قراءة، حساب..." value={formData.activity} onChange={e => setFormData({ ...formData, activity: e.target.value })} className={inputCls} />
+            <select value={formData.activity} onChange={e => setFormData({ ...formData, activity: e.target.value })} className={inputCls}>
+              <option value="">— اختر النشاط —</option>
+              {['فهم المنطوق', 'فهم المكتوب', 'إنتاج كتابي', 'إنتاج شفهي', 'قراءة', 'قراءة معبرة', 'قواعد', 'إملاء', 'محفوظات', 'تعبير شفوي', 'تعبير كتابي', 'أعداد وحساب', 'هندسة', 'قياس ومقادير', 'تنظيم معطيات', 'تمارين', 'وضعية إدماجية', 'معالجة', 'تقويم', 'نشاط علمي', 'نشاط لغوي', 'نشاط رياضي'].map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1 relative">
             <label className={labelCls}>عنوان الدرس</label>
