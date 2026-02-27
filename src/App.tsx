@@ -140,6 +140,35 @@ const App: React.FC = () => {
     localStorage.setItem('dark_mode', darkMode.toString());
   }, [darkMode]);
 
+  // Handle Supabase PKCE OAuth / Magic Link Callback
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      // Check for PKCE code in URL query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      
+      if (code) {
+        console.log('[Auth] Found PKCE code in URL, exchanging for session...');
+        try {
+          const authService = (await import('./services/auth/AuthServiceFactory')).getAuthService();
+          const client = (authService as any).client || (await import('./config/supabaseClient')).getSupabaseClient();
+          
+          if (client) {
+            await client.auth.exchangeCodeForSession(code);
+            console.log('[Auth] Successfully exchanged code for session');
+          }
+        } catch (error) {
+          console.error('[Auth] Failed to exchange code for session:', error);
+        } finally {
+          // Clean the URL
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+    };
+
+    handleAuthCallback();
+  }, []);
+
   // if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
   //   return <AdminRoute />;
   // }
