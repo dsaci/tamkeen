@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, Minimize2, Maximize2, Sparkles, BrainCircuit, Zap } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { TeacherProfile } from '../types';
+import { addResource } from '../services/resourceBankService';
 
 interface Message {
   role: 'user' | 'model';
@@ -52,7 +53,20 @@ const SmartAssistant: React.FC<Props> = ({ profile }) => {
           temperature: 0.7,
         }
       });
-      setMessages(prev => [...prev, { role: 'model', text: response.text || "أعتذر، تعذر التوليد حالياً." }]);
+      const text = response.text || "أعتذر، تعذر التوليد حالياً.";
+      setMessages(prev => [...prev, { role: 'model', text }]);
+
+      if (response.text) {
+        addResource({
+          subject: profile.teachingSubject || 'مادة عامة',
+          level: profile.level,
+          grade: profile.grades?.[0] || '',
+          activity: 'مساعدة ذكية / توليد حصة',
+          title: userMessage.length > 60 ? userMessage.substring(0, 60) + '...' : userMessage,
+          content: text,
+          source: 'ai'
+        }).catch(err => console.error('Failed to auto-save to resource bank:', err));
+      }
     } catch (error) {
       setMessages(prev => [...prev, { role: 'model', text: "حدث خطأ في الاتصال بالذكاء الاصطناعي." }]);
     } finally {
@@ -73,8 +87,8 @@ const SmartAssistant: React.FC<Props> = ({ profile }) => {
       <div className="p-5 bg-[#0f172a] text-white flex items-center justify-between">
         <div className="flex items-center gap-3"><BrainCircuit size={20} /><h4 className="text-sm font-black">مساعد تمكين الذكي</h4></div>
         <div className="flex gap-2">
-          <button onClick={() => setIsMinimized(!isMinimized)}><Minimize2 size={16}/></button>
-          <button onClick={() => setIsOpen(false)}><X size={16}/></button>
+          <button onClick={() => setIsMinimized(!isMinimized)}><Minimize2 size={16} /></button>
+          <button onClick={() => setIsOpen(false)}><X size={16} /></button>
         </div>
       </div>
       {!isMinimized && (
@@ -88,7 +102,7 @@ const SmartAssistant: React.FC<Props> = ({ profile }) => {
           </div>
           <div className="p-5 bg-white border-t border-slate-100 flex gap-2">
             <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSendMessage()} placeholder="اطلب تحضير حصة بيداغوجية..." className="flex-1 p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-xs" />
-            <button onClick={handleSendMessage} className="bg-[#0f172a] text-white p-4 rounded-xl shadow-lg hover:bg-slate-800 transition-all"><Send size={18}/></button>
+            <button onClick={handleSendMessage} className="bg-[#0f172a] text-white p-4 rounded-xl shadow-lg hover:bg-slate-800 transition-all"><Send size={18} /></button>
           </div>
         </>
       )}

@@ -3,6 +3,7 @@ import { PenTool, Zap, Download, RefreshCw, FileText, Sparkles, Layers, BookOpen
 import { TeacherProfile } from '../../types';
 import { GoogleGenAI } from "@google/genai";
 import { TamkeenLogo } from '../../legacy_components/TamkeenLogo';
+import { addResource } from '../../services/resourceBankService';
 
 interface MemoData {
   memoNumber: string;
@@ -104,6 +105,22 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
       text = text.replace(/```json/g, '').replace(/```/g, '').replace(/[\n\r]/g, '').trim();
       const result = JSON.parse(text);
       setGeneratedMemo(result);
+
+      // Auto-save to resource bank
+      const contentStr = `الكفاءة الختامية: ${result.competencies || ''}\nالأهداف: ${(result.objectives || []).join('، ')}\nالقيم: ${result.values || ''}\n\nسير الحصة:\n${(result.steps || []).map((s: any) => `- ${s.stage || ''}: ${s.teacherActivity || ''} / ${s.studentActivity || ''}`).join('\n')}`;
+
+      addResource({
+        subject: formData.subject || profile.teachingSubject || 'مادة عامة',
+        level: profile.level,
+        grade: formData.grade || profile.grades?.[0] || '',
+        unit: formData.unit || '',
+        activity: formData.activity || 'مذكرة بيداغوجية',
+        title: formData.topic || 'مذكرة بدون عنوان',
+        objective: (result.objectives || []).join('، '),
+        content: contentStr,
+        tools: formData.support || '',
+        source: 'ai'
+      }).catch(err => console.error('Failed to auto-save to resource bank:', err));
 
     } catch (error: any) {
       console.error(error);
