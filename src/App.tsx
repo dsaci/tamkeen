@@ -141,26 +141,47 @@ const App: React.FC = () => {
   }, [darkMode]);
 
   // Handle Supabase PKCE OAuth / Magic Link Callback
+  const pkceHandledRef = React.useRef(false);
+
   useEffect(() => {
     const handleAuthCallback = async () => {
-      // Check for PKCE code in URL query params
+      // Prevent double-firing in React 18 Strict Mode
+      if (pkceHandledRef.current) return;
+
+      // Check for PKCE code or error in URL query params
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
-      
-      if (code) {
+      const errorStr = urlParams.get('error_description') || urlParams.get('error');
+
+      if (errorStr) {
+        console.error('[Auth] Supabase returned an error in URL:', errorStr);
+        // Clean URL so it doesn't loop
+        window.history.replaceState(null, '', window.location.pathname);
+        return;
+      }
+
+      if (code && !pkceHandledRef.current) {
+        pkceHandledRef.current = true;
         console.log('[Auth] Found PKCE code in URL, exchanging for session...');
         try {
+          // Add a tiny delay to ensure AuthContext initialized
+          await new Promise(resolve => setTimeout(resolve, 500));
+
           const authService = (await import('./services/auth/AuthServiceFactory')).getAuthService();
           const client = (authService as any).client || (await import('./config/supabaseClient')).getSupabaseClient();
-          
+
           if (client) {
-            await client.auth.exchangeCodeForSession(code);
-            console.log('[Auth] Successfully exchanged code for session');
+            const { error: exchangeError } = await client.auth.exchangeCodeForSession(code);
+            if (exchangeError) {
+              console.error('[Auth] Failed to exchange code:', exchangeError.message);
+            } else {
+              console.log('[Auth] Successfully exchanged code for session');
+            }
           }
         } catch (error) {
-          console.error('[Auth] Failed to exchange code for session:', error);
+          console.error('[Auth] Exception during code exchange:', error);
         } finally {
-          // Clean the URL
+          // Clean the URL to remove the code so refresh doesn't re-trigger
           window.history.replaceState(null, '', window.location.pathname);
         }
       }
