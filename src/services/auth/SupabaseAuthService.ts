@@ -85,6 +85,7 @@ export class SupabaseAuthService implements AuthService {
             const fullProfile = {
                 ...profile,
                 tamkeenId: finalTamkeenId,
+                tamkeen_id: finalTamkeenId, // Add snake_case version for easier DB querying
                 email
             };
 
@@ -112,6 +113,7 @@ export class SupabaseAuthService implements AuthService {
                         email: email,
                         full_name: profile.name || '',
                         role: 'teacher',
+                        tamkeen_id: finalTamkeenId, // Sync to dedicated column
                         metadata: fullProfile,
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
@@ -186,6 +188,7 @@ export class SupabaseAuthService implements AuthService {
             const { error } = await client
                 .from('profiles')
                 .update({
+                    tamkeen_id: profile.tamkeenId, // Sync to dedicated column
                     metadata: profile,
                     full_name: profile.name || '',
                     updated_at: new Date().toISOString(),
@@ -269,6 +272,7 @@ export class SupabaseAuthService implements AuthService {
                 email: user.email,
                 name: fullName,
                 tamkeenId,
+                tamkeen_id: tamkeenId, // Add snake_case version
                 picture: user.user_metadata?.avatar_url || null,
                 source: user.app_metadata?.provider || 'google',
             };
@@ -280,6 +284,7 @@ export class SupabaseAuthService implements AuthService {
                     email: user.email,
                     full_name: fullName,
                     role: 'teacher',
+                    tamkeen_id: tamkeenId, // Sync to dedicated column
                     metadata,
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString(),

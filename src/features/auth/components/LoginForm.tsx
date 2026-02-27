@@ -43,27 +43,64 @@ export const LoginForm = () => {
         setError(null);
         try {
             // Extract tamkeenId from QR value (format: tamkeen://XXXX or just the ID)
-            const tamkeenId = qrCode.replace('tamkeen://', '').trim();
+            // Always convert to Uppercase to match stored IDs
+            const tamkeenId = qrCode.replace('tamkeen://', '').trim().toUpperCase();
             const client = getSupabaseClient();
             if (!client) throw new Error('لا يمكن الاتصال بالخادم');
 
-            const { data: profileData, error: profileError } = await client
+            // 1. Primary attempt: Query dedicated tamkeen_id column (High Performance)
+            let { data: profileData, error: profileError } = await client
                 .from('profiles')
                 .select('email')
                 .eq('tamkeen_id', tamkeenId)
-                .limit(1)
-                .single();
+                .maybeSingle();
+
+            // 2. Fallback 1: Query metadata JSONB using .contains() with camelCase
+            if (!profileData && !profileError) {
+                const { data: camelData, error: camelError } = await client
+                    .from('profiles')
+                    .select('email')
+                    .contains('metadata', { tamkeenId: tamkeenId })
+                    .maybeSingle();
+
+                if (camelData) {
+                    profileData = camelData;
+                } else if (camelError) {
+                    profileError = camelError;
+                }
+            }
+
+            // 3. Fallback 2: Query metadata JSONB using .contains() with snake_case
+            if (!profileData && !profileError) {
+                const { data: snakeData, error: snakeError } = await client
+                    .from('profiles')
+                    .select('email')
+                    .contains('metadata', { tamkeen_id: tamkeenId })
+                    .maybeSingle();
+
+                if (snakeData) {
+                    profileData = snakeData;
+                } else if (snakeError) {
+                    profileError = snakeError;
+                }
+            }
 
             if (profileError || !profileData?.email) {
-                throw new Error('المعرف الرقمي غير موجود. تأكد من صحة الرمز.');
+                throw new Error('المعرف الرقمي غير صحيح أو غير مسجل. تأكد من الرمز.');
             }
-            // Auto-login with the found email (magic link style - redirect to email login)
+
+            // 4. Trigger Magic Link (OTP)
             const { error: otpError } = await client.auth.signInWithOtp({
                 email: profileData.email,
+                options: {
+                    emailRedirectTo: window.location.origin,
+                }
             });
             if (otpError) throw new Error('تعذر إرسال رابط الدخول. حاول لاحقاً.');
+
             setError(null);
-            alert(`✅ تم إرسال رابط الدخول إلى بريدك: ${profileData.email}\nافتح بريدك واضغط على الرابط للدخول.`);
+            alert(`📧 تفقد بريدك الإلكتروني الآن!\n\nتم إرسال رابط الدخول إلى: ${profileData.email}\n\nيجب عليك الضغط على الرابط في البريد لتسجيل الدخول بنجاح.`);
+            setQrMode(false); // Go back to normal login after success instruction
         } catch (err: any) {
             setError(err.message || 'فشل الدخول بالمعرف الرقمي.');
         } finally {
