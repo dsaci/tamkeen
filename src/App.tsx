@@ -153,9 +153,12 @@ const App: React.FC = () => {
     }
 
     if (path.includes('/auth/callback')) {
+      // Just clean the URL visually so the user doesn't see the long token.
+      // Do NOT use window.location.href = '/' as it will force a page reload
+      // and abort the Supabase session save process.
       setTimeout(() => {
-        window.location.href = '/';
-      }, 500); // Give AuthContext time to process the token before redirecting
+        window.history.replaceState(null, '', '/');
+      }, 500);
     }
   }, []);
 
