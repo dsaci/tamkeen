@@ -39,11 +39,11 @@ export function getSupabaseClient(): SupabaseClient | null {
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
-            flowType: 'pkce', // Prevents Chrome bounce tracking mitigation issues
+            // flowType: 'pkce', // Removed to use standard implicit flow for Magic Links
         },
     });
 
-    console.log('[Supabase] Client initialized.');
+    console.log('[Supabase] Client initialized with Implicit Flow.');
     return supabaseInstance;
 }
 

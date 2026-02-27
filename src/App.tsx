@@ -140,54 +140,23 @@ const App: React.FC = () => {
     localStorage.setItem('dark_mode', darkMode.toString());
   }, [darkMode]);
 
-  // Handle Supabase PKCE OAuth / Magic Link Callback
-  const pkceHandledRef = React.useRef(false);
-
+  // Handle Magic Link Callback (Implicit Flow)
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      // Prevent double-firing in React 18 Strict Mode
-      if (pkceHandledRef.current) return;
+    // If we land on the dedicated auth callback route, Supabase's AuthContext 
+    // will auto-parse the #access_token hash. We just need to redirect to root
+    // after a short delay to ensure the session is saved.
+    const path = window.location.pathname;
+    const errorStr = new URLSearchParams(window.location.search).get('error_description');
 
-      // Check for PKCE code or error in URL query params
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      const errorStr = urlParams.get('error_description') || urlParams.get('error');
+    if (errorStr) {
+      console.error('[Auth] Supabase returned an error in URL:', errorStr);
+    }
 
-      if (errorStr) {
-        console.error('[Auth] Supabase returned an error in URL:', errorStr);
-        // Clean URL so it doesn't loop
-        window.history.replaceState(null, '', window.location.pathname);
-        return;
-      }
-
-      if (code && !pkceHandledRef.current) {
-        pkceHandledRef.current = true;
-        console.log('[Auth] Found PKCE code in URL, exchanging for session...');
-        try {
-          // Add a tiny delay to ensure AuthContext initialized
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          const authService = (await import('./services/auth/AuthServiceFactory')).getAuthService();
-          const client = (authService as any).client || (await import('./config/supabaseClient')).getSupabaseClient();
-
-          if (client) {
-            const { error: exchangeError } = await client.auth.exchangeCodeForSession(code);
-            if (exchangeError) {
-              console.error('[Auth] Failed to exchange code:', exchangeError.message);
-            } else {
-              console.log('[Auth] Successfully exchanged code for session');
-            }
-          }
-        } catch (error) {
-          console.error('[Auth] Exception during code exchange:', error);
-        } finally {
-          // Clean the URL to remove the code so refresh doesn't re-trigger
-          window.history.replaceState(null, '', window.location.pathname);
-        }
-      }
-    };
-
-    handleAuthCallback();
+    if (path.includes('/auth/callback')) {
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500); // Give AuthContext time to process the token before redirecting
+    }
   }, []);
 
   // if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {

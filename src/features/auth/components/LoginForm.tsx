@@ -72,10 +72,14 @@ export const LoginForm = () => {
             }
 
             // 4. Trigger Magic Link (OTP)
+            // Explicitly route to /auth/callback so the PKCE handler in App.tsx can intercept it
+            const redirectUrl = `${window.location.origin}/auth/callback`;
+            console.log('[QR Login] Sending Magic Link with redirect to:', redirectUrl);
+
             const { error: otpError } = await client.auth.signInWithOtp({
                 email: profileData.email,
                 options: {
-                    emailRedirectTo: window.location.origin,
+                    emailRedirectTo: redirectUrl,
                 }
             });
             if (otpError) throw new Error('تعذر إرسال رابط الدخول. حاول لاحقاً.');
