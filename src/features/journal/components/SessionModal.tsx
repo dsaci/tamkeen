@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Session,
     SessionCategory,
@@ -7,19 +7,21 @@ import {
     SupportType,
     TrainingType,
     IntegrationType,
-    DayPeriod
+    DayPeriod,
+    Resource
 } from '../../../types';
 import { useTheme, themeStyles } from '../../../utils/theme';
 import { useJournalStore } from '../store/journalStore';
 import {
     BookOpen, Clock, GraduationCap, Zap, Briefcase, Layers, CalendarDays,
-    X, Save, Loader2, Sparkles, AlertCircle, Info
+    X, Save, Loader2, Sparkles, AlertCircle, Info, Database, ChevronDown
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardContent } from '../../../components/ui/Card';
 import { cn } from '../../../lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { curriculumRepository } from '../../../services/CurriculumRepository';
+import { listResources } from '../../../services/resourceBankService';
 
 const CATEGORIES: { id: SessionCategory; label: string; icon: any; color: string; activeColor: string }[] = [
     { id: 'LESSON', label: 'حصة عادية', icon: BookOpen, color: 'bg-indigo-50 text-indigo-600', activeColor: 'bg-indigo-600 text-white' },
@@ -74,6 +76,9 @@ export const SessionModal: React.FC<SessionModalProps> = ({
     const { selectedDate, selectedClass } = useJournalStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [resourceSuggestions, setResourceSuggestions] = useState<Resource[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const [formData, setFormData] = useState<Partial<Session>>({
         subject: '',
@@ -122,6 +127,43 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                 });
         }
     }, [formData.subject, formData.activity]);
+
+    // Auto-search resource bank when subject/activity/title changes
+    useEffect(() => {
+        const searchTimeout = setTimeout(async () => {
+            if (formData.subject || formData.activity || formData.title) {
+                setIsSearching(true);
+                try {
+                    const results = await listResources({
+                        subject: formData.subject || undefined,
+                        activity: formData.activity || undefined,
+                        search: formData.title || undefined,
+                    });
+                    setResourceSuggestions(results.slice(0, 5));
+                    if (results.length > 0) setShowSuggestions(true);
+                } catch (err) {
+                    console.warn('[SessionModal] Resource search error:', err);
+                }
+                setIsSearching(false);
+            } else {
+                setResourceSuggestions([]);
+            }
+        }, 500); // debounce
+        return () => clearTimeout(searchTimeout);
+    }, [formData.subject, formData.activity, formData.title]);
+
+    const applyResourceSuggestion = useCallback((resource: Resource) => {
+        setFormData(prev => ({
+            ...prev,
+            title: resource.title || prev.title,
+            activity: resource.activity || prev.activity,
+            subject: resource.subject || prev.subject,
+            objective: resource.objective || prev.objective,
+            content: resource.content || prev.content,
+            tools: resource.tools || prev.tools,
+        }));
+        setShowSuggestions(false);
+    }, []);
 
     // Auto-fetch holiday when date changes or category becomes holiday
     useEffect(() => {
@@ -402,7 +444,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                             placeholder="مثال: لغة عربية"
                                         />
                                     </div>
-                                    <div>
+                                    <div className="relative">
                                         <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">اسم الحصة / العنوان</label>
                                         <input
                                             className={cn("w-full p-4 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 shadow-inner", styles.input)}
@@ -410,7 +452,41 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                             onChange={e => setFormData({ ...formData, title: e.target.value })}
                                             placeholder="مثال: الجملة الاسمية"
                                         />
+                                        {isSearching && (
+                                            <div className="absolute left-4 top-1/2 translate-y-1">
+                                                <Loader2 size={14} className="animate-spin text-emerald-500" />
+                                            </div>
+                                        )}
                                     </div>
+
+                                    {/* Resource Bank Suggestions */}
+                                    {resourceSuggestions.length > 0 && showSuggestions && (
+                                        <div className="mt-2 p-3 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-2 animate-in slide-in-from-top-2">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                                                    <Database size={14} />
+                                                    <span className="text-[10px] font-black uppercase">اقتراحات من بنك الموارد</span>
+                                                    <span className="text-[9px] bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full font-black">{resourceSuggestions.length}</span>
+                                                </div>
+                                                <button onClick={() => setShowSuggestions(false)} className="text-slate-400 hover:text-rose-500">
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                            {resourceSuggestions.map(res => (
+                                                <button
+                                                    key={res.id}
+                                                    onClick={() => applyResourceSuggestion(res)}
+                                                    className="w-full text-right p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-emerald-400 hover:shadow-md transition-all group"
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-xs font-black text-slate-800 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{res.title}</span>
+                                                        <span className="text-[9px] font-bold text-slate-400">{res.activity}</span>
+                                                    </div>
+                                                    {res.objective && <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 truncate">{res.objective}</p>}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {formData.timing?.category === 'LESSON' && (
