@@ -29,7 +29,7 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
 
     const [form, setForm] = useState({
         subject: profile.teachingSubject || '',
-        level: profile.level,
+        level: profile.level || 'PRIMARY',
         grade: profile.grades?.[0] || '',
         unit: '',
         activity: '',
@@ -60,7 +60,7 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
     const resetForm = () => {
         setForm({
             subject: profile.teachingSubject || '',
-            level: profile.level,
+            level: profile.level || 'PRIMARY',
             grade: profile.grades?.[0] || '',
             unit: '',
             activity: '',
@@ -77,8 +77,8 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
     };
 
     const handleSave = async () => {
-        if (!form.title || !form.subject || !form.activity) {
-            alert('يرجى ملء الحقول الإجبارية: المادة، النشاط، العنوان');
+        if (!form.title || !form.subject || !form.activity || !form.level || !form.grade) {
+            alert('يرجى ملء الحقول الإجبارية: الطور، المستوى، المادة، النشاط، العنوان');
             return;
         }
 
@@ -288,15 +288,26 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="space-y-1">
                             <label className="text-[10px] font-black text-slate-400">المادة *</label>
                             <input type="text" value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm outline-none dark:text-white" />
                         </div>
                         <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400">الطور *</label>
+                            <select value={form.level} onChange={e => setForm({ ...form, level: e.target.value as any, grade: '' })} className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm outline-none dark:text-white">
+                                <option value="PRIMARY">ابتدائي</option>
+                                <option value="MIDDLE">متوسط</option>
+                                <option value="HIGH">ثانوي</option>
+                            </select>
+                        </div>
+                        <div className="space-y-1">
                             <label className="text-[10px] font-black text-slate-400">المستوى *</label>
                             <select value={form.grade} onChange={e => setForm({ ...form, grade: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm outline-none dark:text-white">
-                                {profile.grades?.map(g => <option key={g} value={g}>{g}</option>)}
+                                <option value="">اختر المستوى...</option>
+                                {form.level === 'PRIMARY' && ['الأولى ابتدائي', 'الثانية ابتدائي', 'الثالثة ابتدائي', 'الرابعة ابتدائي', 'الخامسة ابتدائي'].map(g => <option key={g} value={g}>{g}</option>)}
+                                {form.level === 'MIDDLE' && ['الأولى متوسط', 'الثانية متوسط', 'الثالثة متوسط', 'الرابعة متوسط'].map(g => <option key={g} value={g}>{g}</option>)}
+                                {form.level === 'HIGH' && ['الأولى ثانوي', 'الثانية ثانوي', 'الثالثة ثانوي'].map(g => <option key={g} value={g}>{g}</option>)}
                             </select>
                         </div>
                         <div className="space-y-1">
