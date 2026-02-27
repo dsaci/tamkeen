@@ -247,14 +247,12 @@ const App: React.FC = () => {
               {/* QR Code - small default, larger on hover */}
               <div className="bg-white p-1 rounded-xl shadow-inner mb-1 group-hover:p-2 group-hover:rounded-2xl group-hover:mb-2 transition-all duration-300">
                 <QRCodeCanvas
-                  value={`tamkeen://${profile.tamkeenId}`}
-                  size={40}
+                  value={`tamkeen://${profile?.tamkeenId || 'tamkeen'}`}
+                  size={50}
                   level="M"
                   includeMargin={false}
                   bgColor="#ffffff"
                   fgColor="#1b4332"
-                  className="transition-all duration-300 group-hover:w-[70px] group-hover:h-[70px]"
-                  style={{ width: 40, height: 40 }}
                 />
               </div>
 
@@ -401,7 +399,7 @@ const App: React.FC = () => {
             <div className="max-w-7xl mx-auto space-y-8 pb-32">
               {activeTab === 'dashboard' && <DashboardView profile={profile} />}
               {activeTab === 'journal' && <JournalPage />}
-              {activeTab === 'memo' && <SmartMemoView profile={profile} />}
+              {activeTab === 'memo' && profile && <SmartMemoView profile={profile} />}
               {activeTab === 'grading' && <GradingView profile={profile} />}
               {activeTab === 'absence' && <AbsenceView profile={profile} lang={lang} />}
               {activeTab === 'resources' && <ResourceBankView profile={profile} />}
