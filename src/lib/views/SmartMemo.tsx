@@ -36,7 +36,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
     activity: '',
     topic: '',
     support: 'الكتاب المدرسي، السبورة',
-    grade: profile.grades[0] || '',
+    grade: profile.grades?.[0] || '',
     subject: profile.teachingSubject
   });
 

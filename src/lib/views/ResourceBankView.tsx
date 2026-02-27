@@ -20,7 +20,7 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
 
     // Filters
     const [filterSubject, setFilterSubject] = useState(profile.teachingSubject || '');
-    const [filterGrade, setFilterGrade] = useState(profile.grades[0] || '');
+    const [filterGrade, setFilterGrade] = useState(profile.grades?.[0] || '');
     const [filterActivity, setFilterActivity] = useState('');
     const [searchTitle, setSearchTitle] = useState('');
 
@@ -125,7 +125,7 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
                             onChange={e => setFilterGrade(e.target.value)}
                             className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
                         >
-                            {profile.grades.map(g => (
+                            {profile.grades?.map(g => (
                                 <option key={g} value={g}>{g}</option>
                             ))}
                         </select>
@@ -173,8 +173,8 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
                 {/* Source indicator */}
                 {lastSource && (
                     <div className={`mt-4 p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${lastSource === 'database' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                            lastSource === 'ai' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                                'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+                        lastSource === 'ai' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                            'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
                         }`}>
                         {lastSource === 'database' && <><Database size={14} /> تم استرجاع المورد من قاعدة البيانات</>}
                         {lastSource === 'ai' && <><Sparkles size={14} /> تم التوليد بالذكاء الاصطناعي وحُفظ في المستودع</>}
@@ -190,8 +190,8 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
                         <div>
                             <div className="flex items-center gap-2 mb-2">
                                 <span className={`px-3 py-1 rounded-full text-[10px] font-black ${selectedResource.source === 'admin' ? 'bg-emerald-100 text-emerald-700' :
-                                        selectedResource.source === 'ai' ? 'bg-amber-100 text-amber-700' :
-                                            'bg-blue-100 text-blue-700'
+                                    selectedResource.source === 'ai' ? 'bg-amber-100 text-amber-700' :
+                                        'bg-blue-100 text-blue-700'
                                     }`}>
                                     {selectedResource.source === 'admin' ? 'مصدر رسمي' : selectedResource.source === 'ai' ? 'توليد آلي' : 'مساهمة مستخدم'}
                                 </span>
@@ -284,8 +284,8 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
                         >
                             <div className="flex items-start justify-between mb-3">
                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${r.source === 'admin' ? 'bg-emerald-100 text-emerald-700' :
-                                        r.source === 'ai' ? 'bg-amber-100 text-amber-700' :
-                                            'bg-blue-100 text-blue-700'
+                                    r.source === 'ai' ? 'bg-amber-100 text-amber-700' :
+                                        'bg-blue-100 text-blue-700'
                                     }`}>
                                     {r.source === 'admin' ? 'رسمي' : r.source === 'ai' ? 'آلي' : 'مستخدم'}
                                 </span>

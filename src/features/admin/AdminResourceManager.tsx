@@ -28,7 +28,7 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
     const [form, setForm] = useState({
         subject: profile.teachingSubject || '',
         level: profile.level,
-        grade: profile.grades[0] || '',
+        grade: profile.grades?.[0] || '',
         unit: '',
         activity: '',
         title: '',
@@ -59,7 +59,7 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
         setForm({
             subject: profile.teachingSubject || '',
             level: profile.level,
-            grade: profile.grades[0] || '',
+            grade: profile.grades?.[0] || '',
             unit: '',
             activity: '',
             title: '',
@@ -224,7 +224,7 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
                     className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold outline-none dark:text-white"
                 >
                     <option value="">كل المستويات</option>
-                    {profile.grades.map(g => (
+                    {profile.grades?.map(g => (
                         <option key={g} value={g}>{g}</option>
                     ))}
                 </select>
@@ -260,7 +260,7 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
                         <div className="space-y-1">
                             <label className="text-[10px] font-black text-slate-400">المستوى *</label>
                             <select value={form.grade} onChange={e => setForm({ ...form, grade: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm outline-none dark:text-white">
-                                {profile.grades.map(g => <option key={g} value={g}>{g}</option>)}
+                                {profile.grades?.map(g => <option key={g} value={g}>{g}</option>)}
                             </select>
                         </div>
                         <div className="space-y-1">
@@ -341,8 +341,8 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
                                     <td className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-400">{r.grade}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded-full text-[9px] font-black ${r.source === 'admin' ? 'bg-emerald-100 text-emerald-700' :
-                                                r.source === 'ai' ? 'bg-amber-100 text-amber-700' :
-                                                    'bg-blue-100 text-blue-700'
+                                            r.source === 'ai' ? 'bg-amber-100 text-amber-700' :
+                                                'bg-blue-100 text-blue-700'
                                             }`}>
                                             {r.source === 'admin' ? 'رسمي' : r.source === 'ai' ? 'آلي' : 'مستخدم'}
                                         </span>
