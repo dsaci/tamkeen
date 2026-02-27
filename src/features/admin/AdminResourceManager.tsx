@@ -23,7 +23,9 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
     const [filterSubject, setFilterSubject] = useState('');
     const [filterGrade, setFilterGrade] = useState('');
     const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+    const [tempFiles, setTempFiles] = useState<File[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const formFileInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState({
         subject: profile.teachingSubject || '',
@@ -69,6 +71,7 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
             method: '',
             source: 'admin',
         });
+        setTempFiles([]);
         setEditingId(null);
         setShowForm(false);
     };
@@ -84,6 +87,10 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
         if (editingId) {
             const success = await updateResource(editingId, form);
             if (success) {
+                // Upload any temp files
+                for (const file of tempFiles) {
+                    await uploadFile(editingId, file);
+                }
                 await loadResources();
                 resetForm();
             } else {
@@ -92,6 +99,10 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
         } else {
             const result = await addResource(form);
             if (result) {
+                // Upload any temp files
+                for (const file of tempFiles) {
+                    await uploadFile(result.id, file);
+                }
                 await loadResources();
                 resetForm();
             } else {
@@ -148,6 +159,21 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
 
         setUploadingFor(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const handleTempFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files: File[] = Array.from(e.target.files || []);
+
+        const validFiles = files.filter(file => {
+            if (file.size > 50 * 1024 * 1024) {
+                alert(`حجم الملف ${file.name} يتجاوز 50MB`);
+                return false;
+            }
+            return true;
+        });
+
+        setTempFiles(prev => [...prev, ...validFiles]);
+        if (formFileInputRef.current) formFileInputRef.current.value = '';
     };
 
     const handleDeleteFile = async (fileId: string) => {
@@ -230,12 +256,22 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
                 </select>
             </div>
 
-            {/* Hidden file input */}
+            {/* Hidden file input for table */}
             <input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileUpload}
                 className="hidden"
+                accept=".pdf,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.mp4,.webm"
+            />
+
+            {/* Hidden file input for form */}
+            <input
+                type="file"
+                ref={formFileInputRef}
+                onChange={handleTempFileUpload}
+                className="hidden"
+                multiple
                 accept=".pdf,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.mp4,.webm"
             />
 
@@ -299,6 +335,37 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
                             <label className="text-[10px] font-black text-slate-400">الطريقة البيداغوجية</label>
                             <input type="text" value={form.method} onChange={e => setForm({ ...form, method: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm outline-none dark:text-white" placeholder="حوار، عمل فردي..." />
                         </div>
+                    </div>
+
+                    {/* File Attachment Area */}
+                    <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <label className="text-[10px] font-black text-slate-400 flex justify-between items-center">
+                            الملفات المرفقة
+                            <button
+                                onClick={() => formFileInputRef.current?.click()}
+                                className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-bold flex items-center gap-1"
+                            >
+                                <Plus size={12} /> إرفاق ملف
+                            </button>
+                        </label>
+
+                        {tempFiles.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {tempFiles.map((file, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                        {['video/mp4', 'video/webm'].includes(file.type) || file.name.endsWith('.mp4') ? <Film size={14} className="text-rose-500" /> : <FileText size={14} className="text-blue-500" />}
+                                        <span className="truncate max-w-[150px]">{file.name}</span>
+                                        <button
+                                            onClick={() => setTempFiles(prev => prev.filter((_, i) => i !== idx))}
+                                            className="text-slate-400 hover:text-rose-500 mr-2"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <p className="text-[10px] text-slate-400">يمكنك إرفاق ملفات (PDF, Word, Excel, MP4...) لتكون متاحة للتحميل مع هذا المورد.</p>
                     </div>
 
                     <button
