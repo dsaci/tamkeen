@@ -28,7 +28,7 @@ const QUOTES = [
 
 const CARDS = [
   {
-    id: 'journal',
+    id: '/korras-yawmi',
     title: 'الكراس اليومي',
     desc: 'تدوين ومتابعة الحصص البيداغوجية',
     icon: LayoutDashboard,
@@ -36,7 +36,7 @@ const CARDS = [
     shadow: 'shadow-emerald-200 dark:shadow-emerald-900/20'
   },
   {
-    id: 'memo',
+    id: '/mothakira-thakiya',
     title: 'المذكرة الذكية',
     desc: 'تحضير الدروس بالذكاء الاصطناعي',
     icon: Zap,
@@ -44,7 +44,7 @@ const CARDS = [
     shadow: 'shadow-indigo-200 dark:shadow-indigo-900/20'
   },
   {
-    id: 'grading',
+    id: '/grading',
     title: 'دفتر التنقيط',
     desc: 'رصد العلامات والتقييمات الفصلية',
     icon: Calculator,
@@ -52,7 +52,7 @@ const CARDS = [
     shadow: 'shadow-violet-200 dark:shadow-violet-900/20'
   },
   {
-    id: 'absence',
+    id: '/absence',
     title: 'متابعة الغياب',
     desc: 'تسجيل الحضور والغياب اليومي',
     icon: UserCheck,
@@ -60,7 +60,7 @@ const CARDS = [
     shadow: 'shadow-rose-200 dark:shadow-rose-900/20'
   },
   {
-    id: 'database',
+    id: '/database',
     title: 'السحابة الرقمية',
     desc: 'مزامنة وإدارة البيانات السحابية',
     icon: Database,
