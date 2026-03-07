@@ -34,9 +34,6 @@ import { TeacherProfile, AppLanguage, TabType } from './types';
 import { TamkeenLogo } from './legacy_components/TamkeenLogo';
 import { cn } from './lib/utils';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import StudentsManagement from './lib/views/StudentsManagement';
-import TeachersManagement from './lib/views/TeachersManagement';
-import ParentsManagement from './lib/views/ParentsManagement';
 
 const preloadFonts = () => import('./lib/utils/fontLoader').then(m => m.initFont()).catch(e => console.log('Font preload:', e));
 
@@ -134,9 +131,6 @@ const App: React.FC = () => {
     if (path === '/database') return 'database';
     if (path === '/admin') return 'admin';
     if (path === '/messages') return 'messages';
-    if (path === '/talamidh') return 'talamidh';
-    if (path === '/asatida') return 'asatida';
-    if (path === '/wali') return 'wali';
     return 'hub'; // fallback
   };
   const activeTab = getActiveTabKey();
@@ -342,9 +336,6 @@ const App: React.FC = () => {
               { id: '/dashboard', label: t.dashboard, icon: BarChart3 },
               { id: '/korras-yawmi', label: t.journal, icon: LayoutDashboard },
               { id: '/mothakira-thakiya', label: t.memo, icon: FileEdit },
-              { id: '/talamidh', label: t.talamidh, icon: Users },
-              { id: '/asatida', label: t.asatida, icon: UserCog },
-              { id: '/wali', label: t.wali, icon: HeartHandshake },
               { id: '/grading', label: t.grading, icon: Calculator },
               { id: '/absence', label: t.absence, icon: UserCheck },
               { id: '/resources', label: t.resources, icon: BookOpenCheck },
@@ -464,9 +455,6 @@ const App: React.FC = () => {
                 <Route path="/settings" element={<SettingsView profile={profile} onUpdate={(p) => auth.updateProfile(p)} darkMode={darkMode} setDarkMode={setDarkMode} />} />
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/messages" element={<MessagesPanel />} />
-                <Route path="/talamidh" element={<StudentsManagement />} />
-                <Route path="/asatida" element={<TeachersManagement />} />
-                <Route path="/wali" element={<ParentsManagement />} />
                 <Route path="/database" element={
                   <div className="space-y-8 animate-in fade-in">
                     <AdminResourceManager profile={profile} />
