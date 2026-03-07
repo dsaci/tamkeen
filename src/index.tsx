@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -29,13 +30,15 @@ const root = createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <AuthProvider>
-        <NotificationProvider>
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
-        </NotificationProvider>
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <NotificationProvider>
+            <ThemeProvider>
+              <App />
+            </ThemeProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>
 );

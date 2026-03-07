@@ -4,7 +4,7 @@ import {
   LayoutDashboard, LogOut, Menu, X, BarChart3, UserCheck, BookOpenCheck,
   FileStack, Settings as SettingsIcon, Sun, Moon, Copy, Check, BookOpen,
   Calculator, FileEdit, Sparkles, QrCode, ShieldCheck, Wifi, Fingerprint, Database,
-  CloudCheck, Shield, MessageSquare, Bell
+  CloudCheck, Shield, MessageSquare, Bell, Users, UserCog, HeartHandshake
 } from 'lucide-react';
 import { AdminNotificationBanner } from './components/AdminNotificationBanner';
 import { useAuth } from './contexts/AuthContext';
@@ -33,6 +33,10 @@ import { TeacherProfile, AppLanguage, TabType } from './types';
 // import AdminRoute from './legacy_components/admin_route'; // TODO: Fix AdminRoute later
 import { TamkeenLogo } from './legacy_components/TamkeenLogo';
 import { cn } from './lib/utils';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import StudentsManagement from './lib/views/StudentsManagement';
+import TeachersManagement from './lib/views/TeachersManagement';
+import ParentsManagement from './lib/views/ParentsManagement';
 
 const preloadFonts = () => import('./lib/utils/fontLoader').then(m => m.initFont()).catch(e => console.log('Font preload:', e));
 
@@ -91,14 +95,18 @@ export const translations: Record<string, any> = {
     exportCover: "Official Cover",
     exportJournal: "Daily Journal",
     exportEnd: "Journal Conclusion",
-    exportCard: "Info Card"
+    exportCard: "Info Card",
+    talamidh: "Students Management",
+    asatida: "Teachers",
+    wali: "Parents"
   }
 };
 
 const App: React.FC = () => {
   const auth = useAuth();
   const { unreadCount, lastError } = useNotifications();
-  const [activeTab, setActiveTab] = useState<TabType>('hub');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [lang, setLang] = useState<AppLanguage>('ar');
   const [darkMode, setDarkMode] = useState(() => {
@@ -112,8 +120,29 @@ const App: React.FC = () => {
 
   const profile = auth.profile;
 
-  const setTab = (tab: TabType) => {
-    setActiveTab(tab);
+  const getActiveTabKey = () => {
+    const path = location.pathname;
+    if (path === '/') return 'hub';
+    if (path === '/dashboard') return 'dashboard';
+    if (path === '/korras-yawmi') return 'journal';
+    if (path === '/grading') return 'grading';
+    if (path === '/absence') return 'absence';
+    if (path === '/resources') return 'resources';
+    if (path === '/annual') return 'annual';
+    if (path === '/settings') return 'settings';
+    if (path === '/mothakira-thakiya') return 'memo';
+    if (path === '/database') return 'database';
+    if (path === '/admin') return 'admin';
+    if (path === '/messages') return 'messages';
+    if (path === '/talamidh') return 'talamidh';
+    if (path === '/asatida') return 'asatida';
+    if (path === '/wali') return 'wali';
+    return 'hub'; // fallback
+  };
+  const activeTab = getActiveTabKey();
+
+  const setTab = (path: string) => {
+    navigate(path);
   };
 
   useEffect(() => {
@@ -234,7 +263,7 @@ const App: React.FC = () => {
         onNavigate={setTab}
         darkMode={darkMode}
         toggleDarkMode={() => setDarkMode(!darkMode)}
-        onLogout={() => setShowLogoutModal(true)}
+        onLogout={handleLogout}
         isAdmin={auth.isAdmin}
       />
     );
@@ -310,30 +339,34 @@ const App: React.FC = () => {
 
           <nav className="p-6 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
             {[
-              { id: 'journal', label: t.journal, icon: LayoutDashboard },
-              { id: 'memo', label: t.memo, icon: FileEdit },
-              { id: 'grading', label: t.grading, icon: Calculator },
-              { id: 'absence', label: t.absence, icon: UserCheck },
-              { id: 'resources', label: t.resources, icon: BookOpenCheck },
+              { id: '/dashboard', label: t.dashboard, icon: BarChart3 },
+              { id: '/korras-yawmi', label: t.journal, icon: LayoutDashboard },
+              { id: '/mothakira-thakiya', label: t.memo, icon: FileEdit },
+              { id: '/talamidh', label: t.talamidh, icon: Users },
+              { id: '/asatida', label: t.asatida, icon: UserCog },
+              { id: '/wali', label: t.wali, icon: HeartHandshake },
+              { id: '/grading', label: t.grading, icon: Calculator },
+              { id: '/absence', label: t.absence, icon: UserCheck },
+              { id: '/resources', label: t.resources, icon: BookOpenCheck },
               ...(auth.isAdmin ? [
-                { id: 'database', label: t.database, icon: Database },
-                { id: 'admin', label: t.admin, icon: Shield },
+                { id: '/database', label: t.database, icon: Database },
+                { id: '/admin', label: t.admin, icon: Shield },
               ] : []),
-              { id: 'messages', label: t.messages, icon: MessageSquare },
+              { id: '/messages', label: t.messages, icon: MessageSquare },
             ].map((item) => (
               <button
                 key={item.id}
-                onClick={() => { setTab(item.id as TabType); if (window.innerWidth < 1024) setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-5 px-6 py-4 rounded-[2rem] transition-all duration-300 group ${activeTab === item.id ? 'bg-emerald-800 text-white shadow-xl scale-[1.02]' : 'text-slate-500 hover:bg-emerald-50 dark:hover:bg-slate-800 hover:text-emerald-700 dark:hover:text-emerald-400'}`}
+                onClick={() => { setTab(item.id); if (window.innerWidth < 1024) setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-5 px-6 py-4 rounded-[2rem] transition-all duration-300 group ${location.pathname === item.id ? 'bg-emerald-800 text-white shadow-xl scale-[1.02]' : 'text-slate-500 hover:bg-emerald-50 dark:hover:bg-slate-800 hover:text-emerald-700 dark:hover:text-emerald-400'}`}
               >
-                <item.icon size={20} className={activeTab === item.id ? 'text-white' : 'text-slate-400 group-hover:text-emerald-600'} />
+                <item.icon size={20} className={location.pathname === item.id ? 'text-white' : 'text-slate-400 group-hover:text-emerald-600'} />
                 <span className="font-black text-sm">{item.label}</span>
               </button>
             ))}
           </nav>
 
           <div className="p-8 border-t border-slate-50 dark:border-slate-800">
-            <button onClick={() => setTab('settings')} className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl mb-2 transition-all ${activeTab === 'settings' ? 'text-emerald-600 font-black' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}>
+            <button onClick={() => setTab('/settings')} className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl mb-2 transition-all ${location.pathname === '/settings' ? 'text-emerald-600 font-black' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}>
               <SettingsIcon size={18} />
               <span className="font-bold text-sm">{t.settings}</span>
             </button>
@@ -362,7 +395,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="relative group mr-2">
                 <button
-                  onClick={() => setTab('messages')}
+                  onClick={() => setTab('/messages')}
                   className={cn(
                     "p-3 rounded-2xl border transition-all shadow-sm relative group/bell overflow-visible",
                     unreadCount > 0
@@ -419,33 +452,39 @@ const App: React.FC = () => {
 
           <main className="flex-1 overflow-y-auto p-4 md:p-10 bg-[#f8fafc] dark:bg-slate-950 transition-colors custom-scrollbar relative">
             <div className="max-w-7xl mx-auto space-y-8 pb-32">
-              {activeTab === 'dashboard' && <DashboardView profile={profile} />}
-              {activeTab === 'journal' && <JournalPage />}
-              {activeTab === 'memo' && profile && <SmartMemoView profile={profile} />}
-              {activeTab === 'grading' && <GradingView profile={profile} />}
-              {activeTab === 'absence' && <AbsenceView profile={profile} lang={lang} />}
-              {activeTab === 'resources' && <ResourceBankView profile={profile} />}
-              {activeTab === 'annual' && <PlansView profile={profile} lang={lang} type="annual" />}
-              {activeTab === 'settings' && <SettingsView profile={profile} onUpdate={(p) => auth.updateProfile(p)} darkMode={darkMode} setDarkMode={setDarkMode} />}
-              {activeTab === 'admin' && <AdminPanel />}
-              {activeTab === 'messages' && <MessagesPanel />}
-              {activeTab === 'database' && (
-                <div className="space-y-8 animate-in fade-in">
-                  <AdminResourceManager profile={profile} />
-                  <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-2xl">
-                        <Database size={24} />
+              <Routes>
+                <Route path="/" element={<DashboardView profile={profile} />} />
+                <Route path="/dashboard" element={<DashboardView profile={profile} />} />
+                <Route path="/korras-yawmi" element={<JournalPage />} />
+                <Route path="/mothakira-thakiya" element={profile && <SmartMemoView profile={profile} />} />
+                <Route path="/grading" element={<GradingView profile={profile} />} />
+                <Route path="/absence" element={<AbsenceView profile={profile} lang={lang} />} />
+                <Route path="/resources" element={<ResourceBankView profile={profile} />} />
+                <Route path="/annual" element={<PlansView profile={profile} lang={lang} type="annual" />} />
+                <Route path="/settings" element={<SettingsView profile={profile} onUpdate={(p) => auth.updateProfile(p)} darkMode={darkMode} setDarkMode={setDarkMode} />} />
+                <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/messages" element={<MessagesPanel />} />
+                <Route path="/talamidh" element={<StudentsManagement />} />
+                <Route path="/asatida" element={<TeachersManagement />} />
+                <Route path="/wali" element={<ParentsManagement />} />
+                <Route path="/database" element={
+                  <div className="space-y-8 animate-in fade-in">
+                    <AdminResourceManager profile={profile} />
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-2xl">
+                          <Database size={24} />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-black text-slate-900 dark:text-white">قاعدة البيانات المحلية</h2>
+                          <p className="text-xs text-slate-500">عرض مباشر للبيانات المحلية (SQLite)</p>
+                        </div>
                       </div>
-                      <div>
-                        <h2 className="text-xl font-black text-slate-900 dark:text-white">قاعدة البيانات المحلية</h2>
-                        <p className="text-xs text-slate-500">عرض مباشر للبيانات المحلية (SQLite)</p>
-                      </div>
+                      <RepositoryConfig />
                     </div>
-                    <RepositoryConfig />
                   </div>
-                </div>
-              )}
+                } />
+              </Routes>
             </div>
           </main>
         </div>
