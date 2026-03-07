@@ -1,18 +1,12 @@
 import React from 'react';
 import { TeacherProfile } from '../../types';
 import { BarChart3, Clock, Calendar, TrendingUp } from 'lucide-react';
-import { useJournalList } from '../../hooks/useJournalList';
 
 export default function DashboardView({ profile }: { profile: TeacherProfile }) {
-   const { entries } = useJournalList(profile.tamkeenId);
-
-   // Calculate statistics from the journal entries
-   const completedSessions = entries.reduce((acc, entry) => acc + entry.sessions.length, 0);
-   const totalHours = Math.round(completedSessions * 1.5); // Roughly 1.5 hours per session on average
-
-   // Rough calculation of annual progress based on number of weeks and 36 expected school weeks
-   const weeksWorked = entries.length / 5; // roughly 5 days a week
-   const progressPercent = Math.min(Math.round((weeksWorked / 36) * 100), 100);
+   // TODO: Implement actual data fetching once database/sync is fully mapped
+   const completedSessions = 12; // Placeholder
+   const totalHours = 18; // Placeholder
+   const progressPercent = 15; // Placeholder
 
    return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
