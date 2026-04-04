@@ -67,9 +67,13 @@ const SmartSection = memo(({ title, children, sectionKey, defaultOpen = true }) 
       {/* Accordion Content with CSS-only max-height animation */}
       <div
         id={`${sectionKey}-content`}
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-        }`}
+        style={{
+          maxHeight: isOpen ? '2000px' : '0px',
+          opacity: isOpen ? 1 : 0,
+          overflow: 'hidden',
+          transition: 'max-height 300ms ease-in-out, opacity 300ms ease-in-out'
+        }}
+        className=""
       >
         <div className="p-4 md:p-5 pt-0 text-gray-700 dark:text-gray-300">
           {children}
