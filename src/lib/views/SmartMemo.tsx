@@ -395,6 +395,21 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             <input type="text" value={formData.support} onChange={e => setFormData({ ...formData, support: e.target.value })} className={inputCls} />
           </div>
 
+          {!localStorage.getItem('tamkeen_gemini_key') && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 text-xs shadow-sm">
+              <h4 className="font-black text-amber-800 dark:text-amber-400 mb-3">🔑 كيف تحصل على مفتاحك المجاني؟</h4>
+              <ol className="list-decimal list-inside space-y-1.5 text-amber-900 dark:text-amber-300 font-bold mb-3 pr-2">
+                <li>افتح الرابط: <a href="https://aistudio.google.com" target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 underline">aistudio.google.com</a></li>
+                <li>سجّل دخولك بحساب Google</li>
+                <li>اضغط على "Get API Key"</li>
+                <li>انسخ المفتاح والصقه في إعدادات المنصة</li>
+              </ol>
+              <div className="bg-amber-100/50 dark:bg-amber-900/40 p-2.5 rounded-xl text-amber-900 dark:text-amber-400 font-black border border-amber-200/50 dark:border-amber-800/50 text-[11px] flex gap-2 items-center">
+                <span>✅</span> المفتاح مجاني تماماً ولا يحتاج بطاقة بنكية
+              </div>
+            </div>
+          )}
+
           <button onClick={generateMemo} disabled={isLoading} className="w-full bg-[#1b4332] text-white py-5 rounded-[2rem] font-black text-sm shadow-xl hover:bg-emerald-900 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 border-b-6 border-emerald-950">
             {isLoading ? <RefreshCw className="animate-spin" size={20} /> : <Zap size={20} className="fill-white" />} توليد المذكرة
           </button>
