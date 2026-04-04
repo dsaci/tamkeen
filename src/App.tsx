@@ -139,6 +139,11 @@ const App: React.FC = () => {
     navigate(path);
   };
 
+  const handleNavigation = (path: string) => {
+    setTab(path);
+    if (window.innerWidth < 1024) setSidebarOpen(false);
+  };
+
   useEffect(() => {
     preloadFonts();
     if (window.innerWidth >= 1024) setSidebarOpen(true);
@@ -357,7 +362,7 @@ const App: React.FC = () => {
           </nav>
 
           <div className="p-8 border-t border-slate-50 dark:border-slate-800">
-            <button onClick={() => setTab('/settings')} className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl mb-2 transition-all ${location.pathname === '/settings' ? 'text-emerald-600 font-black' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}>
+            <button onClick={() => handleNavigation('/settings')} className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl mb-2 transition-all ${location.pathname === '/settings' ? 'text-emerald-600 font-black' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}>
               <SettingsIcon size={18} />
               <span className="font-bold text-sm">{t.settings}</span>
             </button>
