@@ -20,6 +20,7 @@ const SmartSection = memo(({ title, children, sectionKey, defaultOpen = true }) 
 
   // 2. Listen for global state changes (Read-Only)
   useEffect(() => {
+    console.log('globalState changed:', globalState, 'sectionKey:', sectionKey);
     if (globalState === 'open') {
       setIsOpen(true);
     } else if (globalState === 'closed') {
@@ -37,7 +38,7 @@ const SmartSection = memo(({ title, children, sectionKey, defaultOpen = true }) 
   }, [isOpen, sectionKey]);
 
   return (
-    <div className="w-full flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden mb-4 transition-colors duration-300">
+    <div className="w-full flex flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm mb-4 transition-colors duration-300">
       
       {/* Target strictly accessible interactive button */}
       <button
