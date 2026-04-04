@@ -19,6 +19,7 @@ import {
     Mail, Phone, Calendar, X, Check, AlertTriangle, UserX, UserCheck, Loader2,
     Bell, Megaphone
 } from 'lucide-react';
+import AdminResourceManager from './AdminResourceManager';
 
 interface AdminUser {
     id: string;
@@ -32,10 +33,11 @@ interface AdminUser {
     disabled: boolean;
 }
 
-export const AdminPanel: React.FC = () => {
+export const AdminPanel: React.FC<{ profile?: any }> = ({ profile }) => {
     const auth = useAuth();
     const { isAdmin, mode } = auth;
     const { refresh } = useNotifications();
+    const [activeTab, setActiveTab] = useState<'users' | 'resources'>('users');
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -190,8 +192,33 @@ export const AdminPanel: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in">
-            {/* Header */}
-            <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+            <div className="flex gap-3 mb-2">
+                <button
+                    onClick={() => setActiveTab('users')}
+                    className={`px-6 py-3 rounded-2xl font-black text-sm transition-all ${
+                        activeTab === 'users'
+                            ? 'bg-indigo-600 text-white shadow-lg'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                    }`}
+                >
+                    إدارة المستخدمين
+                </button>
+                <button
+                    onClick={() => setActiveTab('resources')}
+                    className={`px-6 py-3 rounded-2xl font-black text-sm transition-all ${
+                        activeTab === 'resources'
+                            ? 'bg-emerald-600 text-white shadow-lg'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                    }`}
+                >
+                    بنك المذكرات
+                </button>
+            </div>
+
+            {activeTab === 'users' && (
+                <>
+                    {/* Header */}
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-2xl">
@@ -483,6 +510,13 @@ export const AdminPanel: React.FC = () => {
                     </div>
                 </div>
             )}
+                </>
+            )}
+
+            {activeTab === 'resources' && (
+                <AdminResourceManager profile={profile} />
+            )}
         </div>
     );
 };
+

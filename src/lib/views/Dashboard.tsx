@@ -29,7 +29,7 @@ export default function DashboardView({ profile }: { profile: TeacherProfile }) 
             </div>
 
             {/* Embed the Admin Panel entirely within the Dashboard for Admins */}
-            <AdminPanel />
+            <AdminPanel profile={profile} />
          </div>
       );
    }
