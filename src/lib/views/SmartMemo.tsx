@@ -200,7 +200,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
       اجعل المحتوى غنياً بيداغوجياً ومطابقاً للمناهج الجزائرية. أجب بـ JSON فقط.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-1.5-flash',
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
       });
 
