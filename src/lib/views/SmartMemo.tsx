@@ -344,9 +344,9 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             <div className="space-y-1">
               <label className={labelCls}>المستوى / القسم</label>
               <select value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })} className={inputCls}>
-                {profile.grades?.map(g => (
+                {profile.grades?.length ? profile.grades.map(g => (
                   <option key={g} value={g}>{g}</option>
-                ))}
+                )) : <option value="">لا توجد مستويات مسجلة</option>}
               </select>
             </div>
           </div>
