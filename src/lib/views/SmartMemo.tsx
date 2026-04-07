@@ -39,7 +39,11 @@ interface MemoContent {
   values: string;
 }
 
+const LEVEL_MAP: any = { PRIMARY: 'primary', 'ابتدائي': 'primary', MIDDLE: 'middle', 'متوسط': 'middle', SECONDARY: 'secondary', 'ثانوي': 'secondary' };
+const GRADES_MAP: any = { primary: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'], middle: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة', 'السنة الرابعة'], secondary: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة'] };
+
 const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
+  const normalizedLevel = LEVEL_MAP[profile.level || ''];
   const levelLabel = profile.level === 'PRIMARY' ? 'ابتدائي' : profile.level === 'MIDDLE' ? 'متوسط' : 'ثانوي';
 
   const [formData, setFormData] = useState<MemoData>({
@@ -49,7 +53,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
     activity: '',
     topic: '',
     support: 'الكتاب المدرسي، السبورة',
-    grade: profile.grades?.[0] || '',
+    grade: (GRADES_MAP[normalizedLevel] || [])[0] || '',
     subject: profile.teachingSubject,
     date: new Date().toISOString().split('T')[0],
   });
@@ -344,9 +348,9 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             <div className="space-y-1">
               <label className={labelCls}>المستوى / القسم</label>
               <select value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })} className={inputCls}>
-                {profile.grades?.length ? profile.grades.map(g => (
+                {normalizedLevel ? (GRADES_MAP[normalizedLevel] || []).map((g: string) => (
                   <option key={g} value={g}>{g}</option>
-                )) : <option value="">لا توجد مستويات مسجلة</option>}
+                )) : <option value="">اختر الطور أولاً</option>}
               </select>
             </div>
           </div>
