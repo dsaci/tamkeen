@@ -5,7 +5,8 @@ import {
   UserCheck, Sparkles, BookOpenCheck, Zap,
   LayoutDashboard, Fingerprint, ArrowRight, BrainCircuit,
   Sun, Moon, Phone, Globe, ExternalLink,
-  Facebook, Landmark, Award, MessageCircle
+  Facebook, Landmark, Award, MessageCircle,
+  FileText, Users, CheckCircle2, Calendar
 } from 'lucide-react';
 import { TamkeenLogo } from '../../components/ui/TamkeenLogo';
 
@@ -23,40 +24,12 @@ const QUOTES = [
   "التكنولوجيا مجرد أداة، أما تحفيز الأطفال وجعلهم يعملون معاً، فالمعلم هو الأهم. — بيل غيتس"
 ];
 
-const FEATURES = [
-  {
-    title: "المذكرة الذكية",
-    desc: "تحضير الدروس بالذكاء الاصطناعي",
-    icon: BrainCircuit,
-    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    color: "bg-indigo-500"
-  },
-  {
-    title: "المساعد البيداغوجي",
-    desc: "دعم فوري وموارد متجددة",
-    icon: Zap,
-    image: "https://images.unsplash.com/photo-1517842645767-c639042777db?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    color: "bg-amber-500"
-  },
-  {
-    title: "دفتر التنقيط الآلي",
-    desc: "حساب المعدلات بدقة متناهية",
-    icon: Calculator,
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    color: "bg-emerald-500"
-  },
-  {
-    title: "إدارة الغياب والحضور",
-    desc: "متابعة فورية وانضباط",
-    icon: UserCheck,
-    image: "https://images.unsplash.com/photo-1588702547923-7093a6c3ba33?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    color: "bg-rose-500"
-  }
-];
-
 export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props) {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [fadeQuote, setFadeQuote] = useState(true);
+
+  // ======= Toggle معلم / معلمة =======
+  const [teacherVariant, setTeacherVariant] = useState<'male' | 'female'>('male');
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,26 +45,26 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] font-['Cairo'] flex flex-col relative overflow-x-hidden transition-colors duration-500" dir="rtl">
 
-      {/* 1. Glassy Algerian Flag Bar (Top Only) */}
+      {/* ===== شريط أعلى بألوان العلم الجزائري ===== */}
       <div className="absolute top-0 left-0 w-full h-1.5 z-[100] flex shadow-sm opacity-90">
         <div className="flex-1 bg-emerald-600/90 backdrop-blur-sm"></div>
         <div className="flex-1 bg-white/80 backdrop-blur-sm"></div>
         <div className="flex-1 bg-rose-600/90 backdrop-blur-sm"></div>
       </div>
 
-      {/* Abstract Background Shapes */}
+      {/* ===== خلفية ضبابية ===== */}
       <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
 
-      {/* Header / Nav - Improved Spacing */}
-      <nav className="relative z-20 px-10 py-8 flex justify-between items-center max-w-7xl mx-auto w-full">
+      {/* ===== شريط التنقل ===== */}
+      <nav className="relative z-20 px-6 md:px-10 py-6 md:py-8 flex justify-between items-center max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-4">
           <TamkeenLogo size={42} />
           <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
           <div className="hidden md:flex flex-col">
             <span className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wide flex items-center gap-2">
               المنصة الرقمية للأستاذ الجزائري
-              <img src="https://flagcdn.com/w40/dz.png" alt="Algeria" className="w-5 h-auto rounded-sm shadow-sm" />
+              <img src="https://flagcdn.com/w40/dz.png" alt="الجزائر" className="w-5 h-auto rounded-sm shadow-sm" />
             </span>
           </div>
 
@@ -117,29 +90,31 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
         )}
       </nav>
 
-      {/* Main Content */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-8 pb-16 flex flex-col items-center relative z-10">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-8 pb-16 flex flex-col items-center relative z-10">
 
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mt-8 lg:mt-16 mb-28">
+        {/* ========== HERO SECTION ========== */}
+        {/* الصورة: kol_ma_tahehtadj.jpg — لوحة التحكم الرئيسية */}
+        <section className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mt-8 lg:mt-16 mb-20 md:mb-28">
 
-          <div className="order-2 lg:order-1 space-y-10 animate-in slide-in-from-bottom-10 duration-700 fade-in">
+          {/* النص + الأزرار */}
+          <div className="order-2 lg:order-1 space-y-8 animate-in slide-in-from-bottom-10 duration-700 fade-in">
             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-bold text-xs shadow-sm">
               <Sparkles size={14} className="animate-pulse" />
-              <span>الإصدار الاحترافي الجديد 2025</span>
+              <span>🇩🇿 منصة رقمية جزائرية 100% — الإصدار الاحترافي 2025</span>
             </div>
 
             <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white leading-[1.4] tracking-tight">
               <span className="block mb-3">نحن نبني الأدوات،</span>
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 font-extrabold drop-shadow-sm tracking-wide scale-[1.01] origin-right">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 font-extrabold drop-shadow-sm tracking-wide">
                 وأنت تبني الأجيال.
               </span>
             </h1>
 
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-loose font-medium max-w-xl">
-              منصة "تمكين" تمنحك القوة الرقمية لإدارة مهامك البيداغوجية والإدارية في مكان واحد، لتتفرغ لمهمتك الأسمى: التعليم.
+              منصة <strong className="text-emerald-700 dark:text-emerald-400">تمكين</strong> تمنحك القوة الرقمية لإدارة مهامك البيداغوجية والإدارية في مكان واحد، لتتفرغ لمهمتك الأسمى: التعليم.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-5 pt-6 relative">
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <button
                 onClick={onEnter}
                 className="group relative px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-3xl font-black text-lg shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-[1.02] active:scale-95 transition-all overflow-hidden"
@@ -160,96 +135,300 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
               </button>
             </div>
 
-            <div className="pt-10 flex items-start gap-5">
-              <div className="w-1.5 h-14 bg-emerald-500 rounded-full opacity-40"></div>
+            {/* اقتباس متحرك */}
+            <div className="pt-6 flex items-start gap-5">
+              <div className="w-1.5 h-14 bg-emerald-500 rounded-full opacity-40 shrink-0 mt-1"></div>
               <p className={`text-slate-500 dark:text-slate-400 italic font-medium transition-opacity duration-500 text-base leading-relaxed ${fadeQuote ? 'opacity-100' : 'opacity-0'}`}>
                 "{QUOTES[quoteIndex]}"
               </p>
             </div>
           </div>
 
-          <div className="order-1 lg:order-2 relative animate-in zoom-in-95 duration-1000 delay-150 fade-in">
-            <div className="relative rounded-[3.5rem] overflow-hidden shadow-2xl border-[6px] border-white dark:border-slate-800 rotate-2 hover:rotate-0 transition-transform duration-700 ease-out">
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent z-10"></div>
+          {/* صورة Hero: لوحة التحكم kol_ma_tahehtadj.jpg */}
+          <div className="order-1 lg:order-2 flex justify-center animate-in zoom-in-95 duration-1000 delay-150 fade-in">
+            <div className="relative w-full max-w-2xl">
+              {/* Badge حي */}
+              <div className="absolute -top-4 -right-4 z-20 bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex items-center gap-2">
+                <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">مساحة عمل متكاملة</span>
+              </div>
+              {/* الصورة الرئيسية — eager للـ LCP */}
               <img
-                src="https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                alt="Professional Teacher"
-                className="w-full h-[550px] object-cover hover:scale-105 transition-transform duration-[2s]"
+                src="/images/kol_ma_tahehtadj.jpg"
+                alt="لوحة تحكم منصة تمكين تعرض جميع الميزات: إدارة الغياب، دفتر التنقيط، المذكرة الذكية، المساعد البيداغوجي"
+                className="w-full rounded-2xl drop-shadow-2xl object-cover"
+                loading="eager"
               />
-              <div className="absolute bottom-10 right-10 z-20 text-white">
-                <div className="bg-white/20 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/30 inline-flex items-center gap-4">
-                  <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
-                  <span className="font-bold text-sm tracking-wide">مساحة عمل رقمية متكاملة</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute -top-8 -right-8 bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-700 animate-bounce delay-700">
-              <LayoutDashboard className="text-emerald-600" size={36} />
-            </div>
-            <div className="absolute -bottom-8 -left-8 bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-700 animate-bounce delay-300">
-              <Fingerprint className="text-indigo-600" size={36} />
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full max-w-6xl mb-32 animate-in slide-in-from-bottom-20 duration-1000 delay-300">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-[3.5rem] p-12 md:p-16 text-white shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-12">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-
-            <div className="relative z-10 max-w-2xl">
-              <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 text-emerald-50 text-xs font-bold mb-6">
-                <BookOpen size={16} />
-                <span>الركيزة الأساسية للأستاذ</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black mb-6 leading-tight">الكراس اليومي الرقمي: <br />انضباط <span className="text-emerald-200">ودقة</span></h2>
-              <p className="text-emerald-50 text-xl leading-relaxed font-medium">
-                العمود الفقري للعملية التربوية. قم بتدوين الحصص، الأنشطة، والملاحظات البيداغوجية بكل سهولة. واجهة مصممة خصيصاً لتوافق المعايير الرسمية وتغنيك عن السجلات الورقية.
-              </p>
-            </div>
-
-            <div className="relative z-10 shrink-0">
-              <div className="w-28 h-28 md:w-40 md:h-40 bg-white/20 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center border-2 border-white/30 shadow-inner">
-                <LayoutDashboard className="text-emerald-100 w-14 h-14 md:w-20 md:h-20" strokeWidth={1.5} />
+              {/* Badge أيقونة */}
+              <div className="absolute -bottom-6 -left-6 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 animate-bounce">
+                <LayoutDashboard className="text-emerald-600" size={30} />
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="w-full mb-16">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3">كل ما تحتاجه في مكان واحد</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">أدوات ذكية تكمل بعضها البعض</p>
+        {/* ========== قسم: كل ما تحتاجه (بطاقتان) ========== */}
+        {/* البطاقة 1: radjol_tamkeen.jpg — البطاقة 2: tamkeen_wasat_wadjiha.jpg */}
+        <section className="w-full mb-20 md:mb-28">
+          <div className="text-center mb-12">
+            <span className="inline-block px-4 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-bold mb-4">
+              الميزات الأساسية
+            </span>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-800 dark:text-white mb-3">
+              كل ما تحتاجه في مكان واحد
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg max-w-2xl mx-auto">
+              من التحضير اليومي إلى المتابعة الإدارية، تمكين يرافقك خطوة بخطوة
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {FEATURES.map((feature, idx) => (
-              <div
-                key={idx}
-                className="group relative bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-slate-700 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
-              >
-                <div className="h-48 w-full relative overflow-hidden">
-                  <div className={`absolute inset-0 ${feature.color} opacity-90 mix-blend-multiply z-10 transition-opacity group-hover:opacity-80`}></div>
-                  <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
-                  <div className="absolute bottom-5 right-5 z-20 bg-white/20 backdrop-blur-md p-3.5 rounded-2xl border border-white/30 text-white shadow-lg">
-                    <feature.icon size={26} />
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-                <div className="p-8">
-                  <h3 className="font-black text-xl text-slate-800 dark:text-white mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    {feature.title}
+            {/* ── بطاقة المعلم: radjol_tamkeen.jpg ── */}
+            <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 dark:border-slate-700">
+              <div className="h-64 overflow-hidden">
+                <img
+                  src="/images/radjol_tamkeen.jpg"
+                  alt="معلم جزائري يستخدم منصة تمكين على الحاسوب المحمول لإعداد دروسه"
+                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-700"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="text-2xl">👨🏫</span>
+                  <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white">
+                    للمعلمين الطموحين
                   </h3>
-                  <p className="text-sm font-bold text-slate-400 dark:text-slate-500 leading-relaxed">
-                    {feature.desc}
+                </div>
+                <ul className="space-y-4 text-slate-600 dark:text-slate-300">
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center shrink-0">
+                      <BrainCircuit className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <span className="font-medium">مذكرات ذكية معتمدة على الذكاء الاصطناعي</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center shrink-0">
+                      <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <span className="font-medium">جدولة ذكية للحصص والتوزيعات السنوية</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center shrink-0">
+                      <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <span className="font-medium">توليد فوري وسريع للمحتوى البيداغوجي</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center shrink-0">
+                      <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <span className="font-medium">إدارة الغياب والحضور فورياً وبانضباط</span>
+                  </li>
+                </ul>
+                <button
+                  onClick={onEnter}
+                  className="mt-6 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                >
+                  <span>ابدأ رحلتك</span>
+                  <ArrowRight size={18} className="rotate-180" />
+                </button>
+              </div>
+            </div>
+
+            {/* ── بطاقة الكراس اليومي: tamkeen_wasat_wadjiha.jpg ── */}
+            <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 dark:border-slate-700">
+              <div className="h-64 overflow-hidden">
+                <img
+                  src="/images/tamkeen_wasat_wadjiha.jpg"
+                  alt="واجهة الكراس اليومي الرقمي على شاشة الحاسوب — منصة تمكين"
+                  className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-700"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="text-2xl">📔</span>
+                  <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white">
+                    الكراس اليومي الرقمي
+                  </h3>
+                </div>
+                <ul className="space-y-4 text-slate-600 dark:text-slate-300">
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/40 rounded-xl flex items-center justify-center shrink-0">
+                      <FileText className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <span className="font-medium">تسجيل دقيق ومنظم للحصص اليومية</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/40 rounded-xl flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <span className="font-medium">متابعة النشاطات البيداغوجية أولاً بأول</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/40 rounded-xl flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <span className="font-medium">واجهة متوافقة مع المعايير الرسمية</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/40 rounded-xl flex items-center justify-center shrink-0">
+                      <BookOpen className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <span className="font-medium">يغنيك كلياً عن السجلات الورقية</span>
+                  </li>
+                </ul>
+                <button
+                  onClick={onEnter}
+                  className="mt-6 w-full py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                >
+                  <span>اكتشف الكراس اليومي</span>
+                  <ArrowRight size={18} className="rotate-180" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========== قسم التبديل التفاعلي: معلم / معلمة ========== */}
+        {/* معلم: radjol_tamkeen.jpg — معلمة: ontha_tamkin.jpg */}
+        <section className="w-full mb-20 md:mb-28">
+          {/* أزرار Toggle */}
+          <div className="flex justify-center gap-3 mb-10">
+            <button
+              onClick={() => setTeacherVariant('male')}
+              className={`px-6 py-3 rounded-2xl font-bold text-base transition-all shadow-sm ${
+                teacherVariant === 'male'
+                  ? 'bg-emerald-600 text-white shadow-emerald-200 dark:shadow-emerald-900 scale-105'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              👨🏫 للمعلمين
+            </button>
+            <button
+              onClick={() => setTeacherVariant('female')}
+              className={`px-6 py-3 rounded-2xl font-bold text-base transition-all shadow-sm ${
+                teacherVariant === 'female'
+                  ? 'bg-emerald-600 text-white shadow-emerald-200 dark:shadow-emerald-900 scale-105'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              👩🏫 للمعلمات
+            </button>
+          </div>
+
+          {/* محتوى التبديل */}
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-6 md:p-12 shadow-xl border border-emerald-100 dark:border-slate-700">
+            {teacherVariant === 'female' ? (
+              /* ── نسخة المعلمة: ontha_tamkin.jpg ── */
+              <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+                <div className="flex-1 order-2 lg:order-1 space-y-5">
+                  <span className="inline-block px-4 py-1.5 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full text-sm font-bold">
+                    التعليم رسالة وأمل 💕
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white leading-tight">
+                    للمعلمات اللاتي يقدن التغيير
+                  </h2>
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg font-medium">
+                    منصة تمكين تدعم كل المعلمات بنفس القوة والكفاءة. أدوات مصممة لتسهيل التحضير اليومي ورفع الإنتاجية البيداغوجية.
                   </p>
+                  <button
+                    onClick={onEnter}
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-lg transition-all shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-0.5"
+                  >
+                    <span>اكتشفي المزيد</span>
+                    <ArrowRight size={20} className="rotate-180" />
+                  </button>
+                </div>
+                <div className="flex-1 order-1 lg:order-2">
+                  <img
+                    src="/images/ontha_tamkin.jpg"
+                    alt="معلمة جزائرية بحجاب وردي تستخدم منصة تمكين الرقمية على الحاسوب المحمول"
+                    className="w-full max-w-md mx-auto rounded-2xl drop-shadow-xl object-cover"
+                    loading="lazy"
+                  />
                 </div>
               </div>
-            ))}
+            ) : (
+              /* ── نسخة المعلم: radjol_tamkeen.jpg ── */
+              <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+                <div className="flex-1 order-2 lg:order-1 space-y-5">
+                  <span className="inline-block px-4 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-bold">
+                    🇩🇿 معاً نحو تعليم رقمي أكثر فعالية
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white leading-tight">
+                    للمعلمين الذين يطمحون للتميز
+                  </h2>
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg font-medium">
+                    من التحضير إلى المتابعة، منصة تمكين تمنحك أدوات ذكية توفر وقتك وتضاعف من دقة عملك اليومي.
+                  </p>
+                  <button
+                    onClick={onEnter}
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-lg transition-all shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-0.5"
+                  >
+                    <span>ابدأ رحلتك</span>
+                    <ArrowRight size={20} className="rotate-180" />
+                  </button>
+                </div>
+                <div className="flex-1 order-1 lg:order-2">
+                  <img
+                    src="/images/radjol_tamkeen.jpg"
+                    alt="معلم جزائري يستخدم منصة تمكين الرقمية بكل احترافية"
+                    className="w-full max-w-md mx-auto rounded-2xl drop-shadow-xl object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </section>
 
-        <div className="w-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[3rem] p-10 md:p-14 shadow-2xl shadow-slate-200/50 dark:shadow-black/40 border border-white/50 dark:border-slate-700/50 relative overflow-hidden group mb-10">
+        {/* ========== Banner الكراس اليومي (كبير) ========== */}
+        {/* صورة: tamkeen_wasat_wadjiha.jpg */}
+        <section className="w-full max-w-6xl mb-20 md:mb-28">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-[2.5rem] p-10 md:p-16 text-white shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+            <div className="relative z-10 flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+              {/* النص */}
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 text-emerald-50 text-xs font-bold mb-6">
+                  <BookOpen size={16} />
+                  <span>الركيزة الأساسية للأستاذ</span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black mb-6 leading-tight">
+                  الكراس اليومي الرقمي:<br />
+                  انضباط <span className="text-yellow-300">ودقة</span>
+                </h2>
+                <p className="text-emerald-50 text-lg leading-relaxed font-medium mb-8 max-w-xl">
+                  العمود الفقري للعملية التربوية. قم بتدوين الحصص، الأنشطة، والملاحظات البيداغوجية بكل سهولة. واجهة مصممة خصيصاً لتوافق المعايير الرسمية وتغنيك عن السجلات الورقية.
+                </p>
+                <button
+                  onClick={onEnter}
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-emerald-900 rounded-2xl font-black text-lg transition-all shadow-lg hover:-translate-y-0.5"
+                >
+                  <BookOpenCheck size={22} />
+                  <span>افتح الكراس اليومي</span>
+                </button>
+              </div>
+
+              {/* صورة اللابتوب فقط */}
+              <div className="shrink-0 w-full lg:w-auto max-w-sm">
+                <img
+                  src="/images/tamkeen_wasat_wadjiha.jpg"
+                  alt="واجهة الكراس اليومي الرقمي على شاشة اللابتوب — أداء أرقى وتنظيم أفضل"
+                  className="w-full lg:w-80 rounded-2xl drop-shadow-2xl object-cover border-4 border-white/20"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========== قسم التواصل والروابط ========== */}
+        <section className="w-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-14 shadow-2xl shadow-slate-200/50 dark:shadow-black/40 border border-white/50 dark:border-slate-700/50 relative overflow-hidden mb-10">
           <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none"></div>
 
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -261,7 +440,9 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
                 التواصل والإدارة
               </h3>
               <div className="space-y-6">
-                <p className="text-slate-600 dark:text-slate-300 font-bold text-lg leading-relaxed">لأي استفسارات تقنية أو بيداغوجية، الإدارة في خدمتكم:</p>
+                <p className="text-slate-600 dark:text-slate-300 font-bold text-lg leading-relaxed">
+                  لأي استفسارات تقنية أو بيداغوجية، الإدارة في خدمتكم:
+                </p>
                 <a
                   href="https://wa.me/213697506846"
                   target="_blank"
@@ -309,14 +490,90 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
               </ul>
             </div>
           </div>
-        </div>
+        </section>
 
       </main>
 
-      <footer className="w-full bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 py-8 text-center mt-10">
-        <p className="text-xs font-bold text-slate-400">
-          © 2026 منصة تمكين. صنعت بحب للمعلم الجزائري.
-        </p>
+      {/* ========== FOOTER مع شعار المطور ========== */}
+      {/* شعار: logo_abdo.jpg — دائري مع اسم المطور */}
+      <footer className="w-full bg-emerald-900 dark:bg-slate-950 text-white py-14 px-4 md:px-8 mt-8">
+        <div className="max-w-7xl mx-auto">
+
+          {/* شبكة الفوتر العلوية */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12 pb-12 border-b border-emerald-700/50 dark:border-slate-700/50">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <TamkeenLogo size={36} />
+                <h3 className="text-xl font-black">منصة تمكين</h3>
+              </div>
+              <p className="text-emerald-200 dark:text-slate-400 leading-relaxed">
+                الرفيق الرقمي الذكي للمعلم الجزائري — نحن نبني الأدوات وأنت تبني الأجيال.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-black text-lg mb-5 text-emerald-100">روابط سريعة</h4>
+              <ul className="space-y-3 text-emerald-200 dark:text-slate-400">
+                <li>
+                  <button onClick={onEnter} className="hover:text-yellow-300 transition-colors font-medium text-right w-full">
+                    🏠 الرئيسية
+                  </button>
+                </li>
+                <li>
+                  <button onClick={onEnter} className="hover:text-yellow-300 transition-colors font-medium text-right w-full">
+                    📔 الكراس اليومي
+                  </button>
+                </li>
+                <li>
+                  <button onClick={onEnter} className="hover:text-yellow-300 transition-colors font-medium text-right w-full">
+                    🧠 المذكرة الذكية
+                  </button>
+                </li>
+                <li>
+                  <button onClick={onEnter} className="hover:text-yellow-300 transition-colors font-medium text-right w-full">
+                    📊 دفتر التنقيط
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-black text-lg mb-5 text-emerald-100">التواصل</h4>
+              <ul className="space-y-3 text-emerald-200 dark:text-slate-400">
+                <li className="flex items-center gap-2">
+                  <Phone size={16} className="text-yellow-400 shrink-0" />
+                  <span dir="ltr" className="font-medium">+213 697 50 68 46</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Globe size={16} className="text-yellow-400 shrink-0" />
+                  <a href="https://tamkeen88.vercel.app" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-yellow-300 transition-colors">
+                    tamkeen88.vercel.app
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* ── شعار المطور الدائري + الاسم ── */}
+          <div className="flex flex-col items-center gap-4">
+            <img
+              src="/images/logo_abdo.jpg"
+              alt="الأستاذ عبدالنور ساسي — مطور ومصمم منصة تمكين الرقمية"
+              className="w-20 h-20 md:w-24 md:h-24 rounded-full shadow-2xl object-cover border-4 border-yellow-400/60 hover:border-yellow-400 transition-all hover:scale-105 cursor-pointer"
+              loading="lazy"
+            />
+            <div className="text-center">
+              <p className="font-black text-lg text-yellow-300 tracking-wide">
+                الأستاذ عبدالنور ساسي
+              </p>
+              <p className="text-sm text-emerald-300 dark:text-slate-400 mt-1">
+                مطور ومصمم المنصة
+              </p>
+            </div>
+            <p className="text-center text-sm text-emerald-400 dark:text-slate-500 mt-2">
+              © 2025 منصة تمكين — نحن نبني الأدوات، وأنت تبني الأجيال 🎓
+            </p>
+          </div>
+
+        </div>
       </footer>
     </div>
   );
