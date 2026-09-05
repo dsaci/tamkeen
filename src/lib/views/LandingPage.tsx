@@ -42,12 +42,8 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] font-['Cairo'] flex flex-col relative overflow-x-hidden transition-colors duration-500" dir="rtl">
 
-      {/* ===== 1. شريط علوي بألوان العلم الجزائري ===== */}
-      <div className="absolute top-0 left-0 w-full h-1.5 z-[100] flex shadow-sm opacity-90">
-        <div className="flex-1 bg-emerald-600/90 backdrop-blur-sm"></div>
-        <div className="flex-1 bg-white/80 backdrop-blur-sm"></div>
-        <div className="flex-1 bg-rose-600/90 backdrop-blur-sm"></div>
-      </div>
+      {/* ===== 1. شريط علوي ذهبي فاخر متوهج (نفس ذهبي اللوغو الشخصي) ===== */}
+      <div className="absolute top-0 left-0 w-full h-1.5 z-[100] bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 shadow-md shadow-yellow-500/30"></div>
 
       {/* ===== خلفيات ضبابية جمالية ===== */}
       <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
