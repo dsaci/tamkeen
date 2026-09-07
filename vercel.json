@@ -1,14 +1,10 @@
 {
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
-    "framework": null,
+    "framework": "vite",
     "rewrites": [
         {
-            "source": "/assets/(.*)",
-            "destination": "/assets/$1"
-        },
-        {
-            "source": "/((?!assets/).*)",
+            "source": "/((?!assets/|images/|educational/|favicon.ico|robots.txt).*)",
             "destination": "/index.html"
         }
     ]

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileSpreadsheet, Download, FileUp, Search, Layers, ShieldCheck, Rocket, Zap, ListChecks, ClipboardList, PenTool, TrendingUp, X, CheckCircle2, Check, ChevronDown, Info, AlertTriangle, Scale, BookOpen, Users } from 'lucide-react';
+import { FileSpreadsheet, Download, FileUp, Search, Layers, ShieldCheck, Rocket, Zap, ListChecks, ClipboardList, PenTool, TrendingUp, X, CheckCircle2, Check, ChevronDown, Info, AlertTriangle, Scale, BookOpen, Users, FileText } from 'lucide-react';
 import { TeacherProfile, Student, StudentScore } from '../../types';
 import * as XLSX from 'xlsx';
 import { TamkeenLogo } from '../../legacy_components/TamkeenLogo';
@@ -197,6 +197,39 @@ const GradingView: React.FC<Props> = ({ profile }) => {
 
     XLSX.utils.book_append_sheet(wb, ws, 'دفتر النتائج');
     XLSX.writeFile(wb, `دفتر_تنقيط_${activeSubject}_ف${activeTerm}.xlsx`);
+    
+    // Trigger global donation toast after successful export
+    import('../../components/ExportDonationToast').then(({ triggerExportDonation }) => {
+      triggerExportDonation();
+    });
+  };
+
+  const handleExportPDF = async () => {
+    if (students.length === 0) return alert('⚠️ القائمة فارغة.');
+
+    const fields = getFieldsByMode();
+    const scoresMap: Record<string, Record<string, string>> = {};
+    students.forEach(s => {
+      scoresMap[s.id] = {};
+      fields.forEach(f => {
+        scoresMap[s.id][f.key] = getScoreValue(s.id, f.key) || '-';
+      });
+    });
+
+    try {
+      const { exportGradingSheetToPDF } = await import('../utils/pdfGenerator');
+      await exportGradingSheetToPDF(profile, {
+        grade: activeGrade,
+        group: isPrimaryArabic ? '1' : selectedGroup,
+        termLabel: `الفصل ${activeTerm} (${activeSubject})`,
+        students,
+        scores: scoresMap,
+        fields
+      });
+    } catch (e) {
+      console.error(e);
+      alert('حدث خطأ أثناء تصدير محضر النقاط الرسمي.');
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -363,8 +396,11 @@ const GradingView: React.FC<Props> = ({ profile }) => {
           <button onClick={() => fileInputRef.current?.click()} className="bg-white/10 text-white px-8 py-5 rounded-2xl font-black text-xs flex items-center gap-3">
             <FileUp size={18} /> استيراد
           </button>
-          <button onClick={exportToExcel} className="bg-emerald-600 text-white px-8 py-5 rounded-2xl font-black text-xs flex items-center gap-3 shadow-xl border-b-4 border-emerald-800 active:translate-y-1">
-            <Download size={18} /> تصدير (RTL Excel)
+          <button onClick={exportToExcel} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-5 rounded-2xl font-black text-xs flex items-center gap-3 shadow-xl border-b-4 border-emerald-800 active:translate-y-1 transition-all">
+            <Download size={18} /> تصدير (Excel)
+          </button>
+          <button onClick={handleExportPDF} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-5 rounded-2xl font-black text-xs flex items-center gap-3 shadow-xl border-b-4 border-indigo-800 active:translate-y-1 transition-all">
+            <FileText size={18} /> تصدير محضر رسمي (PDF)
           </button>
         </div>
       </div>

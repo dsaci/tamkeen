@@ -272,6 +272,9 @@ export default function JournalView({ profile, lang, useBackend, userId }: Props
       const { exportDailyJournalToPDF } = await loadPdfGenerator();
       const dayName = new Date(selectedDate).toLocaleDateString('ar-DZ', { weekday: 'long' });
       await exportDailyJournalToPDF(profile, selectedDate, dayName, entries);
+      // Trigger global donation toast after successful export
+      const { triggerExportDonation } = await import('../../components/ExportDonationToast');
+      triggerExportDonation();
     } catch (e) {
       console.error(e);
       alert("حدث خطأ أثناء إعداد ملف PDF.");

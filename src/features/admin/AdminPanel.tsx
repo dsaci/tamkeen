@@ -37,7 +37,7 @@ export const AdminPanel: React.FC<{ profile?: any }> = ({ profile }) => {
     const auth = useAuth();
     const { isAdmin, mode } = auth;
     const { refresh } = useNotifications();
-    const [activeTab, setActiveTab] = useState<'users' | 'resources'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'resources' | 'requests'>('users');
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -212,6 +212,16 @@ export const AdminPanel: React.FC<{ profile?: any }> = ({ profile }) => {
                     }`}
                 >
                     بنك المذكرات
+                </button>
+                <button
+                    onClick={() => setActiveTab('requests')}
+                    className={`px-6 py-3 rounded-2xl font-black text-sm transition-all ${
+                        activeTab === 'requests'
+                            ? 'bg-amber-600 text-white shadow-lg'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                    }`}
+                >
+                    طلبات الوثائق
                 </button>
             </div>
 
@@ -515,6 +525,57 @@ export const AdminPanel: React.FC<{ profile?: any }> = ({ profile }) => {
 
             {activeTab === 'resources' && (
                 <AdminResourceManager profile={profile} />
+            )}
+
+            {activeTab === 'requests' && (
+                <DocumentRequestsPanel />
+            )}
+        </div>
+    );
+};
+
+const DocumentRequestsPanel = () => {
+    const [requests, setRequests] = useState<any[]>([]);
+
+    useEffect(() => {
+        setRequests(JSON.parse(localStorage.getItem('doc_requests') || '[]'));
+    }, []);
+
+    const handleStatus = (id: string, status: string) => {
+        const newReqs = requests.map(r => r.id === id ? { ...r, status } : r);
+        setRequests(newReqs);
+        localStorage.setItem('doc_requests', JSON.stringify(newReqs));
+    };
+
+    return (
+        <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+            <h2 className="text-xl font-black text-slate-900 dark:text-white mb-6">طلبات الوثائق من الأساتذة</h2>
+            {requests.length === 0 ? (
+                <div className="text-center py-10 text-slate-500 font-bold">لا توجد طلبات حالياً</div>
+            ) : (
+                <div className="space-y-4">
+                    {requests.map(req => (
+                        <div key={req.id} className="p-4 border border-slate-100 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-black text-slate-800 dark:text-white">{req.docName}</h3>
+                                <p className="text-sm font-bold text-slate-500 mt-1">النوع: {req.type} {req.note && `| ملاحظة: ${req.note}`}</p>
+                                <p className="text-xs text-slate-400 mt-1">{new Date(req.date).toLocaleDateString('ar-DZ')} - {new Date(req.date).toLocaleTimeString('ar-DZ')}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                {req.status === 'pending' ? (
+                                    <>
+                                        <button onClick={() => handleStatus(req.id, 'approved')} className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl font-black text-sm hover:bg-emerald-200">قبول وإرسال</button>
+                                        <button onClick={() => handleStatus(req.id, 'rejected')} className="px-4 py-2 bg-rose-100 text-rose-700 rounded-xl font-black text-sm hover:bg-rose-200">رفض</button>
+                                    </>
+                                ) : (
+                                    <span className={`px-4 py-2 rounded-xl font-black text-sm ${req.status === 'approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                        {req.status === 'approved' ? 'مقبول ومُرسل' : 'مرفوض'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
         </div>
     );

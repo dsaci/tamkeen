@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { TeacherProfile, Student } from '../../types';
 import {
   UserCheck, Calendar, Save, Download, Search,
-  CheckCircle2, XCircle, Clock, AlertCircle, Filter, Loader2, Upload, FileUp
+  CheckCircle2, XCircle, Clock, AlertCircle, Filter, Loader2, Upload, FileUp, FileText
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -188,6 +188,28 @@ export default function AbsenceView({ profile }: Props) {
 
     XLSX.utils.book_append_sheet(wb, ws, "الغياب");
     XLSX.writeFile(wb, `غياب_${activeGrade}_${selectedDate}.xlsx`);
+
+    // Trigger global donation toast after successful export
+    import('../../components/ExportDonationToast').then(({ triggerExportDonation }) => {
+      triggerExportDonation();
+    });
+  };
+
+  const handleExportPDF = async () => {
+    if (students.length === 0) return alert('⚠️ القائمة فارغة.');
+    try {
+      const { exportAbsenceReportToPDF } = await import('../utils/pdfGenerator');
+      await exportAbsenceReportToPDF(profile, {
+        grade: activeGrade,
+        group: activeGroup,
+        date: selectedDate,
+        students,
+        attendanceMap
+      });
+    } catch (e) {
+      console.error(e);
+      alert('حدث خطأ أثناء تصدير سجل الغياب الرسمي.');
+    }
   };
 
   const stats = {
@@ -240,7 +262,16 @@ export default function AbsenceView({ profile }: Props) {
             className="flex items-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
           >
             <Download size={18} />
-            <span className="hidden sm:inline">تصدير</span>
+            <span className="hidden sm:inline">تصدير (Excel)</span>
+          </button>
+
+          <button
+            onClick={handleExportPDF}
+            className="flex items-center gap-2 px-4 py-3 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700/50 rounded-xl font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors shadow-sm active:scale-95"
+            title="تصدير سجل رسمي وفق المعايير الوزارية الجزائرية"
+          >
+            <FileText size={18} />
+            <span className="hidden sm:inline">تصدير رسمي (PDF)</span>
           </button>
 
           <button

@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 600" width="100%" height="100%">
+  <defs>
+    <clipPath id="algeriaClip">
+      <path d="svg1" transform="translate(45, 45) scale(0.95)"/>
+    </clipPath>
+    <filter id="mapShadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="3" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+    <linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Frame & Mediterranean Sea -->
+  <rect x="10" y="10" width="630" height="580" rx="24" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="25" y="25" width="600" height="90" rx="16" fill="url(#seaGrad)" stroke="#bae6fd" stroke-width="1.5"/>
+  <text x="320" y="65" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="14" font-weight="800" fill="#0369a1" letter-spacing="1">البحر الأبيض المتوسط (Mediterranean Sea)</text>
+  <path d="M 120,78 Q 200,85 280,78 T 440,78" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,4" opacity="0.6"/>
+
+  <!-- Algeria Map Shadow Base -->
+  <path d="svg1" transform="translate(48, 48) scale(0.95)" fill="#94a3b8" opacity="0.2" filter="url(#mapShadow)"/>
+
+  <!-- Algeria Thematic Layers clipped inside authentic borders -->
+  <g clip-path="url(#algeriaClip)">
+    
+  <rect x="0" y="0" width="650" height="600" fill="#f8fafc"/>
+  
+  <!-- Pipelines (أنابيب النقل) -->
+  <!-- Gas to Skikda & Arzew -->
+  <path d="M 320,240 L 400,90" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="6,3"/>
+  <path d="M 320,240 L 220,95" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="6,3"/>
+  <!-- Oil to Bejaia, Skikda, Arzew -->
+  <path d="M 370,270 L 400,90" fill="none" stroke="#dc2626" stroke-width="3.5"/>
+  <path d="M 370,270 L 330,85" fill="none" stroke="#dc2626" stroke-width="3.5"/>
+  <path d="M 370,270 L 220,95" fill="none" stroke="#dc2626" stroke-width="3.5"/>
+  
+  <!-- Major Energy Fields -->
+  <!-- Hassi Messaoud (Oil) -->
+  <g transform="translate(370, 270)">
+    <circle cx="0" cy="0" r="16" fill="#dc2626" stroke="#ffffff" stroke-width="2.5"/>
+    <text x="0" y="4" text-anchor="middle" font-size="12">🛢️</text>
+    <rect x="-60" y="18" width="120" height="20" rx="6" fill="#ffffff" fill-opacity="0.9" stroke="#dc2626"/>
+    <text x="0" y="32" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="9" font-weight="900" fill="#991b1b">حاسي مسعود (بترول)</text>
+  </g>
+
+  <!-- Hassi R'Mel (Gas) -->
+  <g transform="translate(315, 235)">
+    <circle cx="0" cy="0" r="16" fill="#2563eb" stroke="#ffffff" stroke-width="2.5"/>
+    <text x="0" y="4" text-anchor="middle" font-size="12">🔥</text>
+    <rect x="-60" y="18" width="120" height="20" rx="6" fill="#ffffff" fill-opacity="0.9" stroke="#2563eb"/>
+    <text x="0" y="32" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="9" font-weight="900" fill="#1d4ed8">حاسي الرمل (غاز طبيعي)</text>
+  </g>
+
+  <!-- In Amenas -->
+  <g transform="translate(470, 320)">
+    <circle cx="0" cy="0" r="12" fill="#2563eb" stroke="#ffffff" stroke-width="2"/>
+    <text x="0" y="3" text-anchor="middle" font-size="9">🔥</text>
+    <text x="0" y="16" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="8" font-weight="800" fill="#1e293b">عين أمناس</text>
+  </g>
+
+  <!-- Export Ports -->
+  <g transform="translate(220, 95)">
+    <circle cx="0" cy="0" r="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+    <text x="-5" y="-12" font-family="'Cairo', sans-serif" font-size="9" font-weight="900" fill="#0f172a">ميناء أرزيو (تصدير وتمييع)</text>
+  </g>
+  <g transform="translate(400, 90)">
+    <circle cx="0" cy="0" r="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+    <text x="5" y="-12" font-family="'Cairo', sans-serif" font-size="9" font-weight="900" fill="#0f172a">ميناء سكيكدة (تكرير وتصدير)</text>
+  </g>
+
+  </g>
+
+  <!-- Official Border Outline -->
+  <path d="svg1" transform="translate(45, 45) scale(0.95)" fill="none" stroke="#0f172a" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- Title Cartouche -->
+  <g transform="translate(25, 20)">
+    <rect x="0" y="0" width="280" height="50" rx="14" fill="#ffffff" fill-opacity="0.95" stroke="#0284c7" stroke-width="1.8" filter="url(#mapShadow)"/>
+    <text x="140" y="22" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="13" font-weight="900" fill="#0f172a">خريطة الموارد الطاقوية (البترول والغاز)</text>
+    <text x="140" y="40" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="700" fill="#64748b">الحقول الكبرى • شبكة الأنابيب • موانئ التصدير</text>
+  </g>
+
+  <!-- Legend Cartouche (مفتاح الخريطة) -->
+  <g transform="translate(25, 380)">
+    <rect x="0" y="0" width="210" height="150" rx="14" fill="#ffffff" fill-opacity="0.95" stroke="#94a3b8" stroke-width="1.5" filter="url(#mapShadow)"/>
+    <text x="105" y="22" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="11" font-weight="900" fill="#0f172a">مفتاح الخريطة (Legend)</text>
+    <line x1="20" y1="28" x2="190" y2="28" stroke="#e2e8f0" stroke-width="1.5"/>
+    <g transform="translate(18, 42)">
+      
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="16" height="12" rx="3" fill="#dc2626" stroke="#991b1b" stroke-width="1.2"/>
+      <text x="24" y="10" font-family="'Cairo', sans-serif" font-size="11" font-weight="700" fill="#1e293b">حقول البترول الكبرى (حاسي مسعود)</text>
+    </g>
+  
+    <g transform="translate(0, 22)">
+      <rect x="0" y="0" width="16" height="12" rx="3" fill="#2563eb" stroke="#1d4ed8" stroke-width="1.2"/>
+      <text x="24" y="10" font-family="'Cairo', sans-serif" font-size="11" font-weight="700" fill="#1e293b">حقول الغاز الطبيعي (حاسي الرمل)</text>
+    </g>
+  
+    <g transform="translate(0, 44)">
+      <rect x="0" y="0" width="16" height="12" rx="3" fill="#dc2626" stroke="#dc2626" stroke-width="1.2"/>
+      <text x="24" y="10" font-family="'Cairo', sans-serif" font-size="11" font-weight="700" fill="#1e293b">خطوط أنابيب نقل النفط الخام</text>
+    </g>
+  
+    <g transform="translate(0, 66)">
+      <rect x="0" y="0" width="16" height="12" rx="3" fill="#2563eb" stroke="#2563eb" stroke-width="1.2"/>
+      <text x="24" y="10" font-family="'Cairo', sans-serif" font-size="11" font-weight="700" fill="#1e293b">خطوط أنابيب نقل الغاز الطبيعي</text>
+    </g>
+  
+    <g transform="translate(0, 88)">
+      <rect x="0" y="0" width="16" height="12" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+      <text x="24" y="10" font-family="'Cairo', sans-serif" font-size="11" font-weight="700" fill="#1e293b">الموانئ ومجمعات التكرير البتروكيماوي</text>
+    </g>
+  
+    </g>
+  </g>
+
+  <!-- Compass Rose (مؤشر الشمال الجغرافي) -->
+  <g transform="translate(580, 70)">
+    <circle cx="0" cy="0" r="22" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" filter="url(#mapShadow)"/>
+    <polygon points="0,-18 5,-3 0,0" fill="#ef4444"/>
+    <polygon points="0,-18 -5,-3 0,0" fill="#991b1b"/>
+    <polygon points="0,18 5,3 0,0" fill="#64748b"/>
+    <polygon points="0,18 -5,3 0,0" fill="#334155"/>
+    <polygon points="-18,0 -3,-5 0,0" fill="#94a3b8"/>
+    <polygon points="18,0 3,-5 0,0" fill="#94a3b8"/>
+    <circle cx="0" cy="0" r="3" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+    <text x="0" y="-22" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="900" fill="#ef4444">N</text>
+  </g>
+
+  <!-- Graphic Scale Bar (مقياس الرسم) -->
+  <g transform="translate(420, 550)">
+    <rect x="-10" y="-12" width="200" height="34" rx="8" fill="#ffffff" fill-opacity="0.9" stroke="#cbd5e1" stroke-width="1"/>
+    <rect x="0" y="0" width="45" height="6" fill="#0f172a"/>
+    <rect x="45" y="0" width="45" height="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+    <rect x="90" y="0" width="45" height="6" fill="#0f172a"/>
+    <rect x="135" y="0" width="45" height="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+    <text x="0" y="16" font-family="'Cairo', sans-serif" font-size="9" font-weight="700" fill="#334155">0</text>
+    <text x="90" y="16" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="9" font-weight="700" fill="#334155">250 كم</text>
+    <text x="180" y="16" text-anchor="end" font-family="'Cairo', sans-serif" font-size="9" font-weight="700" fill="#334155">500 كم</text>
+  </g>
+</svg>

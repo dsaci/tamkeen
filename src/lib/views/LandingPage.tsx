@@ -6,14 +6,17 @@ import {
   LayoutDashboard, Fingerprint, ArrowRight, BrainCircuit,
   Sun, Moon, Phone, Globe, ExternalLink,
   Facebook, Landmark, Award, MessageCircle,
-  FileText, Users, CheckCircle2, Calendar, Star, ShieldCheck, Heart
+  FileText, Users, CheckCircle2, Calendar, Star, ShieldCheck, Heart, Eye
 } from 'lucide-react';
 import { TamkeenLogo } from '../../components/ui/TamkeenLogo';
+import { useVisitorCount } from '../../services/visitorService';
 
 interface Props {
   onEnter: () => void;
   darkMode: boolean;
   toggleDarkMode?: () => void;
+  isLoggedIn?: boolean;
+  teacherName?: string;
 }
 
 const QUOTES = [
@@ -24,7 +27,8 @@ const QUOTES = [
   "التكنولوجيا مجرد أداة، أما تحفيز الأطفال وجعلهم يعملون معاً، فالمعلم هو الأهم. — بيل غيتس"
 ];
 
-export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props) {
+export default function LandingPage({ onEnter, darkMode, toggleDarkMode, isLoggedIn = false, teacherName }: Props) {
+  const { count: visitorCount } = useVisitorCount(true);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [fadeQuote, setFadeQuote] = useState(true);
 
@@ -73,6 +77,21 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
         </div>
 
         <div className="flex items-center gap-3">
+          {/* عداد الزوار التفاعلي المباشر */}
+          <div className="flex items-center gap-2 px-3 py-1.5 md:px-3.5 md:py-2 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 shadow-sm" title="عدد الزوار بعد كل تحديث وزيارة منذ الآن">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <Users size={15} className="text-emerald-600 dark:text-emerald-400" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">الزوار:</span>
+              <span className="font-black text-xs md:text-sm font-mono text-emerald-600 dark:text-emerald-400">
+                {visitorCount.toLocaleString()}
+              </span>
+            </div>
+          </div>
+
           {toggleDarkMode && (
             <button
               onClick={toggleDarkMode}
@@ -85,10 +104,19 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
 
           <button
             onClick={onEnter}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2"
+            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 hover:scale-105"
           >
-            <LogIn size={16} />
-            <span>دخول الأستاذ</span>
+            {isLoggedIn ? (
+              <>
+                <Sparkles size={16} className="text-amber-300 animate-pulse" />
+                <span>العودة إلى المنصة {teacherName ? `(أ. ${teacherName.split(' ')[0]})` : ''}</span>
+              </>
+            ) : (
+              <>
+                <LogIn size={16} />
+                <span>دخول الأستاذ</span>
+              </>
+            )}
           </button>
         </div>
       </nav>
@@ -101,9 +129,27 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
 
           {/* نص الترحيب وأزرار الـ CTA */}
           <div className="lg:col-span-6 space-y-7 animate-in slide-in-from-bottom-10 duration-700 fade-in">
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs shadow-sm">
-              <Sparkles size={15} className="animate-pulse text-amber-500" />
-              <span>🇩🇿 منصة رقمية جزائرية 100% — الإصدار الاحترافي 2026</span>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs shadow-sm">
+                <Sparkles size={15} className="animate-pulse text-amber-500" />
+                <span>🇩🇿 منصة رقمية جزائرية 100% — الإصدار الاحترافي 2026</span>
+              </div>
+
+              {/* شارة عدد الزوار المباشرة المتجددة */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/30 border border-amber-200/90 dark:border-amber-700/60 text-amber-800 dark:text-amber-300 font-extrabold text-xs shadow-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <Users size={13} className="text-amber-600 dark:text-amber-400" />
+                <span>عدد الزوار منذ الآن:</span>
+                <span className="font-mono text-sm font-black bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-lg border border-amber-200/70 dark:border-amber-700/60 shadow-inner">
+                  {visitorCount.toLocaleString()}
+                </span>
+                <span className="text-[10px] font-bold text-amber-600/80 dark:text-amber-400/80">
+                  (يتجدد مع كل زيارة وتحديث)
+                </span>
+              </div>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white leading-[1.3] tracking-tight">
@@ -122,8 +168,17 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
                 onClick={onEnter}
                 className="group relative px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-black text-base shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.02] active:scale-95 transition-all overflow-hidden flex items-center justify-center gap-3"
               >
-                <UserPlus size={20} />
-                <span>ابدأ الآن مجاناً — دخول المنصة</span>
+                {isLoggedIn ? (
+                  <>
+                    <Sparkles size={20} className="text-amber-300 animate-pulse" />
+                    <span>متابعة العمل في المنصة</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus size={20} />
+                    <span>ابدأ الآن مجاناً — دخول المنصة</span>
+                  </>
+                )}
               </button>
 
               <button
@@ -496,8 +551,15 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode }: Props
             <a href="https://tamkeen88.vercel.app" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-300 transition-colors">tamkeen88.vercel.app</a>
           </div>
 
-          {/* حقوق النشر لعام 2026 */}
-          <div className="pt-6 text-center space-y-1">
+          {/* حقوق النشر وإحصائية الزوار منذ الآن */}
+          <div className="pt-6 text-center space-y-2.5">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/90 border border-slate-700/80 text-slate-300 text-xs font-bold shadow-inner">
+              <Users size={13} className="text-emerald-400" />
+              <span>إجمالي عدد زوار وتحديثات المنصة منذ الآن:</span>
+              <span className="text-emerald-400 font-mono font-black text-sm">{visitorCount.toLocaleString()}</span>
+              <span className="text-[11px] text-slate-400">زيارة متجددة</span>
+            </div>
+
             <p className="text-xs text-slate-400 font-semibold">
               © 2026 منصة تمكين — نحن نبني الأدوات، وأنت تبني الأجيال 🎓
             </p>

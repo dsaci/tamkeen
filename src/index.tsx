@@ -28,17 +28,15 @@ if (!rootElement) throw new Error('Root element not found');
 
 const root = createRoot(rootElement);
 root.render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <NotificationProvider>
-            <ThemeProvider>
-              <App />
-            </ThemeProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
-  </React.StrictMode>
+  <ErrorBoundary>
+    <BrowserRouter>
+      <AuthProvider>
+        <NotificationProvider>
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </ErrorBoundary>
 );

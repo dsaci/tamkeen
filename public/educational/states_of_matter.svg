@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 460" width="100%" height="100%">
+  <defs>
+    <linearGradient id="iceCube" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e0f2fe"/><stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="waterLiq" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/><stop offset="100%" stop-color="#0284c7" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="10" y="10" width="730" height="440" rx="20" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="375" y="42" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="16" font-weight="900" fill="#0f172a">حالات المادة الثلاث والنموذج الحبيبي والتحولات الفيزيائية</text>
+
+  <!-- 1. Solid (الحالة الصلبة) -->
+  <g transform="translate(45, 75)">
+    <rect x="0" y="0" width="195" height="340" rx="16" fill="#ffffff" stroke="#bae6fd" stroke-width="2"/>
+    <text x="97" y="32" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="14" font-weight="900" fill="#0284c7">1. الحالة الصلبة (ثلج)</text>
+    <!-- Beaker with Ice Cubes -->
+    <rect x="35" y="55" width="125" height="140" rx="6" fill="#f0f9ff" stroke="#64748b" stroke-width="2.5"/>
+    <rect x="55" y="125" width="40" height="40" rx="4" fill="url(#iceCube)" stroke="#0284c7" stroke-width="1.5"/>
+    <rect x="85" y="105" width="42" height="42" rx="4" fill="url(#iceCube)" stroke="#0284c7" stroke-width="1.5"/>
+    <rect x="65" y="80" width="38" height="38" rx="4" fill="url(#iceCube)" stroke="#0284c7" stroke-width="1.5"/>
+    <!-- Molecular Loupe -->
+    <circle cx="97" cy="255" r="45" fill="#f8fafc" stroke="#0284c7" stroke-width="3"/>
+    <!-- Packed crystalline lattice of molecules -->
+    
+      <circle cx="72" cy="230" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="89" cy="230" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="106" cy="230" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="123" cy="230" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="72" cy="247" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="89" cy="247" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="106" cy="247" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="123" cy="247" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="72" cy="264" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="89" cy="264" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="106" cy="264" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="123" cy="264" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="72" cy="281" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="89" cy="281" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="106" cy="281" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+      <circle cx="123" cy="281" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="1"/>
+    
+    <text x="97" y="325" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#334155">حبيبات متراصة ومنتظمة وثابتة</text>
+  </g>
+
+  <!-- 2. Liquid (الحالة السائلة) -->
+  <g transform="translate(275, 75)">
+    <rect x="0" y="0" width="195" height="340" rx="16" fill="#ffffff" stroke="#93c5fd" stroke-width="2"/>
+    <text x="97" y="32" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="14" font-weight="900" fill="#2563eb">2. الحالة السائلة (ماء)</text>
+    <!-- Beaker with Water -->
+    <rect x="35" y="55" width="125" height="140" rx="6" fill="#f0f9ff" stroke="#64748b" stroke-width="2.5"/>
+    <rect x="37" y="105" width="121" height="88" rx="4" fill="url(#waterLiq)"/>
+    <path d="M 37,105 Q 67,98 97,105 T 158,105" fill="none" stroke="#38bdf8" stroke-width="2"/>
+    <!-- Molecular Loupe -->
+    <circle cx="97" cy="255" r="45" fill="#f8fafc" stroke="#2563eb" stroke-width="3"/>
+    <!-- Close sliding molecules -->
+    <circle cx="75" cy="235" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="95" cy="230" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="115" cy="238" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="68" cy="252" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="86" cy="250" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="104" cy="255" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="122" cy="252" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="78" cy="270" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="98" cy="272" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/><circle cx="116" cy="274" r="6.5" fill="#2563eb" stroke="#ffffff" stroke-width="1"/>
+    <text x="97" y="325" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#334155">حبيبات متقاربة وغير منتظمة وتنزلق</text>
+  </g>
+
+  <!-- 3. Gas (الحالة الغازية) -->
+  <g transform="translate(505, 75)">
+    <rect x="0" y="0" width="195" height="340" rx="16" fill="#ffffff" stroke="#c4b5fd" stroke-width="2"/>
+    <text x="97" y="32" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="14" font-weight="900" fill="#7c3aed">3. الحالة الغازية (بخار)</text>
+    <!-- Sealed Flask with vapor -->
+    <path d="M 82,55 L 112,55 L 112,85 L 155,185 L 40,185 L 82,85 Z" fill="#faf5ff" stroke="#64748b" stroke-width="2.5"/>
+    <rect x="78" y="45" width="38" height="14" rx="3" fill="#78350f"/>
+    <!-- Vapor dots -->
+    <circle cx="97" cy="130" r="3" fill="#c084fc" opacity="0.6"/><circle cx="70" cy="155" r="3" fill="#c084fc" opacity="0.6"/><circle cx="120" cy="165" r="3" fill="#c084fc" opacity="0.6"/>
+    <!-- Molecular Loupe -->
+    <circle cx="97" cy="255" r="45" fill="#f8fafc" stroke="#7c3aed" stroke-width="3"/>
+    <!-- Free dispersed molecules with velocity lines -->
+    
+      <line x1="70" y1="235" x2="80" y2="230" stroke="#c084fc" stroke-width="2"/>
+      <circle cx="70" cy="235" r="6.5" fill="#7c3aed" stroke="#ffffff" stroke-width="1"/>
+    
+      <line x1="115" y1="230" x2="107" y2="236" stroke="#c084fc" stroke-width="2"/>
+      <circle cx="115" cy="230" r="6.5" fill="#7c3aed" stroke="#ffffff" stroke-width="1"/>
+    
+      <line x1="80" y1="275" x2="87" y2="267" stroke="#c084fc" stroke-width="2"/>
+      <circle cx="80" cy="275" r="6.5" fill="#7c3aed" stroke="#ffffff" stroke-width="1"/>
+    
+      <line x1="120" y1="270" x2="110" y2="266" stroke="#c084fc" stroke-width="2"/>
+      <circle cx="120" cy="270" r="6.5" fill="#7c3aed" stroke="#ffffff" stroke-width="1"/>
+    
+      <line x1="95" y1="255" x2="100" y2="263" stroke="#c084fc" stroke-width="2"/>
+      <circle cx="95" cy="255" r="6.5" fill="#7c3aed" stroke="#ffffff" stroke-width="1"/>
+    
+    <text x="97" y="325" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#334155">حبيبات متباعدة جداً وسريعة الحركة</text>
+  </g>
+
+  <!-- Physical Transitions Arrows (التحولات الفيزيائية) -->
+  <!-- Solid to Liquid (انصهار) / Liquid to Solid (تجمد) -->
+  <g transform="translate(242, 120)">
+    <path d="M 0,0 L 30,0" stroke="#dc2626" stroke-width="2.5"/>
+    <text x="15" y="-6" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="9" font-weight="900" fill="#dc2626">انصهار</text>
+    <path d="M 30,22 L 0,22" stroke="#0284c7" stroke-width="2.5"/>
+    <text x="15" y="34" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="9" font-weight="900" fill="#0284c7">تجمد</text>
+  </g>
+  <!-- Liquid to Gas (تبخر) / Gas to Liquid (تكاثف) -->
+  <g transform="translate(472, 120)">
+    <path d="M 0,0 L 30,0" stroke="#dc2626" stroke-width="2.5"/>
+    <text x="15" y="-6" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="9" font-weight="900" fill="#dc2626">تبخر</text>
+    <path d="M 30,22 L 0,22" stroke="#0284c7" stroke-width="2.5"/>
+    <text x="15" y="34" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="9" font-weight="900" fill="#0284c7">تكاثف</text>
+  </g>
+</svg>

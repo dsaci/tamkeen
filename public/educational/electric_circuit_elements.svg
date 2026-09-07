@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="metalGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#94a3b8"/><stop offset="50%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#64748b"/>
+    </linearGradient>
+    <radialGradient id="bulbGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/><stop offset="60%" stop-color="#f59e0b" stop-opacity="0.4"/><stop offset="100%" stop-color="#ca8a04" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="10" y="10" width="680" height="480" rx="20" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="350" y="45" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="16" font-weight="900" fill="#0f172a">عناصر الدارة الكهربائية والرموز النظامية (+ -)</text>
+
+  <!-- Row 1: Battery, Bulb, Switch -->
+  <!-- 1. Dry Cell Battery -->
+  <g transform="translate(60, 70)">
+    <rect x="0" y="0" width="160" height="180" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <rect x="45" y="55" width="70" height="90" rx="6" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+    <rect x="68" y="40" width="24" height="15" rx="3" fill="#ca8a04" stroke="#854d0e" stroke-width="1.5"/>
+    <rect x="45" y="115" width="70" height="30" fill="#dc2626"/>
+    <text x="80" y="85" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="16" font-weight="900" fill="#f59e0b">1.5V</text>
+    <text x="80" y="135" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="14" font-weight="900" fill="#ffffff">+  -</text>
+    <text x="80" y="170" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#0f172a">عمود كهربائي (بطارية)</text>
+  </g>
+
+  <!-- 2. Light Bulb -->
+  <g transform="translate(270, 70)">
+    <rect x="0" y="0" width="160" height="180" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <circle cx="80" cy="75" r="42" fill="url(#bulbGlow)"/>
+    <circle cx="80" cy="75" r="30" fill="#fef9c3" fill-opacity="0.8" stroke="#eab308" stroke-width="2"/>
+    <!-- Filament -->
+    <path d="M 72,85 L 75,65 L 80,68 L 85,65 L 88,85" fill="none" stroke="#b45309" stroke-width="2"/>
+    <!-- Metal Base -->
+    <rect x="70" y="105" width="20" height="18" fill="url(#metalGrad)" stroke="#475569" stroke-width="1.5"/>
+    <text x="80" y="170" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#0f172a">مصباح التوهج (L)</text>
+  </g>
+
+  <!-- 3. Knife Switch -->
+  <g transform="translate(480, 70)">
+    <rect x="0" y="0" width="160" height="180" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <rect x="25" y="115" width="110" height="16" rx="4" fill="#78350f" stroke="#451a03" stroke-width="1.5"/>
+    <circle cx="45" cy="110" r="7" fill="#ca8a04" stroke="#854d0e" stroke-width="1.5"/>
+    <circle cx="115" cy="110" r="7" fill="#ca8a04" stroke="#854d0e" stroke-width="1.5"/>
+    <!-- Open Blade Handle -->
+    <line x1="45" y1="110" x2="105" y2="60" stroke="#ca8a04" stroke-width="5" stroke-linecap="round"/>
+    <rect x="95" y="48" width="16" height="16" rx="4" fill="#dc2626"/>
+    <text x="80" y="170" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#0f172a">قاطعة بسيطة (K)</text>
+  </g>
+
+  <!-- Row 2: Resistor, Diode LED, Motor -->
+  <!-- 4. Resistor -->
+  <g transform="translate(60, 275)">
+    <rect x="0" y="0" width="160" height="190" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <!-- Wire leads -->
+    <line x1="20" y1="80" x2="140" y2="80" stroke="#64748b" stroke-width="4"/>
+    <!-- Ceramic Body -->
+    <rect x="45" y="65" width="70" height="30" rx="8" fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+    <!-- Color Bands: Brown, Black, Red, Gold (1k Ohm) -->
+    <rect x="58" y="65" width="6" height="30" fill="#78350f"/>
+    <rect x="70" y="65" width="6" height="30" fill="#0f172a"/>
+    <rect x="82" y="65" width="6" height="30" fill="#dc2626"/>
+    <rect x="98" y="65" width="6" height="30" fill="#ca8a04"/>
+    <text x="80" y="145" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="11" font-weight="900" fill="#b45309">R = 1000 Ω (1 kΩ)</text>
+    <text x="80" y="175" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#0f172a">ناقل أومي (مقاومة)</text>
+  </g>
+
+  <!-- 5. Diode LED -->
+  <g transform="translate(270, 275)">
+    <rect x="0" y="0" width="160" height="190" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <path d="M 60,95 C 60,60 100,60 100,95 Z" fill="#ef4444" fill-opacity="0.9" stroke="#b91c1c" stroke-width="2"/>
+    <line x1="72" y1="95" x2="72" y2="135" stroke="#94a3b8" stroke-width="3"/>
+    <line x1="88" y1="95" x2="88" y2="145" stroke="#94a3b8" stroke-width="3"/>
+    <text x="65" y="140" font-family="'Cairo', sans-serif" font-size="10" font-weight="900" fill="#dc2626">-</text>
+    <text x="95" y="150" font-family="'Cairo', sans-serif" font-size="10" font-weight="900" fill="#16a34a">+</text>
+    <text x="80" y="175" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#0f172a">صمام ثنائي مشع (LED)</text>
+  </g>
+
+  <!-- 6. Electric Motor -->
+  <g transform="translate(480, 275)">
+    <rect x="0" y="0" width="160" height="190" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <circle cx="80" cy="85" r="38" fill="url(#metalGrad)" stroke="#334155" stroke-width="2.5"/>
+    <circle cx="80" cy="85" r="8" fill="#1e293b"/>
+    <line x1="80" y1="85" x2="80" y2="40" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+    <text x="80" y="125" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="14" font-weight="900" fill="#0f172a">[ M ]</text>
+    <text x="80" y="175" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="10" font-weight="800" fill="#0f172a">محرك كهربائي (M)</text>
+  </g>
+</svg>

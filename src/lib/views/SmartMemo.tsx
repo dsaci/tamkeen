@@ -65,7 +65,6 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
   const [resourceSuggestions, setResourceSuggestions] = useState<Resource[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const printTemplateRef = useRef<HTMLDivElement>(null);
 
   // Auto-search resource bank
   useEffect(() => {
@@ -243,32 +242,23 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
   };
 
   const handleExportPDF = async () => {
-    if (!printTemplateRef.current) return;
+    if (!generatedMemo) return;
     setIsExporting(true);
     try {
-      const jsPDF = (await import('jspdf')).default;
-      const html2canvas = (await import('html2canvas')).default;
-      const element = printTemplateRef.current;
-      const canvas = await html2canvas(element, { scale: 3, useCORS: true, allowTaint: true, logging: false });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      pdf.save(`مذكرة_${formData.topic}_${formData.date}.pdf`);
-    } catch (err) {
-      console.error(err);
-      alert("حدث خطأ أثناء التصدير.");
+      const { exportSmartMemoToPDF } = await import('../utils/pdfGenerator');
+      await exportSmartMemoToPDF(profile, generatedMemo, {
+        subject: formData.subject || profile.teachingSubject || 'مادة عامة',
+        grade: formData.grade || '',
+        unit: formData.unit || '',
+        activity: formData.activity || '',
+        topic: formData.topic || 'مذكرة بيداغوجية',
+        memoNumber: formData.memoNumber || '01',
+        duration: formData.duration || '60 دقيقة',
+        date: formData.date || new Date().toISOString().split('T')[0],
+      });
+    } catch (e) {
+      console.error(e);
+      alert('حدث خطأ أثناء تصدير المذكرة. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsExporting(false);
     }
@@ -559,86 +549,6 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
         </div>
       </div>
 
-      {/* Hidden PDF Print Template */}
-      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-        {generatedMemo && (
-          <div ref={printTemplateRef} style={{ width: '210mm', padding: '12mm 15mm', background: 'white', color: 'black', fontFamily: 'Cairo', direction: 'rtl', fontSize: '10pt' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '2px solid black', paddingBottom: '8px' }}>
-              <div style={{ fontSize: '9pt', fontWeight: 'bold', lineHeight: '1.8' }}>
-                الجمهورية الجزائرية الديمقراطية الشعبية<br />
-                وزارة التربية الوطنية<br />
-                مديرية التربية لولاية {profile.province?.split('-')[1] || profile.province}<br />
-                المؤسسة: {profile.institution}
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <TamkeenLogo size={50} />
-                <div style={{ marginTop: '4px', fontWeight: 900 }}>مذكرة بيداغوجية رقم: {formData.memoNumber}</div>
-              </div>
-            </div>
-
-            {/* Info */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
-              <div style={{ border: '1px solid black', padding: '8px', fontSize: '9pt', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
-                الطور: {levelLabel}<br />المادة: {formData.subject}<br />المستوى/القسم: {formData.grade}<br />المقطع/الميدان: {formData.unit}<br />الوحدة: {formData.unit}
-              </div>
-              <div style={{ border: '1px solid black', padding: '8px', fontSize: '9pt', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
-                الأستاذ(ة): {profile.name}<br />النشاط: {formData.activity}<br />عنوان الدرس: {formData.topic}<br />الحصة / المدة: {formData.memoNumber} / {formData.duration}<br />التاريخ: {formData.date}
-              </div>
-            </div>
-
-            {/* Sections */}
-            <PrintSection num="1" title="الكفاءة الختامية">{generatedMemo.competencyFinal}</PrintSection>
-            <PrintSection num="2" title="الكفاءات المرحلية / المستهدفة">{generatedMemo.competencyTarget}</PrintSection>
-            <PrintSection num="3" title="مؤشرات الأداء">
-              <ul style={{ paddingRight: '20px' }}>{generatedMemo.indicators?.map((ind, i) => <li key={i}>{ind}</li>)}</ul>
-            </PrintSection>
-            <PrintSection num="4" title="المكتسبات القبلية">{generatedMemo.prerequisites}</PrintSection>
-            <PrintSection num="5" title="الوضعية المشكلة">{generatedMemo.problemSituation}</PrintSection>
-
-            {/* Steps Table */}
-            <div style={{ fontWeight: 900, marginBottom: '4px', marginTop: '10px', fontSize: '10pt' }}>سير الحصة:</div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1.5px solid black', fontSize: '8pt', marginBottom: '10px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#e5e7eb' }}>
-                  <th style={{ border: '1px solid black', padding: '6px', width: '14%' }}>المرحلة</th>
-                  <th style={{ border: '1px solid black', padding: '6px' }}>أداء الأستاذ</th>
-                  <th style={{ border: '1px solid black', padding: '6px' }}>أداء المتعلم</th>
-                  <th style={{ border: '1px solid black', padding: '6px', width: '12%' }}>الطريقة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {generatedMemo.steps?.map((step, idx) => (
-                  <tr key={idx}>
-                    <td style={{ border: '1px solid black', padding: '6px', fontWeight: 'bold', textAlign: 'center', backgroundColor: '#f9fafb' }}>{step.stage}</td>
-                    <td style={{ border: '1px solid black', padding: '6px', whiteSpace: 'pre-line' }}>{step.teacherActivity}</td>
-                    <td style={{ border: '1px solid black', padding: '6px', whiteSpace: 'pre-line' }}>{step.studentActivity}</td>
-                    <td style={{ border: '1px solid black', padding: '6px', textAlign: 'center', fontStyle: 'italic' }}>{step.method}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <PrintSection num="6" title="الوسائل التعليمية">{generatedMemo.tools}</PrintSection>
-            <PrintSection num="7" title="التقويم">
-              تشخيصي: {generatedMemo.evaluationDiag}<br />
-              تكويني: {generatedMemo.evaluationFormative}<br />
-              ختامي: {generatedMemo.evaluationFinal}
-            </PrintSection>
-            <PrintSection num="8" title="المعالجة البيداغوجية">
-              دعم المتعثرين: {generatedMemo.remediation}<br />
-              إثراء المتفوقين: {generatedMemo.enrichment}
-            </PrintSection>
-            <PrintSection num="9" title="الملاحظات">{generatedMemo.notes}</PrintSection>
-
-            {/* Signatures */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px', paddingTop: '15px', borderTop: '1px dashed black' }}>
-              <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '9pt' }}>إمضاء الأستاذ(ة)</div>
-              <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '9pt' }}>ختم السيد المدير</div>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
@@ -650,14 +560,6 @@ const SectionBox: React.FC<{ icon: React.ReactNode; title: string; color: string
       {icon} {title}
     </div>
     <div className="p-3 text-[10px] font-bold leading-relaxed whitespace-pre-line">{children}</div>
-  </div>
-);
-
-// Helper: Print section for PDF
-const PrintSection: React.FC<{ num: string; title: string; children: React.ReactNode }> = ({ num, title, children }) => (
-  <div style={{ border: '1px solid black', padding: '8px', marginBottom: '6px', fontSize: '9pt' }}>
-    <div style={{ fontWeight: 900, textDecoration: 'underline', marginBottom: '4px' }}>{num}) {title}:</div>
-    <div style={{ fontWeight: 'bold' }}>{children}</div>
   </div>
 );
 

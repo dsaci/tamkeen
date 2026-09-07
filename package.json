@@ -5,7 +5,7 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "dev:desktop": "tsc -p tsconfig.electron.json && concurrently -k \"vite\" \"wait-on http://localhost:3000 && node run-electron.js\"",
+    "dev:desktop": "tsc -p tsconfig.electron.json && concurrently -k \"vite\" \"wait-on http://localhost:3001 && node run-electron.js\"",
     "build": "tsc -p tsconfig.electron.json && vite build",
     "build:desktop": "npm run build && electron-builder --win",
     "start:desktop": "npm run dev:desktop",
@@ -13,6 +13,7 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.1",
     "@google/genai": "^1.40.0",
     "@hookform/resolvers": "^5.2.2",
     "@supabase/supabase-js": "^2.95.3",
