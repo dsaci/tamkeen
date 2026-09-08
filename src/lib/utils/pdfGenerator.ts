@@ -1018,7 +1018,7 @@ export const exportTimetableToPDF = async (
           <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 6px; text-align: center;">
               <thead>
                   <tr>
-                      <th style="border: 1px solid #000; padding: 3px; font-size: 9.5px; font-weight: 900; background: #e5e7eb; width: 68px;">الأنشطة</th>
+                      <th style="border: 1px solid #000; padding: 3px; font-size: 9.5px; font-weight: 900; background: #e5e7eb; width: 78px;">${type === 'teacher' && metadata?.stage !== 'primary' ? 'الأفواج المسندة' : 'الأنشطة'}</th>
                       ${actHeadersHtml}
                   </tr>
               </thead>

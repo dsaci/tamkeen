@@ -163,7 +163,7 @@ export function PrintableTimetable({ type, schedule, metadata, activities = [], 
                   </th>
                 </tr>
                 <tr className="bg-slate-100">
-                  <th className="border border-slate-900 p-0.5 w-16">الأنشطة</th>
+                  <th className="border border-slate-900 p-0.5 w-20">{type === 'teacher' && metadata?.stage !== 'primary' ? 'الأفواج المسندة' : 'الأنشطة'}</th>
                   {activities.map((act, i) => (
                     <th key={i} className="border border-slate-900 p-0.5">{act.name}</th>
                   ))}

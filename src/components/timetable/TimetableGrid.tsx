@@ -44,6 +44,8 @@ export function TimetableGrid({ type, schedule, setSchedule, metadata }: Props) 
   const renderCell = (dayIdx: number, timeIdx: number, period: 'morning' | 'afternoon') => {
     const item = schedule.find(s => s.dayIdx === dayIdx && s.timeIdx === timeIdx && s.period === period);
     const isEditing = editingSlot?.dayIdx === dayIdx && editingSlot?.timeIdx === timeIdx && editingSlot?.period === period;
+    const isPrimary = metadata?.stage === 'primary' || !metadata?.stage;
+    const isClassPlaceholder = type === 'teacher' && !isPrimary;
 
     if (isEditing) {
       return (
@@ -55,7 +57,7 @@ export function TimetableGrid({ type, schedule, setSchedule, metadata }: Props) 
             onChange={e => setInputValue(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
             onBlur={handleSave}
-            placeholder={type === 'teacher' ? 'القسم (مثال: 3م2)' : 'المادة (مثال: رياضيات)'}
+            placeholder={isClassPlaceholder ? 'القسم (مثال: 3م2)' : 'المادة (مثال: رياضيات)'}
             className="w-full h-full bg-transparent text-center text-xs font-bold outline-none"
           />
         </div>

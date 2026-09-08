@@ -15,9 +15,10 @@ interface Props {
   onClose: () => void;
   activities: Activity[];
   onSave: (activities: Activity[]) => void;
+  label?: string;
 }
 
-export function ActivitiesEditorModal({ isOpen, onClose, activities: initialActivities, onSave }: Props) {
+export function ActivitiesEditorModal({ isOpen, onClose, activities: initialActivities, onSave, label = 'النشاط' }: Props) {
   const [activities, setActivities] = useState<Activity[]>(initialActivities);
 
   if (!isOpen) return null;
@@ -25,7 +26,7 @@ export function ActivitiesEditorModal({ isOpen, onClose, activities: initialActi
   const handleAdd = () => {
     setActivities([
       ...activities,
-      { id: Date.now().toString(), name: 'نشاط جديد', periods: 1, timeVolume: '0:45', isTotal: false }
+      { id: Date.now().toString(), name: 'جديد', periods: 1, timeVolume: '1', isTotal: false }
     ]);
   };
 
@@ -43,7 +44,7 @@ export function ActivitiesEditorModal({ isOpen, onClose, activities: initialActi
         
         <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-emerald-50 dark:bg-emerald-900/20">
           <div>
-            <h2 className="text-xl font-black text-emerald-800 dark:text-emerald-400">تعديل النموذج — الأنشطة والحصص والأزمنة</h2>
+            <h2 className="text-xl font-black text-emerald-800 dark:text-emerald-400">تعديل النموذج — {label} والحصص والأزمنة</h2>
             <p className="text-xs font-bold text-emerald-600/70 mt-1">
               أجرِ التعديلات هنا واضغط حفظ لتطبيقها على الجدول. الصفوف التي تحمل علامة المجموع تُعتبر تلقائياً صفوف إجمالية.
             </p>
@@ -57,7 +58,7 @@ export function ActivitiesEditorModal({ isOpen, onClose, activities: initialActi
           <table className="w-full border-collapse text-center">
             <thead>
               <tr>
-                <th className="p-3 font-black text-emerald-700 border-b-2 border-emerald-200">النشاط</th>
+                <th className="p-3 font-black text-emerald-700 border-b-2 border-emerald-200">{label}</th>
                 <th className="p-3 font-black text-emerald-700 border-b-2 border-emerald-200 w-24">عدد الحصص</th>
                 <th className="p-3 font-black text-emerald-700 border-b-2 border-emerald-200 w-24">الحجم الساعي</th>
                 <th className="p-3 font-black text-emerald-700 border-b-2 border-emerald-200 w-20">مجموع؟</th>

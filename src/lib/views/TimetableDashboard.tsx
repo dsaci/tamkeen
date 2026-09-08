@@ -114,17 +114,50 @@ export default function TimetableDashboard({ profile }: Props) {
       clearInterval(interval);
       setProjectData(data);
       
-      // Generate a mock schedule if empty
+      // Update activities and mock schedule
+      const isPrimary = data.stage === 'primary' || !data.stage;
+      const isTeacherProject = data.projectType === 'teacher';
+
       if (schedule.length === 0) {
+        let newActivities: typeof DEFAULT_ACTIVITIES = [];
         const mockSchedule: ScheduleItem[] = [];
-        const subjects = ['اللغة العربية', 'الرياضيات', 'تربية إسلامية', 'تربية علمية', 'لغة إنجليزية', 'التربية البدنية', 'تاريخ', 'تربية فنية (ت/م)'];
-        
-        for (let d = 0; d < 5; d++) {
-          for (let t = 0; t < 4; t++) {
-            mockSchedule.push({ dayIdx: d, timeIdx: t, period: 'morning', subject: subjects[Math.floor(Math.random() * 4)] });
-            mockSchedule.push({ dayIdx: d, timeIdx: t, period: 'afternoon', subject: subjects[Math.floor(Math.random() * subjects.length)] });
+
+        if (isPrimary || !isTeacherProject) {
+          // Primary or Class project: Activities are Subjects
+          newActivities = [
+            { id: '1', name: 'اللغة العربية', periods: 9, timeVolume: '7:30', isTotal: false },
+            { id: '2', name: 'الرياضيات', periods: 6, timeVolume: '5:00', isTotal: false },
+            { id: '3', name: 'تربية إسلامية', periods: 3, timeVolume: '1:30', isTotal: false },
+            { id: '4', name: 'لغة فرنسية', periods: 3, timeVolume: '2:15', isTotal: false },
+            { id: '5', name: 'المجموع', periods: 21, timeVolume: '16:15', isTotal: true },
+          ];
+          const subjects = ['لغة عربية', 'رياضيات', 'تربية إسلامية', 'تربية علمية', 'لغة فرنسية'];
+          for (let d = 0; d < 5; d++) {
+            for (let t = 0; t < 4; t++) {
+              mockSchedule.push({ dayIdx: d, timeIdx: t, period: 'morning', subject: subjects[Math.floor(Math.random() * 3)] });
+              mockSchedule.push({ dayIdx: d, timeIdx: t, period: 'afternoon', subject: subjects[Math.floor(Math.random() * subjects.length)] });
+            }
+          }
+        } else {
+          // Middle/High Teacher Project: Activities are Classes (الأفواج)
+          const levelPrefix = data.level === 'm1' ? '1م' : data.level === 'm2' ? '2م' : data.level === 'm3' ? '3م' : data.level === 'm4' ? '4م' : data.level === 's1' ? '1ثا' : data.level === 's2' ? '2ثا' : '3ثا';
+          newActivities = [
+            { id: '1', name: `${levelPrefix}1`, periods: 4, timeVolume: '4', isTotal: false },
+            { id: '2', name: `${levelPrefix}2`, periods: 4, timeVolume: '4', isTotal: false },
+            { id: '3', name: `${levelPrefix}3`, periods: 4, timeVolume: '4', isTotal: false },
+            { id: '4', name: `${levelPrefix}4`, periods: 4, timeVolume: '4', isTotal: false },
+            { id: '5', name: 'المجموع', periods: 16, timeVolume: '16', isTotal: true },
+          ];
+          const classes = [`${levelPrefix}1`, `${levelPrefix}2`, `${levelPrefix}3`, `${levelPrefix}4`];
+          for (let d = 0; d < 5; d++) {
+            for (let t = 0; t < 4; t++) {
+              mockSchedule.push({ dayIdx: d, timeIdx: t, period: 'morning', subject: classes[Math.floor(Math.random() * classes.length)] });
+              mockSchedule.push({ dayIdx: d, timeIdx: t, period: 'afternoon', subject: classes[Math.floor(Math.random() * classes.length)] });
+            }
           }
         }
+
+        setActivities(newActivities);
         setSchedule(mockSchedule);
       }
       
@@ -432,6 +465,7 @@ export default function TimetableDashboard({ profile }: Props) {
           setActivities(newActs);
           setIsModalOpen(false);
         }}
+        label={projectData?.projectType === 'teacher' && projectData?.stage !== 'primary' ? 'الفوج' : 'النشاط'}
       />
     </div>
   );
