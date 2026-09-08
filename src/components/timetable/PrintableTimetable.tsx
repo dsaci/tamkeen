@@ -154,7 +154,9 @@ export function PrintableTimetable({ type, schedule, metadata, activities = [], 
               <thead>
                 <tr>
                   <th className="border border-slate-900 p-1 text-rose-800 bg-rose-50" colSpan={2}>نظام التدريس: {timingConfig.systemTitle}</th>
-                  <th className="border border-slate-900 p-1" colSpan={2}>القسم: {getSubTitle()}</th>
+                  <th className="border border-slate-900 p-1" colSpan={2}>
+                    {type === 'teacher' && metadata?.stage !== 'primary' ? `التخصص: ${metadata?.specialty ? ({'arabic':'لغة عربية','french':'لغة فرنسية','english':'لغة إنجليزية','pe':'تربية بدنية ورياضية','math':'رياضيات','physics':'العلوم الفيزيائية والتكنولوجيا','science':'علوم الطبيعة والحياة','history_geo':'تاريخ وجغرافيا','islamic':'تربية إسلامية','civics':'تربية مدنية','informatics':'إعلام آلي','philosophy':'فلسفة','accounting':'تسيير محاسبي ومالي','engineering':'هندسة'}[metadata.specialty as string] || metadata.specialty) : ''}` : `القسم: ${getSubTitle()}`}
+                  </th>
                   <th className="border border-slate-900 p-1" colSpan={4}>
                     عدد التلاميذ: .... الذكور: .... - الإناث: ....
                   </th>

@@ -1001,7 +1001,7 @@ export const exportTimetableToPDF = async (
       </style>
       ${floralCornersHTML}
       <div style="display: flex; flex-direction: column; min-height: 100%; text-align: right; color: #000; background: ${isFlowers ? '#fffefb' : '#fff'}; position: relative; z-index: 2;">
-          ${getOfficialAlgerianHeaderHTML(profile, isFlowers ? `🌸 ${targetTitle} 🌸` : targetTitle, `${timingConfig.stageTitle} — ${timingConfig.systemTitle}${titleExt}`, metadata?.level || '')}
+          ${getOfficialAlgerianHeaderHTML(profile, isFlowers ? `🌸 ${targetTitle} 🌸` : targetTitle, `${timingConfig.stageTitle} — ${timingConfig.systemTitle}${titleExt}`, type === 'teacher' && metadata?.stage && metadata.stage !== 'primary' ? `التخصص: ${translatedSpecialty}` : metadata?.level || '')}
 
           <!-- Metadata Strip -->
           <div style="display: flex; justify-content: space-between; border: 1px solid #000; padding: 5px 12px; margin-bottom: 6px; font-size: 9.5px; background: ${isFlowers ? '#fefce8' : (isStandard ? '#f8fafc' : '#f9fafb')};">
@@ -1149,7 +1149,7 @@ export const exportTimetableToWord = async (
             <p style='margin: 0; font-size: 11pt;'><strong>الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية</strong></p>
             <p style='margin: 4px 0;'>مديرية التربية لولاية: ${metadata?.directorate || profile.province || ''} • المؤسسة: ${metadata?.schoolName || profile.institution || ''}</p>
             <h2 style='margin: 8px 0;'>التوقيت الأسبوعي الرسمي (${timingConfig.stageTitle} — ${timingConfig.systemTitle})</h2>
-            <p style='margin: 4px 0;'>الأستاذ(ة): ${metadata?.teacherName || profile.name || ''} | ${metadata?.stage && metadata.stage !== 'primary' && metadata?.specialty ? `التخصص: ${{'arabic':'لغة عربية','french':'لغة فرنسية','english':'لغة إنجليزية','pe':'تربية بدنية ورياضية','math':'رياضيات','physics':'العلوم الفيزيائية والتكنولوجيا','science':'علوم الطبيعة والحياة','history_geo':'تاريخ وجغرافيا','islamic':'تربية إسلامية','civics':'تربية مدنية','informatics':'إعلام آلي','philosophy':'فلسفة','accounting':'تسيير محاسبي ومالي','engineering':'هندسة'}[metadata.specialty] || metadata.specialty} | ` : ''}القسم: ${metadata?.level || ''} | الحجرة: ${metadata?.room || ''} | ينتهي التوقيت عند الساعة ${timingConfig.endTime}</p>
+            <p style='margin: 4px 0;'>الأستاذ(ة): ${metadata?.teacherName || profile.name || ''} | ${type === 'teacher' && metadata?.stage && metadata.stage !== 'primary' && metadata?.specialty ? `التخصص: ${{'arabic':'لغة عربية','french':'لغة فرنسية','english':'لغة إنجليزية','pe':'تربية بدنية ورياضية','math':'رياضيات','physics':'العلوم الفيزيائية والتكنولوجيا','science':'علوم الطبيعة والحياة','history_geo':'تاريخ وجغرافيا','islamic':'تربية إسلامية','civics':'تربية مدنية','informatics':'إعلام آلي','philosophy':'فلسفة','accounting':'تسيير محاسبي ومالي','engineering':'هندسة'}[metadata.specialty] || metadata.specialty} | ` : `القسم: ${metadata?.level || ''} | `}الحجرة: ${metadata?.room || ''} | ينتهي التوقيت عند الساعة ${timingConfig.endTime}</p>
         </div>
         <table>
             <thead>
