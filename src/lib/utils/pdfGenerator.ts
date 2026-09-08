@@ -864,14 +864,14 @@ export const exportTimetableToPDF = async (
             <th style="border: 1px solid #000; padding: 4px; font-weight: 900; font-size: 11px; background-color: #f3f4f6; width: 68px; text-align: center;">${day}</th>
             <td style="border: 1px solid #000; padding: 3px; text-align: center; font-weight: bold; font-size: 10px;">${m0}</td>
             <td style="border: 1px solid #000; padding: 3px; text-align: center; font-weight: bold; font-size: 10px;">${m1}</td>
-            <td style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8.5px; font-weight: bold; background-color: #f8fafc; color: #64748b; width: 34px;">15 د</td>
+            <td style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8.5px; font-weight: bold; background-color: #f8fafc; color: #64748b; width: 34px;">${timingConfig.morningRecessDuration}</td>
             <td style="border: 1px solid #000; padding: 3px; text-align: center; font-weight: bold; font-size: 10px;">${m2}</td>
             <td style="border: 1px solid #000; padding: 3px; text-align: center; font-weight: bold; font-size: 10px;">${m3}</td>
             <td style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8px; font-weight: bold; background-color: #f1f5f9; color: #475569; width: 34px;">زوال</td>
             <td style="border: 1px solid #000; padding: 3px; text-align: center; font-weight: bold; font-size: 10px; background-color: #fafafa;">${a0}</td>
             <td style="border: 1px solid #000; padding: 3px; text-align: center; font-weight: bold; font-size: 10px; background-color: #fafafa;">${a1}</td>
             ${hasAfternoonBreak ? `
-            <td style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8.5px; font-weight: bold; background-color: #f8fafc; color: #64748b; width: 34px;">15 د</td>
+            <td style="border: 1px solid #000; padding: 2px; text-align: center; font-size: 8.5px; font-weight: bold; background-color: #f8fafc; color: #64748b; width: 34px;">${timingConfig.afternoonRecessDuration}</td>
             <td style="border: 1px solid #000; padding: 3px; text-align: center; font-weight: bold; font-size: 10px; background-color: #fafafa;">${a2}</td>
             <td style="border: 1px solid #000; padding: 3px; text-align: center; font-weight: bold; font-size: 10px; background-color: #fafafa;">${a3}</td>
             ` : `
@@ -886,7 +886,7 @@ export const exportTimetableToPDF = async (
             <th style="border: 1px solid #000; padding: 4px; width: 68px;" rowspan="2">اليوم</th>
             <th style="border: 1px solid #000; padding: 4px;" colspan="2">الفترة الصباحية (أولى)</th>
             <th style="border: 1px solid #000; padding: 2px; width: 34px; background: #fff;" rowspan="2">
-                <div style="font-size: 8px; font-weight: 900; line-height: 1.1;">استراحة<br/>15 د</div>
+                <div style="font-size: 8px; font-weight: 900; line-height: 1.1;">استراحة<br/>${timingConfig.morningRecessDuration}</div>
                 <div style="font-size: 7px; color: #555; margin-top: 2px;">${timingConfig.morningRecessTime}</div>
             </th>
             <th style="border: 1px solid #000; padding: 4px;" colspan="2">الفترة الصباحية (ثانية)</th>
@@ -899,7 +899,7 @@ export const exportTimetableToPDF = async (
             </th>
             ${hasAfternoonBreak ? `
             <th style="border: 1px solid #000; padding: 2px; width: 34px; background: #fff;" rowspan="2">
-                <div style="font-size: 8px; font-weight: 900; line-height: 1.1;">استراحة<br/>15 د</div>
+                <div style="font-size: 8px; font-weight: 900; line-height: 1.1;">استراحة<br/>${timingConfig.afternoonRecessDuration}</div>
                 <div style="font-size: 7px; color: #555; margin-top: 2px;">${timingConfig.afternoonRecessTime}</div>
             </th>
             <th style="border: 1px solid #000; padding: 4px;" colspan="2">
@@ -1116,14 +1116,14 @@ export const exportTimetableToWord = async (
             <th style="border: 1px solid black; padding: 6px; background-color: #f3f4f6;">${day}</th>
             <td style="border: 1px solid black; padding: 6px; text-align: center;">${getSubject(dIdx, 0, 'morning')}</td>
             <td style="border: 1px solid black; padding: 6px; text-align: center;">${getSubject(dIdx, 1, 'morning')}</td>
-            <td style="border: 1px solid black; padding: 6px; text-align: center; background-color: #f9fafb; font-size: 9pt;">استراحة (15 د)</td>
+            <td style="border: 1px solid black; padding: 6px; text-align: center; background-color: #f9fafb; font-size: 9pt;">استراحة (${timingConfig.morningRecessDuration})</td>
             <td style="border: 1px solid black; padding: 6px; text-align: center;">${getSubject(dIdx, 2, 'morning')}</td>
             <td style="border: 1px solid black; padding: 6px; text-align: center;">${getSubject(dIdx, 3, 'morning')}</td>
             <td style="border: 1px solid black; padding: 6px; text-align: center; background-color: #e5e7eb; font-weight: bold;">استراحة الزوال</td>
             <td style="border: 1px solid black; padding: 6px; text-align: center;">${getSubject(dIdx, 0, 'afternoon')}</td>
             <td style="border: 1px solid black; padding: 6px; text-align: center;">${getSubject(dIdx, 1, 'afternoon')}</td>
             ${hasAfternoonBreak ? `
-            <td style="border: 1px solid black; padding: 6px; text-align: center; background-color: #f9fafb; font-size: 9pt;">استراحة (15 د)</td>
+            <td style="border: 1px solid black; padding: 6px; text-align: center; background-color: #f9fafb; font-size: 9pt;">استراحة (${timingConfig.afternoonRecessDuration})</td>
             <td style="border: 1px solid black; padding: 6px; text-align: center;">${getSubject(dIdx, 2, 'afternoon')}</td>
             <td style="border: 1px solid black; padding: 6px; text-align: center;">${getSubject(dIdx, 3, 'afternoon')}</td>
             ` : `
@@ -1156,12 +1156,12 @@ export const exportTimetableToWord = async (
                 <tr style='background-color: #e5e7eb;'>
                     <th>اليوم</th>
                     <th colspan='2'>الفترة الصباحية (أولى)</th>
-                    <th>استراحة (15 د)</th>
+                    <th>استراحة (${timingConfig.morningRecessDuration})</th>
                     <th colspan='2'>الفترة الصباحية (ثانية)</th>
                     <th>استراحة الزوال</th>
                     <th colspan='2'>الفترة المسائية (أولى)</th>
                     ${hasAfternoonBreak ? `
-                    <th>استراحة (15 د)</th>
+                    <th>استراحة (${timingConfig.afternoonRecessDuration})</th>
                     <th colspan='2'>الفترة المسائية (حتى ${timingConfig.endTime})</th>
                     ` : `
                     <th colspan='2'>الفترة المسائية (حتى ${timingConfig.endTime})</th>

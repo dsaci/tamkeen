@@ -242,8 +242,8 @@ export function PrintableTimetable({ type, schedule, metadata, activities = [], 
                   <td className="border border-slate-900 p-0.5">{getSubject(dIdx, 0, 'morning')}</td>
                   <td className="border border-slate-900 p-0.5">{getSubject(dIdx, 1, 'morning')}</td>
 
-                  {/* Morning 15-min Recess */}
-                  <td className="border border-slate-900 p-0.5 bg-slate-50 text-[8px] font-bold text-slate-500">15 د</td>
+                  {/* Morning Recess */}
+                  <td className="border border-slate-900 p-0.5 bg-slate-50 text-[8px] font-bold text-slate-500">{timingConfig.morningRecessDuration}</td>
 
                   {/* Morning Slot 2 & 3 */}
                   <td className="border border-slate-900 p-0.5">{getSubject(dIdx, 2, 'morning')}</td>
@@ -258,8 +258,8 @@ export function PrintableTimetable({ type, schedule, metadata, activities = [], 
                   
                   {hasAfternoonBreak ? (
                     <>
-                      {/* Afternoon 15-min Recess */}
-                      <td className="border border-slate-900 p-0.5 bg-slate-50 text-[8px] font-bold text-slate-500">15 د</td>
+                      {/* Afternoon Recess */}
+                      <td className="border border-slate-900 p-0.5 bg-slate-50 text-[8px] font-bold text-slate-500">{timingConfig.afternoonRecessDuration}</td>
                       <td className="border border-slate-900 p-0.5 bg-slate-50/50">{getSubject(dIdx, 2, 'afternoon')}</td>
                       <td className="border border-slate-900 p-0.5 bg-slate-50/50">{getSubject(dIdx, 3, 'afternoon')}</td>
                     </>

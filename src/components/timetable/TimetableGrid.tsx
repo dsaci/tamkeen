@@ -127,10 +127,10 @@ export function TimetableGrid({ type, schedule, setSchedule, metadata }: Props) 
                   <div className="text-[8px] text-slate-400">{timingConfig.morningDurations[1]}</div>
                 </div>
 
-                {/* Morning 15-min Break Column */}
+                {/* Morning Break Column */}
                 <div className="w-14 shrink-0 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-lg flex flex-col items-center justify-center p-1 text-center">
                   <span className="text-[9px] font-black text-amber-700 dark:text-amber-400">استراحة</span>
-                  <span className="text-[8px] font-bold text-amber-600 dark:text-amber-500">15 د</span>
+                  <span className="text-[8px] font-bold text-amber-600 dark:text-amber-500">{timingConfig.morningRecessDuration}</span>
                   <span className="text-[7px] text-slate-400 leading-none mt-0.5">{timingConfig.morningRecessTime}</span>
                 </div>
 
@@ -145,8 +145,8 @@ export function TimetableGrid({ type, schedule, setSchedule, metadata }: Props) 
               </div>
             </div>
 
-            {/* Midday Break Column */}
-            <div className="w-14 shrink-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 text-center border border-slate-200 dark:border-slate-700">
+            {/* Midday Break Column Header */}
+            <div className="w-14 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-lg flex flex-col items-center justify-center p-1 text-center">
               <span className="text-[9px] font-black text-slate-600 dark:text-slate-300">استراحة</span>
               <span className="text-[8px] font-bold text-slate-500">الزوال</span>
               <span className="text-[7px] text-slate-400 leading-none mt-0.5">{timingConfig.middayTime}</span>
@@ -170,7 +170,7 @@ export function TimetableGrid({ type, schedule, setSchedule, metadata }: Props) 
                 {hasAfternoonBreak && (
                   <div className="w-14 shrink-0 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-lg flex flex-col items-center justify-center p-1 text-center">
                     <span className="text-[9px] font-black text-amber-700 dark:text-amber-400">استراحة</span>
-                    <span className="text-[8px] font-bold text-amber-600 dark:text-amber-500">15 د</span>
+                    <span className="text-[8px] font-bold text-amber-600 dark:text-amber-500">{timingConfig.afternoonRecessDuration}</span>
                     <span className="text-[7px] text-slate-400 leading-none mt-0.5">{timingConfig.afternoonRecessTime}</span>
                   </div>
                 )}
@@ -202,9 +202,9 @@ export function TimetableGrid({ type, schedule, setSchedule, metadata }: Props) 
                   {renderCell(dIdx, 0, 'morning')}
                   {renderCell(dIdx, 1, 'morning')}
 
-                  {/* Morning 15-min Break Slot Indicator */}
+                  {/* Morning Break Slot Indicator */}
                   <div className="w-14 shrink-0 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl h-20 border border-dashed border-amber-200 dark:border-amber-800/40 flex flex-col items-center justify-center text-[10px] font-black text-amber-600 dark:text-amber-500">
-                    <span>15 د</span>
+                    <span>{timingConfig.morningRecessDuration}</span>
                     <span className="text-[8px] font-normal text-amber-500">راحة</span>
                   </div>
 
@@ -224,7 +224,7 @@ export function TimetableGrid({ type, schedule, setSchedule, metadata }: Props) 
 
                   {hasAfternoonBreak && (
                     <div className="w-14 shrink-0 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl h-20 border border-dashed border-amber-200 dark:border-amber-800/40 flex flex-col items-center justify-center text-[10px] font-black text-amber-600 dark:text-amber-500">
-                      <span>15 د</span>
+                      <span>{timingConfig.afternoonRecessDuration}</span>
                       <span className="text-[8px] font-normal text-amber-500">راحة</span>
                     </div>
                   )}
