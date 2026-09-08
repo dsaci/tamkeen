@@ -769,7 +769,7 @@ export const exportTimetableToPDF = async (
         schedule: { dayIdx: number; timeIdx: number; period: 'morning' | 'afternoon'; subject: string }[];
         activities?: { name: string; periods: number; timeVolume: string }[];
         type?: 'teacher' | 'class';
-        template?: 'classic' | 'flowers';
+        template?: 'classic' | 'flowers' | 'standard';
     }
 ): Promise<void> => {
     const { metadata, schedule, activities = [], type = 'class' } = options;
@@ -925,6 +925,7 @@ export const exportTimetableToPDF = async (
         </tr>
     `;
 
+    const isStandard = targetTemplate === 'standard';
     const floralCornersHTML = isFlowers ? `
       <!-- Top-Right Floral Ornament -->
       <div style="position: absolute; top: 6px; right: 6px; width: 66px; height: 66px; pointer-events: none; z-index: 10;">
@@ -984,19 +985,28 @@ export const exportTimetableToPDF = async (
       </div>
     ` : '';
 
+    const specialtyMap: Record<string, string> = {
+      'arabic': 'لغة عربية', 'french': 'لغة فرنسية', 'english': 'لغة إنجليزية', 'pe': 'تربية بدنية ورياضية',
+      'math': 'رياضيات', 'physics': 'العلوم الفيزيائية والتكنولوجيا', 'science': 'علوم الطبيعة والحياة',
+      'history_geo': 'تاريخ وجغرافيا', 'islamic': 'تربية إسلامية', 'civics': 'تربية مدنية', 'informatics': 'إعلام آلي',
+      'philosophy': 'فلسفة', 'accounting': 'تسيير محاسبي ومالي', 'engineering': 'هندسة'
+    };
+    const translatedSpecialty = metadata?.specialty ? specialtyMap[metadata.specialty] || metadata.specialty : '';
+    const titleExt = isStandard ? ' • النموذج القياسي الموحد' : (isFlowers ? ' • نموذج رياحين والبطاقات الزخرفي' : '');
+
     container.innerHTML = `
       <style>
         * { color: #000 !important; border-color: #000 !important; box-sizing: border-box; }
-        .bg-gray-header { background-color: ${isFlowers ? '#fef3c7' : '#e5e7eb'} !important; -webkit-print-color-adjust: exact; }
+        .bg-gray-header { background-color: ${isFlowers ? '#fef3c7' : (isStandard ? '#f8fafc' : '#e5e7eb')} !important; -webkit-print-color-adjust: exact; }
       </style>
       ${floralCornersHTML}
       <div style="display: flex; flex-direction: column; min-height: 100%; text-align: right; color: #000; background: ${isFlowers ? '#fffefb' : '#fff'}; position: relative; z-index: 2;">
-          ${getOfficialAlgerianHeaderHTML(profile, isFlowers ? `🌸 ${targetTitle} 🌸` : targetTitle, `${timingConfig.stageTitle} — ${timingConfig.systemTitle}${isFlowers ? ' • نموذج رياحين والبطاقات الزخرفي' : ''}`, metadata?.level || '')}
+          ${getOfficialAlgerianHeaderHTML(profile, isFlowers ? `🌸 ${targetTitle} 🌸` : targetTitle, `${timingConfig.stageTitle} — ${timingConfig.systemTitle}${titleExt}`, metadata?.level || '')}
 
           <!-- Metadata Strip -->
-          <div style="display: flex; justify-content: space-between; border: 1px solid #000; padding: 5px 12px; margin-bottom: 6px; font-size: 9.5px; background: ${isFlowers ? '#fefce8' : '#f9fafb'};">
+          <div style="display: flex; justify-content: space-between; border: 1px solid #000; padding: 5px 12px; margin-bottom: 6px; font-size: 9.5px; background: ${isFlowers ? '#fefce8' : (isStandard ? '#f8fafc' : '#f9fafb')};">
               <span><strong>المؤسسة:</strong> ${metadata?.schoolName || profile.institution}</span>
-              <span><strong>المقاطعة البيداغوجية:</strong> ${metadata?.inspectorate || profile.pedagogicalDistrict || 'المقاطعة الأولى'}</span>
+              ${metadata?.stage && metadata.stage !== 'primary' ? `<span><strong>التخصص:</strong> ${translatedSpecialty}</span>` : `<span><strong>المقاطعة البيداغوجية:</strong> ${metadata?.inspectorate || profile.pedagogicalDistrict || 'المقاطعة الأولى'}</span>`}
               <span><strong>الأستاذ(ة):</strong> ${metadata?.teacherName || profile.name}</span>
               <span><strong>نظام التمدرس:</strong> ${timingConfig.systemTitle} (ينتهي ${timingConfig.endTime})</span>
               <span><strong>رقم الحجرة:</strong> ${metadata?.room || '....'}</span>
@@ -1084,7 +1094,7 @@ export const exportTimetableToWord = async (
         schedule: { dayIdx: number; timeIdx: number; period: 'morning' | 'afternoon'; subject: string }[];
         activities?: { name: string; periods: number; timeVolume: string }[];
         type?: 'teacher' | 'class';
-        template?: 'classic' | 'flowers';
+        template?: 'classic' | 'flowers' | 'standard';
     }
 ): Promise<void> => {
     const { metadata, schedule, activities = [], type = 'class' } = options;
@@ -1139,7 +1149,7 @@ export const exportTimetableToWord = async (
             <p style='margin: 0; font-size: 11pt;'><strong>الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية</strong></p>
             <p style='margin: 4px 0;'>مديرية التربية لولاية: ${metadata?.directorate || profile.province || ''} • المؤسسة: ${metadata?.schoolName || profile.institution || ''}</p>
             <h2 style='margin: 8px 0;'>التوقيت الأسبوعي الرسمي (${timingConfig.stageTitle} — ${timingConfig.systemTitle})</h2>
-            <p style='margin: 4px 0;'>الأستاذ(ة): ${metadata?.teacherName || profile.name || ''} | القسم: ${metadata?.level || ''} | الحجرة: ${metadata?.room || ''} | ينتهي التوقيت عند الساعة ${timingConfig.endTime}</p>
+            <p style='margin: 4px 0;'>الأستاذ(ة): ${metadata?.teacherName || profile.name || ''} | ${metadata?.stage && metadata.stage !== 'primary' && metadata?.specialty ? `التخصص: ${{'arabic':'لغة عربية','french':'لغة فرنسية','english':'لغة إنجليزية','pe':'تربية بدنية ورياضية','math':'رياضيات','physics':'العلوم الفيزيائية والتكنولوجيا','science':'علوم الطبيعة والحياة','history_geo':'تاريخ وجغرافيا','islamic':'تربية إسلامية','civics':'تربية مدنية','informatics':'إعلام آلي','philosophy':'فلسفة','accounting':'تسيير محاسبي ومالي','engineering':'هندسة'}[metadata.specialty] || metadata.specialty} | ` : ''}القسم: ${metadata?.level || ''} | الحجرة: ${metadata?.room || ''} | ينتهي التوقيت عند الساعة ${timingConfig.endTime}</p>
         </div>
         <table>
             <thead>

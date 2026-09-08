@@ -20,6 +20,7 @@ export function ProjectSetupStepper({ onComplete }: Props) {
     year: '2026/2027',
     room: '',
     level: '3',
+    specialty: 'arabic', // Default specialty for Middle/Secondary
     classes: {},
     system: 'one-shift',
     template: 'classic',
@@ -110,7 +111,7 @@ export function ProjectSetupStepper({ onComplete }: Props) {
               ].map(st => (
                 <button
                   key={st.id}
-                  onClick={() => setData({...data, stage: st.id})}
+                  onClick={() => setData({...data, stage: st.id, template: st.id === 'primary' ? 'classic' : 'standard', system: st.id === 'primary' ? 'one-shift' : 'full-shift', level: st.id === 'primary' ? '3' : (st.id === 'middle' ? 'm1' : 's1')})}
                   className={cn(
                     "py-4 rounded-2xl border-2 font-black transition-all",
                     data.stage === st.id ? `border-transparent bg-${st.color}-500 text-white shadow-lg scale-105` : "border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 hover:border-slate-300"
@@ -162,6 +163,34 @@ export function ProjectSetupStepper({ onComplete }: Props) {
                   <label className="text-xs font-bold text-slate-500">اسم ولقب الأستاذ(ة) *</label>
                   <input type="text" placeholder="مثال: ساسي عبدالنور" value={data.teacherName} onChange={e => setData({...data, teacherName: e.target.value})} className="w-full bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-800 dark:text-white font-bold outline-none focus:border-rose-400 transition-all text-center" />
                 </div>
+                {data.stage !== 'primary' && (
+                  <div className="space-y-2 mt-4">
+                    <label className="text-xs font-bold text-slate-500">التخصص المعتمد *</label>
+                    <div className="relative">
+                      <select value={data.specialty} onChange={e => setData({...data, specialty: e.target.value})} className="w-full bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-800 dark:text-white font-bold outline-none focus:border-rose-400 transition-all text-center appearance-none">
+                        <option value="arabic">لغة عربية</option>
+                        <option value="french">لغة فرنسية</option>
+                        <option value="english">لغة إنجليزية</option>
+                        <option value="pe">تربية بدنية ورياضية</option>
+                        <option value="math">رياضيات</option>
+                        <option value="physics">العلوم الفيزيائية والتكنولوجيا</option>
+                        <option value="science">علوم الطبيعة والحياة</option>
+                        <option value="history_geo">تاريخ وجغرافيا</option>
+                        <option value="islamic">تربية إسلامية</option>
+                        <option value="civics">تربية مدنية</option>
+                        <option value="informatics">إعلام آلي</option>
+                        {data.stage === 'secondary' && (
+                          <>
+                            <option value="philosophy">فلسفة</option>
+                            <option value="accounting">تسيير محاسبي ومالي</option>
+                            <option value="engineering">هندسة (طرائق/مدنية/كهربائية/ميكانيكية)</option>
+                          </>
+                        )}
+                      </select>
+                      <ChevronDown size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -311,7 +340,7 @@ export function ProjectSetupStepper({ onComplete }: Props) {
             <div className="space-y-4 relative">
               <p className="text-xs font-black text-slate-500 dark:text-slate-400 mr-6">نموذج وتصميم الجدول والبطاقات</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
+                {(data.stage === 'primary' ? [
                   { 
                     id: 'classic', 
                     title: 'النموذج المعتمد (الأصيل)', 
@@ -327,8 +356,17 @@ export function ProjectSetupStepper({ onComplete }: Props) {
                     desc: 'خلفية زهور راقية صالحة للذكور والإناث مع زخارف ستوندار', 
                     icon: '🌸',
                     color: 'amber' 
-                  },
-                ].map(tpl => (
+                  }
+                ] : [
+                  {
+                    id: 'standard',
+                    title: 'النموذج القياسي (ستوندار)',
+                    badge: 'رسمي',
+                    desc: 'نموذج ستوندار رسمي مخصص للطورين المتوسط والثانوي',
+                    icon: '📋',
+                    color: 'blue'
+                  }
+                ]).map(tpl => (
                   <button
                     key={tpl.id}
                     onClick={() => setData({...data, template: tpl.id})}
@@ -337,7 +375,9 @@ export function ProjectSetupStepper({ onComplete }: Props) {
                       data.template === tpl.id 
                         ? (tpl.id === 'classic' 
                             ? "border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/30 shadow-md ring-2 ring-emerald-400/20"
-                            : "border-amber-500 bg-amber-50/70 dark:bg-amber-950/30 shadow-md ring-2 ring-amber-400/20")
+                            : tpl.id === 'standard' 
+                              ? "border-blue-500 bg-blue-50/70 dark:bg-blue-950/30 shadow-md ring-2 ring-blue-400/20"
+                              : "border-amber-500 bg-amber-50/70 dark:bg-amber-950/30 shadow-md ring-2 ring-amber-400/20")
                         : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300"
                     )}
                   >
@@ -346,14 +386,18 @@ export function ProjectSetupStepper({ onComplete }: Props) {
                       <span className={cn(
                         "text-[9px] font-black px-2 py-0.5 rounded-full border",
                         data.template === tpl.id 
-                          ? (tpl.id === 'classic' ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 border-emerald-300" : "bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 border-amber-300")
+                          ? (tpl.id === 'classic' ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 border-emerald-300" : 
+                             tpl.id === 'standard' ? "bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 border-blue-300" :
+                             "bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 border-amber-300")
                           : "bg-slate-100 text-slate-500 border-slate-200"
                       )}>{tpl.badge}</span>
                     </div>
                     <div className={cn(
                       "font-black text-sm mb-1", 
                       data.template === tpl.id 
-                        ? (tpl.id === 'classic' ? "text-emerald-800 dark:text-emerald-300" : "text-amber-800 dark:text-amber-300")
+                        ? (tpl.id === 'classic' ? "text-emerald-800 dark:text-emerald-300" : 
+                           tpl.id === 'standard' ? "text-blue-800 dark:text-blue-300" :
+                           "text-amber-800 dark:text-amber-300")
                         : "text-slate-800 dark:text-white"
                     )}>
                       {tpl.title}
@@ -361,7 +405,9 @@ export function ProjectSetupStepper({ onComplete }: Props) {
                     <div className={cn(
                       "text-[11px] font-bold leading-relaxed", 
                       data.template === tpl.id 
-                        ? (tpl.id === 'classic' ? "text-emerald-700/80 dark:text-emerald-400/80" : "text-amber-700/80 dark:text-amber-400/80")
+                        ? (tpl.id === 'classic' ? "text-emerald-700/80 dark:text-emerald-400/80" : 
+                           tpl.id === 'standard' ? "text-blue-700/80 dark:text-blue-400/80" :
+                           "text-amber-700/80 dark:text-amber-400/80")
                         : "text-slate-400"
                     )}>
                       {tpl.desc}

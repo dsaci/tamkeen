@@ -8,7 +8,7 @@ interface Props {
   schedule: ScheduleItem[];
   metadata: any;
   activities?: any[];
-  template?: 'classic' | 'flowers';
+  template?: 'classic' | 'flowers' | 'standard';
 }
 
 const CornerFloralOrnament = ({ position }: { position: 'tr' | 'tl' | 'br' | 'bl' }) => {
@@ -127,8 +127,17 @@ export function PrintableTimetable({ type, schedule, metadata, activities = [], 
           <div className="flex justify-between items-start mb-2 px-3 text-[11px] font-bold border-b border-slate-300 pb-1.5">
             <div className="space-y-0.5">
               <p>مديرية التربية لولاية : <span className="border-b border-black inline-block min-w-[140px] px-1">{metadata?.directorate}</span></p>
-              {timingConfig.isPrimary && (
+              {timingConfig.isPrimary ? (
                 <p>مفتشية التربية والتعليم الابتدائي : <span className="border-b border-black inline-block min-w-[140px] px-1">{metadata?.inspectorate || 'المقاطعة الأولى'}</span></p>
+              ) : (
+                <p>التخصص المعتمد : <span className="border-b border-black inline-block min-w-[140px] px-1 font-black text-rose-800">
+                  {{
+                    'arabic': 'لغة عربية', 'french': 'لغة فرنسية', 'english': 'لغة إنجليزية', 'pe': 'تربية بدنية ورياضية',
+                    'math': 'رياضيات', 'physics': 'العلوم الفيزيائية والتكنولوجيا', 'science': 'علوم الطبيعة والحياة',
+                    'history_geo': 'تاريخ وجغرافيا', 'islamic': 'تربية إسلامية', 'civics': 'تربية مدنية', 'informatics': 'إعلام آلي',
+                    'philosophy': 'فلسفة', 'accounting': 'تسيير محاسبي ومالي', 'engineering': 'هندسة'
+                  }[metadata?.specialty as string] || metadata?.specialty}
+                </span></p>
               )}
               <p>المؤسسة : <span className="border-b border-black inline-block min-w-[140px] px-1">{metadata?.schoolName}</span></p>
             </div>
