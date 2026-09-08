@@ -233,21 +233,43 @@ export function ProjectSetupStepper({ onComplete }: Props) {
             {projectType === 'teacher' && (
               <div className="space-y-4 relative">
                 <div className="absolute -right-4 top-0 w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-600 rounded-l-xl text-white flex items-center justify-center font-black text-xs shadow-md">س</div>
-                <h3 className="font-black text-slate-800 dark:text-white text-lg mr-6">المستوى الدراسي</h3>
+                <h3 className="font-black text-slate-800 dark:text-white text-lg mr-6">
+                  {data.stage !== 'primary' ? 'المستويات المسندة (يمكن اختيار عدة مستويات)' : 'المستوى الدراسي'}
+                </h3>
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                  {getLevelOptions().map(lvl => (
-                    <button
-                      key={lvl.id}
-                      onClick={() => setData({...data, level: lvl.id})}
-                      className={cn(
-                        "py-4 rounded-2xl border-2 font-black transition-all flex flex-col items-center justify-center gap-1",
-                        data.level === lvl.id ? "border-transparent bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg scale-105" : "border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 hover:border-purple-300"
-                      )}
-                    >
-                      <span className={cn("text-xl", data.level === lvl.id ? "text-white" : "text-indigo-900")}>{lvl.label.split(' ')[0]}</span>
-                      <span className="text-[10px] opacity-80">{lvl.label.split(' ')[1] || lvl.label}</span>
-                    </button>
-                  ))}
+                  {getLevelOptions().map(lvl => {
+                    const isSelected = data.stage === 'primary' 
+                      ? data.level === lvl.id 
+                      : data.level.split(',').includes(lvl.id);
+                    
+                    return (
+                      <button
+                        key={lvl.id}
+                        onClick={() => {
+                          if (data.stage === 'primary') {
+                            setData({...data, level: lvl.id});
+                          } else {
+                            const currentLevels = data.level ? data.level.split(',') : [];
+                            let newLevels;
+                            if (currentLevels.includes(lvl.id)) {
+                              newLevels = currentLevels.filter(l => l !== lvl.id);
+                            } else {
+                              newLevels = [...currentLevels, lvl.id];
+                            }
+                            // Keep at least one selected if possible, or just allow empty
+                            setData({...data, level: newLevels.join(',')});
+                          }
+                        }}
+                        className={cn(
+                          "py-4 rounded-2xl border-2 font-black transition-all flex flex-col items-center justify-center gap-1",
+                          isSelected ? "border-transparent bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg scale-105" : "border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 hover:border-purple-300"
+                        )}
+                      >
+                        <span className={cn("text-xl", isSelected ? "text-white" : "text-indigo-900")}>{lvl.label.split(' ')[0]}</span>
+                        <span className="text-[10px] opacity-80">{lvl.label.split(' ')[1] || lvl.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

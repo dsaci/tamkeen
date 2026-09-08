@@ -994,6 +994,26 @@ export const exportTimetableToPDF = async (
     const translatedSpecialty = metadata?.specialty ? specialtyMap[metadata.specialty] || metadata.specialty : '';
     const titleExt = isStandard ? ' • النموذج القياسي الموحد' : (isFlowers ? ' • نموذج رياحين والبطاقات الزخرفي' : '');
 
+    const formatLevels = (lvlStr: string, stage: string) => {
+        if (!lvlStr) return '';
+        const levels = lvlStr.split(',');
+        const formatted = levels.map(l => {
+            if (l === 'm1') return '1م';
+            if (l === 'm2') return '2م';
+            if (l === 'm3') return '3م';
+            if (l === 'm4') return '4م';
+            if (l === 's1') return '1ثا';
+            if (l === 's2') return '2ثا';
+            if (l === 's3') return '3ثا';
+            return l;
+        });
+        return formatted.join('، ');
+    };
+    const teacherLevels = type === 'teacher' && metadata?.stage && metadata.stage !== 'primary' ? formatLevels(metadata?.level, metadata.stage) : '';
+    const leftMeta = type === 'teacher' && metadata?.stage && metadata.stage !== 'primary' 
+        ? `التخصص: ${translatedSpecialty} ${teacherLevels ? `• الأقسام المسندة: ${teacherLevels}` : ''}` 
+        : metadata?.level || '';
+
     container.innerHTML = `
       <style>
         * { color: #000 !important; border-color: #000 !important; box-sizing: border-box; }
@@ -1001,7 +1021,7 @@ export const exportTimetableToPDF = async (
       </style>
       ${floralCornersHTML}
       <div style="display: flex; flex-direction: column; min-height: 100%; text-align: right; color: #000; background: ${isFlowers ? '#fffefb' : '#fff'}; position: relative; z-index: 2;">
-          ${getOfficialAlgerianHeaderHTML(profile, isFlowers ? `🌸 ${targetTitle} 🌸` : targetTitle, `${timingConfig.stageTitle} — ${timingConfig.systemTitle}${titleExt}`, type === 'teacher' && metadata?.stage && metadata.stage !== 'primary' ? `التخصص: ${translatedSpecialty}` : metadata?.level || '')}
+          ${getOfficialAlgerianHeaderHTML(profile, isFlowers ? `🌸 ${targetTitle} 🌸` : targetTitle, `${timingConfig.stageTitle} — ${timingConfig.systemTitle}${titleExt}`, leftMeta)}
 
           <!-- Metadata Strip -->
           <div style="display: flex; justify-content: space-between; border: 1px solid #000; padding: 5px 12px; margin-bottom: 6px; font-size: 9.5px; background: ${isFlowers ? '#fefce8' : (isStandard ? '#f8fafc' : '#f9fafb')};">
@@ -1149,7 +1169,7 @@ export const exportTimetableToWord = async (
             <p style='margin: 0; font-size: 11pt;'><strong>الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية</strong></p>
             <p style='margin: 4px 0;'>مديرية التربية لولاية: ${metadata?.directorate || profile.province || ''} • المؤسسة: ${metadata?.schoolName || profile.institution || ''}</p>
             <h2 style='margin: 8px 0;'>التوقيت الأسبوعي الرسمي (${timingConfig.stageTitle} — ${timingConfig.systemTitle})</h2>
-            <p style='margin: 4px 0;'>الأستاذ(ة): ${metadata?.teacherName || profile.name || ''} | ${type === 'teacher' && metadata?.stage && metadata.stage !== 'primary' && metadata?.specialty ? `التخصص: ${{'arabic':'لغة عربية','french':'لغة فرنسية','english':'لغة إنجليزية','pe':'تربية بدنية ورياضية','math':'رياضيات','physics':'العلوم الفيزيائية والتكنولوجيا','science':'علوم الطبيعة والحياة','history_geo':'تاريخ وجغرافيا','islamic':'تربية إسلامية','civics':'تربية مدنية','informatics':'إعلام آلي','philosophy':'فلسفة','accounting':'تسيير محاسبي ومالي','engineering':'هندسة'}[metadata.specialty] || metadata.specialty} | ` : `القسم: ${metadata?.level || ''} | `}الحجرة: ${metadata?.room || ''} | ينتهي التوقيت عند الساعة ${timingConfig.endTime}</p>
+            <p style='margin: 4px 0;'>الأستاذ(ة): ${metadata?.teacherName || profile.name || ''} | ${type === 'teacher' && metadata?.stage && metadata.stage !== 'primary' ? `التخصص: ${metadata?.specialty ? {'arabic':'لغة عربية','french':'لغة فرنسية','english':'لغة إنجليزية','pe':'تربية بدنية ورياضية','math':'رياضيات','physics':'العلوم الفيزيائية والتكنولوجيا','science':'علوم الطبيعة والحياة','history_geo':'تاريخ وجغرافيا','islamic':'تربية إسلامية','civics':'تربية مدنية','informatics':'إعلام آلي','philosophy':'فلسفة','accounting':'تسيير محاسبي ومالي','engineering':'هندسة'}[metadata.specialty] || metadata.specialty : ''} | الأقسام المسندة: ${metadata?.level ? metadata.level.split(',').map((l: string) => l === 'm1' ? '1م' : l === 'm2' ? '2م' : l === 'm3' ? '3م' : l === 'm4' ? '4م' : l === 's1' ? '1ثا' : l === 's2' ? '2ثا' : l === 's3' ? '3ثا' : l).join('، ') : ''} | ` : `القسم: ${metadata?.level || ''} | `}الحجرة: ${metadata?.room || ''} | ينتهي التوقيت عند الساعة ${timingConfig.endTime}</p>
         </div>
         <table>
             <thead>

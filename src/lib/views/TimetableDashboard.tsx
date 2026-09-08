@@ -140,15 +140,35 @@ export default function TimetableDashboard({ profile }: Props) {
           }
         } else {
           // Middle/High Teacher Project: Activities are Classes (الأفواج)
-          const levelPrefix = data.level === 'm1' ? '1م' : data.level === 'm2' ? '2م' : data.level === 'm3' ? '3م' : data.level === 'm4' ? '4م' : data.level === 's1' ? '1ثا' : data.level === 's2' ? '2ثا' : '3ثا';
-          newActivities = [
-            { id: '1', name: `${levelPrefix}1`, periods: 4, timeVolume: '4', isTotal: false },
-            { id: '2', name: `${levelPrefix}2`, periods: 4, timeVolume: '4', isTotal: false },
-            { id: '3', name: `${levelPrefix}3`, periods: 4, timeVolume: '4', isTotal: false },
-            { id: '4', name: `${levelPrefix}4`, periods: 4, timeVolume: '4', isTotal: false },
-            { id: '5', name: 'المجموع', periods: 16, timeVolume: '16', isTotal: true },
-          ];
-          const classes = [`${levelPrefix}1`, `${levelPrefix}2`, `${levelPrefix}3`, `${levelPrefix}4`];
+          const levels = (data.level || '').split(',');
+          let classes: string[] = [];
+          
+          levels.forEach((lvl: string) => {
+            const prefix = lvl === 'm1' ? '1م' : lvl === 'm2' ? '2م' : lvl === 'm3' ? '3م' : lvl === 'm4' ? '4م' : lvl === 's1' ? '1ثا' : lvl === 's2' ? '2ثا' : '3ثا';
+            if (prefix) {
+              classes.push(`${prefix}1`, `${prefix}2`);
+            }
+          });
+          
+          if (classes.length === 0) {
+            classes = ['1م1', '1م2', '2م1', '2م2'];
+          }
+
+          newActivities = classes.map((c, idx) => ({
+            id: String(idx + 1),
+            name: c,
+            periods: 4,
+            timeVolume: '4',
+            isTotal: false
+          }));
+          newActivities.push({
+            id: '999',
+            name: 'المجموع',
+            periods: classes.length * 4,
+            timeVolume: String(classes.length * 4),
+            isTotal: true
+          });
+
           for (let d = 0; d < 5; d++) {
             for (let t = 0; t < 4; t++) {
               mockSchedule.push({ dayIdx: d, timeIdx: t, period: 'morning', subject: classes[Math.floor(Math.random() * classes.length)] });
