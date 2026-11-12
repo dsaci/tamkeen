@@ -66,26 +66,73 @@ export async function listResources(filters?: {
     search?: string;
 }): Promise<Resource[]> {
     const client = getSupabaseClient();
-    if (!client) return [];
+    let dbResults: Resource[] = [];
 
-    let query = client
-        .from('resource_bank')
-        .select('id, subject, level, grade, unit, activity, title, objective, content, tools, method, source, usage_count, created_at');
+    if (client) {
+        let query = client
+            .from('resource_bank')
+            .select('id, subject, level, grade, unit, activity, title, objective, content, tools, method, source, usage_count, created_at');
 
-    if (filters?.subject) query = query.eq('subject', filters.subject);
-    if (filters?.level) query = query.eq('level', filters.level);
-    if (filters?.grade) query = query.eq('grade', filters.grade);
-    if (filters?.activity) query = query.eq('activity', filters.activity);
-    if (filters?.search) query = query.ilike('title', `%${filters.search}%`);
+        if (filters?.subject) query = query.eq('subject', filters.subject);
+        if (filters?.level) query = query.eq('level', filters.level);
+        if (filters?.grade) query = query.eq('grade', filters.grade);
+        if (filters?.activity) query = query.eq('activity', filters.activity);
+        if (filters?.search) query = query.ilike('title', `%${filters.search}%`);
 
-    query = query.order('usage_count', { ascending: false }).limit(20);
+        query = query.order('usage_count', { ascending: false }).limit(20);
 
-    const { data, error } = await query;
-    if (error) {
-        console.error('[ResourceBank] List error:', error);
-        return [];
+        const { data, error } = await query;
+        if (error) {
+            console.error('[ResourceBank] List error:', error);
+        } else if (data) {
+            dbResults = data as Resource[];
+        }
     }
-    return (data || []) as Resource[];
+
+    // Merge local secondary Arabic curriculum resources (offline/always available)
+    const isLevelMatch = !filters?.level || filters.level === 'SECONDARY' || filters.level === 'secondary' || filters.level === 'ثانوي';
+    const isSubjectMatch = !filters?.subject || filters.subject.includes('عرب');
+
+    let localMatches: Resource[] = [];
+    if (isLevelMatch && isSubjectMatch) {
+        localMatches = SECONDARY_ARABIC_CURRICULUM.filter(item => {
+            if (filters?.grade && !item.grade.includes(filters.grade) && !filters.grade.includes(item.grade)) {
+                return false;
+            }
+            if (filters?.activity && item.activity !== filters.activity) {
+                return false;
+            }
+            if (filters?.search) {
+                const s = filters.search.toLowerCase();
+                const titleMatch = item.topic.toLowerCase().includes(s);
+                const unitMatch = item.unitTitle.toLowerCase().includes(s);
+                const themeMatch = item.theme.toLowerCase().includes(s);
+                if (!titleMatch && !unitMatch && !themeMatch) return false;
+            }
+            return true;
+        }).map(item => ({
+            id: `local-${item.id}`,
+            subject: 'اللغة العربية وآدابها',
+            level: 'SECONDARY',
+            grade: item.grade,
+            unit: item.unitTitle,
+            activity: item.activity,
+            title: item.topic,
+            normalized_title: normalizeTitle(item.topic),
+            objective: item.competencyTarget,
+            content: `الكفاءة الختامية: ${item.competencyFinal}\nالوضعية المشكلة: ${item.problemSituation}\nنشاط الأستاذ: ${item.teacherActivity}\nنشاط المتعلم: ${item.studentActivity}`,
+            tools: item.tools || 'الكتاب المدرسي، وثيقة المنهاج والتدرجات السنوية',
+            method: item.method || 'استقرائي تحليلي',
+            source: 'admin' as const,
+            usage_count: 5,
+        }));
+    }
+
+    // Combine avoiding title duplicates
+    const seenTitles = new Set(dbResults.map(r => normalizeTitle(r.title)));
+    const uniqueLocal = localMatches.filter(r => !seenTitles.has(normalizeTitle(r.title)));
+
+    return [...dbResults, ...uniqueLocal];
 }
 
 // ── CRUD (Admin) ──
@@ -356,17 +403,50 @@ export async function smartFetchResource(params: {
     unit?: string;
     activity: string;
     title: string;
-}): Promise<{ resource: Resource | null; source: 'database' | 'ai' | 'none' }> {
+}): Promise<{ resource: Resource | null; source: 'database' | 'ai' | 'local_engine' | 'none' }> {
     // Step 1: Search database first
     const existing = await searchResource(params);
     if (existing) {
         return { resource: existing, source: 'database' };
     }
 
-    // Step 2: AI fallback
+    // Step 2: AI fallback (Cloud Gemini if configured)
     const generated = await generateAndSaveResource(params);
     if (generated) {
         return { resource: generated, source: 'ai' };
+    }
+
+    // Step 3: Local Curriculum Engine fallback (Free, Offline, Unlimited)
+    try {
+        const localMemo = await generateLocalMemo({
+            grade: params.grade,
+            subject: params.subject,
+            activity: params.activity,
+            topic: params.title,
+            unit: params.unit,
+        });
+
+        if (localMemo) {
+            const localResource: Resource = {
+                id: `local-engine-${Date.now()}`,
+                subject: params.subject,
+                level: params.level,
+                grade: params.grade,
+                unit: params.unit,
+                activity: params.activity,
+                title: params.title,
+                normalized_title: normalizeTitle(params.title),
+                objective: localMemo.competencyTarget,
+                content: `الكفاءة: ${localMemo.competencyFinal}\nالوضعية الانطلاقية: ${localMemo.problemSituation}\nسير الحصة:\n${localMemo.steps.map(s => `- ${s.stage}: ${s.teacherActivity}`).join('\n')}`,
+                tools: localMemo.tools,
+                method: localMemo.steps[1]?.method || 'استقرائي',
+                source: 'ai',
+                usage_count: 1,
+            };
+            return { resource: localResource, source: 'local_engine' };
+        }
+    } catch (e) {
+        console.warn('[ResourceBank] Local engine fallback error:', e);
     }
 
     return { resource: null, source: 'none' };

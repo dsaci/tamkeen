@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PenTool, Zap, Download, RefreshCw, FileText, Sparkles, Layers, BookOpen, Target, CheckCircle2, Database, X, Loader2, ClipboardList, GraduationCap, Brain, Lightbulb, Wrench, BarChart3, HeartHandshake, StickyNote, Award, BookCheck, Cpu } from 'lucide-react';
 import { TeacherProfile, Resource } from '../../types';
-import { GoogleGenAI } from "@google/genai";
 import { TamkeenLogo } from '../../legacy_components/TamkeenLogo';
 import { addResource, listResources } from '../../services/resourceBankService';
 import { generateLocalMemo, generateLocalExam, GeneratedExamResult } from '../ai/localCurriculumEngine';
@@ -67,6 +66,24 @@ const SECONDARY_ACTIVITIES = [
   'وضعية إدماجية',
   'فهم المنطوق',
   'فهم المكتوب'
+];
+
+const PRIMARY_ACTIVITIES = [
+  'فهم المنطوق والتعبير الشفوي',
+  'فهم المكتوب (قراءة)',
+  'تعبير كتابي / إنتاج كتابي',
+  'قواعد نحوية وصرفية',
+  'إملاء ورسم إملائي',
+  'محفوظات وأناشيد',
+  'مشروع بيداغوجي / إدماج'
+];
+
+const MIDDLE_ACTIVITIES = [
+  'فهم المنطوق وإنتاجه',
+  'فهم المكتوب (قراءة ودراسة نص)',
+  'ظاهرة لغوية (قواعد/صرف)',
+  'إنتاج كتابي / تعبير',
+  'وضعية إدماجية'
 ];
 
 const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
@@ -143,7 +160,8 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
       activity: item.activity,
       topic: item.topic,
       support: item.supportPage ? `${item.supportPage}، السبورة` : prev.support,
-      duration: item.duration || prev.duration
+      duration: item.duration || prev.duration,
+      stream: item.stream || prev.stream
     }));
     setShowCurriculumModal(false);
   };
@@ -208,6 +226,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
     const apiKey = localStorage.getItem('tamkeen_gemini_key') || '';
     if (apiKey) {
       try {
+        const { GoogleGenAI } = await import('@google/genai');
         const ai = new GoogleGenAI({ apiKey });
         const prompt = `أنت خبير ومفتش تربوي للغة العربية بالتعليم الثانوي الجزائري.
         قم بتوليد مذكرة بيداغوجية رسمية بالجيل الثاني وفق المقاربة بالكفاءات (APC).
@@ -274,7 +293,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
       // حفظ تلقائي في بنك الموارد لتعزيز الاسترجاع السريع لاحقاً
       addResource({
         subject: formData.subject,
-        level: 'SECONDARY',
+        level: profile.level || 'SECONDARY',
         grade: formData.grade,
         unit: formData.unit,
         activity: formData.activity,
@@ -314,7 +333,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
       const { exportSmartMemoToPDF } = await import('../utils/pdfGenerator');
       await exportSmartMemoToPDF(profile, generatedMemo, {
         subject: formData.subject || profile.teachingSubject || 'مادة عامة',
-        grade: `${formData.grade} (${formData.stream})`,
+        grade: isSecondary && formData.stream ? `${formData.grade} (${formData.stream})` : formData.grade,
         unit: formData.unit || '',
         activity: formData.activity || '',
         topic: formData.topic || 'مذكرة بيداغوجية',
@@ -416,30 +435,41 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {isSecondary ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className={labelCls}>المستوى الدراسي</label>
+                <select value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })} className={inputCls}>
+                  {(GRADES_MAP[normalizedLevel] || ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة']).map((g: string) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className={labelCls}>الشعبة الدراسية</label>
+                <select value={formData.stream} onChange={e => setFormData({ ...formData, stream: e.target.value })} className={inputCls}>
+                  {SECONDARY_STREAMS.map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : (
             <div className="space-y-1">
               <label className={labelCls}>المستوى الدراسي</label>
               <select value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })} className={inputCls}>
-                {(GRADES_MAP[normalizedLevel] || ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة']).map((g: string) => (
+                {(GRADES_MAP[normalizedLevel] || ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة']).map((g: string) => (
                   <option key={g} value={g}>{g}</option>
                 ))}
               </select>
             </div>
-            <div className="space-y-1">
-              <label className={labelCls}>الشعبة الدراسية</label>
-              <select value={formData.stream} onChange={e => setFormData({ ...formData, stream: e.target.value })} className={inputCls}>
-                {SECONDARY_STREAMS.map(st => (
-                  <option key={st} value={st}>{st}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          )}
 
           <div className="space-y-1">
-            <label className={labelCls}>المقطع / المحور الأدبي</label>
+            <label className={labelCls}>المقطع / المحور التعلمي</label>
             <input 
               type="text" 
-              placeholder="مثال: الوحدة 06: فلسطين في الشعر العربي المعاصر" 
+              placeholder={isSecondary ? "مثال: الوحدة 06: فلسطين في الشعر العربي المعاصر" : "مثال: المقطع 03: الهوية الوطنية"} 
               value={formData.unit} 
               onChange={e => setFormData({ ...formData, unit: e.target.value })} 
               className={inputCls} 
@@ -448,11 +478,20 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
 
           <div className="space-y-1">
             <label className={labelCls}>النشاط التربوي</label>
-            <select value={formData.activity} onChange={e => setFormData({ ...formData, activity: e.target.value })} className={inputCls}>
-              {SECONDARY_ACTIVITIES.map(a => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <input 
+                list="activities-list" 
+                value={formData.activity} 
+                onChange={e => setFormData({ ...formData, activity: e.target.value })} 
+                placeholder="اختر أو اكتب النشاط التربوي..."
+                className={inputCls} 
+              />
+              <datalist id="activities-list">
+                {(isSecondary ? SECONDARY_ACTIVITIES : normalizedLevel === 'middle' ? MIDDLE_ACTIVITIES : PRIMARY_ACTIVITIES).map(a => (
+                  <option key={a} value={a} />
+                ))}
+              </datalist>
+            </div>
           </div>
 
           <div className="space-y-1 relative">
@@ -594,10 +633,10 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
                   {/* Info Grid */}
                   <div className="grid grid-cols-2 gap-3 text-[10px]">
                     <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
-                      <p><strong>الطور:</strong> التعليم الثانوي</p>
+                      <p><strong>الطور:</strong> {levelLabel === 'ثانوي' ? 'التعليم الثانوي' : levelLabel === 'متوسط' ? 'التعليم المتوسط' : 'التعليم الابتدائي'}</p>
                       <p><strong>المادة:</strong> {formData.subject}</p>
                       <p><strong>المستوى:</strong> {formData.grade}</p>
-                      <p><strong>الشعبة:</strong> {formData.stream}</p>
+                      {isSecondary && <p><strong>الشعبة:</strong> {formData.stream}</p>}
                       <p><strong>المقطع / المحور:</strong> {formData.unit}</p>
                     </div>
                     <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
