@@ -6,6 +6,8 @@
 
 import { getSupabaseClient } from '../config/supabaseClient';
 import { Resource, ResourceFile } from '../types';
+import { findCurriculumLesson, SECONDARY_ARABIC_CURRICULUM } from '../lib/ai/secondaryArabicCurriculumData';
+import { generateLocalMemo } from '../lib/ai/localCurriculumEngine';
 
 // ── Title Normalization ──
 

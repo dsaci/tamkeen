@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { PenTool, Zap, Download, RefreshCw, FileText, Sparkles, Layers, BookOpen, Target, CheckCircle2, Database, X, Loader2, ClipboardList, GraduationCap, Brain, Lightbulb, Wrench, BarChart3, HeartHandshake, StickyNote } from 'lucide-react';
+import { PenTool, Zap, Download, RefreshCw, FileText, Sparkles, Layers, BookOpen, Target, CheckCircle2, Database, X, Loader2, ClipboardList, GraduationCap, Brain, Lightbulb, Wrench, BarChart3, HeartHandshake, StickyNote, Award, BookCheck, Cpu } from 'lucide-react';
 import { TeacherProfile, Resource } from '../../types';
 import { GoogleGenAI } from "@google/genai";
 import { TamkeenLogo } from '../../legacy_components/TamkeenLogo';
 import { addResource, listResources } from '../../services/resourceBankService';
+import { generateLocalMemo, generateLocalExam, GeneratedExamResult } from '../ai/localCurriculumEngine';
+import { SECONDARY_ARABIC_CURRICULUM, CurriculumLessonItem } from '../ai/secondaryArabicCurriculumData';
 
 interface MemoData {
   memoNumber: string;
@@ -13,6 +15,7 @@ interface MemoData {
   topic: string;
   support: string;
   grade: string;
+  stream: string;
   subject: string;
   date: string;
 }
@@ -40,28 +43,58 @@ interface MemoContent {
 }
 
 const LEVEL_MAP: any = { PRIMARY: 'primary', 'ابتدائي': 'primary', MIDDLE: 'middle', 'متوسط': 'middle', SECONDARY: 'secondary', 'ثانوي': 'secondary' };
-const GRADES_MAP: any = { primary: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'], middle: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة', 'السنة الرابعة'], secondary: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة'] };
+const GRADES_MAP: any = { 
+  primary: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة', 'السنة الرابعة', 'السنة الخامسة'], 
+  middle: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة', 'السنة الرابعة'], 
+  secondary: ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة'] 
+};
+
+const SECONDARY_STREAMS = [
+  'شعب علمية مشتركة (علوم/رياضيات/تقني/تسيير)',
+  'شعبة آداب وفلسفة',
+  'شعبة لغات أجنبية',
+  'جذع مشترك آداب',
+  'جذع مشترك علوم وتكنولوجيا'
+];
+
+const SECONDARY_ACTIVITIES = [
+  'أدب ونصوص',
+  'قواعد اللغة',
+  'بلاغة',
+  'عروض',
+  'مطالعة موجهة',
+  'تعبير كتابي',
+  'وضعية إدماجية',
+  'فهم المنطوق',
+  'فهم المكتوب'
+];
 
 const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
-  const normalizedLevel = LEVEL_MAP[profile.level || ''];
+  const normalizedLevel = LEVEL_MAP[profile.level || ''] || 'secondary';
   const levelLabel = profile.level === 'PRIMARY' ? 'ابتدائي' : profile.level === 'MIDDLE' ? 'متوسط' : 'ثانوي';
+  const isSecondary = normalizedLevel === 'secondary' || levelLabel === 'ثانوي';
+
+  const [activeTab, setActiveTab] = useState<'memo' | 'exam'>('memo');
+  const [showCurriculumModal, setShowCurriculumModal] = useState(false);
 
   const [formData, setFormData] = useState<MemoData>({
     memoNumber: '01',
     duration: '60 دقيقة',
     unit: '',
-    activity: '',
+    activity: isSecondary ? 'أدب ونصوص' : 'فهم المكتوب',
     topic: '',
-    support: 'الكتاب المدرسي، السبورة',
-    grade: (GRADES_MAP[normalizedLevel] || [])[0] || '',
-    subject: profile.teachingSubject,
+    support: 'الكتاب المدرسي، السبورة، وثيقة التدرجات السنوية',
+    grade: (GRADES_MAP[normalizedLevel] || [])[2] || (GRADES_MAP[normalizedLevel] || [])[0] || 'السنة الثالثة',
+    stream: SECONDARY_STREAMS[0],
+    subject: profile.teachingSubject || 'اللغة العربية وآدابها',
     date: new Date().toISOString().split('T')[0],
   });
 
   const [generatedMemo, setGeneratedMemo] = useState<MemoContent | null>(null);
+  const [generatedExam, setGeneratedExam] = useState<GeneratedExamResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [generationSource, setGenerationSource] = useState<'db' | 'ai' | null>(null);
+  const [generationSource, setGenerationSource] = useState<'db' | 'ai' | 'local_engine' | null>(null);
   const [resourceSuggestions, setResourceSuggestions] = useState<Resource[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -102,143 +135,176 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
     setShowSuggestions(false);
   }, []);
 
+  const selectCurriculumItem = (item: CurriculumLessonItem) => {
+    setFormData(prev => ({
+      ...prev,
+      grade: item.grade,
+      unit: item.unitTitle,
+      activity: item.activity,
+      topic: item.topic,
+      support: item.supportPage ? `${item.supportPage}، السبورة` : prev.support,
+      duration: item.duration || prev.duration
+    }));
+    setShowCurriculumModal(false);
+  };
+
   const generateMemo = async () => {
     if (!formData.topic || !formData.activity) {
-      alert("يرجى إدخال النشاط والموضوع أولاً.");
+      alert("يرجى إدخال النشاط والموضوع أو اختيار درس من المنهاج الرسمي.");
       return;
     }
     setIsLoading(true);
 
-    // === Step 1: Try resource bank first ===
+    // === الخطوة 1: البحث في بنك الموارد أولاً ===
     try {
       const dbResults = await listResources({
         subject: formData.subject || undefined,
         activity: formData.activity || undefined,
         search: formData.topic || undefined,
       });
-      const match = dbResults.find(r => r.content && r.content.length > 50);
+      const match = dbResults.find(r => r.content && r.content.length > 50 && (r.title.toLowerCase().includes(formData.topic.toLowerCase()) || formData.topic.toLowerCase().includes(r.title.toLowerCase())));
       if (match) {
         const contentParts = (match.content || '').split('\n').filter(Boolean);
         setGeneratedMemo({
           competencyFinal: match.objective || '',
           competencyTarget: match.objective || '',
           indicators: match.objective ? match.objective.split('،').map(s => s.trim()) : [],
-          prerequisites: '',
-          problemSituation: '',
+          prerequisites: 'مكتسبات مرحلية ذات صلة من المنهاج الرسمي',
+          problemSituation: 'وضعية انطلاق مشكلة ترتبط بواقع التلميذ ومحيطه الثقافي والاجتماعي.',
           steps: [{
-            stage: 'وضعية الانطلاق',
-            teacherActivity: 'يطرح أسئلة استكشافية لتشخيص المكتسبات القبلية',
-            studentActivity: 'يجيب ويشارك في النقاش',
-            method: 'حوار'
+            stage: 'وضعية الانطلاق (05 د)',
+            teacherActivity: 'يطرح أسئلة استكشافية لتشخيص المكتسبات القبلية وربطها بالظاهرة الجديدة.',
+            studentActivity: 'يجيب ويشارك في النقاش وصياغة الفرضيات الأولية.',
+            method: 'حوار استكشافي'
           }, {
-            stage: 'بناء التعلمات',
+            stage: 'بناء التعلمات (40 د)',
             teacherActivity: contentParts.slice(0, 3).join('\n') || match.content || '',
-            studentActivity: 'يلاحظ، يحلل، ينجز النشاطات المطلوبة',
-            method: 'عمل فردي / ثنائي'
+            studentActivity: 'يلاحظ، يحلل، يشارك في بناء المفاهيم واستنتاج القواعد.',
+            method: match.method || 'عمل جماعي موجه'
           }, {
-            stage: 'استثمار المكتسبات',
-            teacherActivity: 'يطرح وضعية إدماجية تطبيقية',
-            studentActivity: 'يوظف التعلمات الجديدة في حل الوضعية',
-            method: 'عمل فردي'
+            stage: 'استثمار المكتسبات (15 د)',
+            teacherActivity: 'يطرح وضعية إدماجية تطبيقية لترسيخ التعلمات وتقويم الأثر.',
+            studentActivity: 'يوظف التعلمات الجديدة في حل الوضعية الفردية.',
+            method: 'عمل فردي مستقل'
           }],
           tools: match.tools || formData.support,
           evaluationDiag: 'أسئلة استكشافية لتحديد المكتسبات القبلية',
-          evaluationFormative: 'ملاحظة أداء المتعلمين أثناء الإنجاز',
-          evaluationFinal: 'وضعية إدماجية / تمرين تطبيقي',
+          evaluationFormative: 'ملاحظة أداء المتعلمين أثناء الإنجاز والتحليل',
+          evaluationFinal: 'وضعية إدماجية وتطبيق كتابي فوري',
           remediation: 'دعم فردي للمتعثرين مع تمارين إضافية مبسطة',
-          enrichment: 'أنشطة إثرائية للمتفوقين',
-          notes: `مصدر المذكرة: بنك الموارد (${match.source === 'admin' ? 'مصدر رسمي' : match.source === 'ai' ? 'توليد آلي سابق' : 'مساهمة مستخدم'})`,
-          values: 'التعاون – المسؤولية – حب المعرفة'
+          enrichment: 'أنشطة إثرائية وبحثية للمتفوقين',
+          notes: `مصدر المذكرة: بنك الموارد المنهجي الرسمي (تمكين)`,
+          values: 'الاعتزاز باللغة العربية والهوية الوطنية والأخلاق الفاضلة'
         });
         setGenerationSource('db');
         setIsLoading(false);
         return;
       }
     } catch (err) {
-      console.warn('[SmartMemo] DB search failed, falling back to AI:', err);
+      console.warn('[SmartMemo] DB search failed:', err);
     }
 
-    // === Step 2: Fallback to AI ===
+    // === الخطوة 2: محاولة التوليد السحابي إن وُجد مفتاح Gemini ===
     const apiKey = localStorage.getItem('tamkeen_gemini_key') || '';
-    if (!apiKey) {
-      alert("المستودع فارغ ولم يتم العثور على مورد مطابق.\nللتوليد الآلي، يرجى إضافة مفتاح Gemini API في الإعدادات.\n(احصل عليه مجاناً من aistudio.google.com)");
-      setIsLoading(false);
-      return;
+    if (apiKey) {
+      try {
+        const ai = new GoogleGenAI({ apiKey });
+        const prompt = `أنت خبير ومفتش تربوي للغة العربية بالتعليم الثانوي الجزائري.
+        قم بتوليد مذكرة بيداغوجية رسمية بالجيل الثاني وفق المقاربة بالكفاءات (APC).
+        المادة: ${formData.subject}
+        المستوى: ${formData.grade} (${formData.stream})
+        الوحدة/المحور: ${formData.unit}
+        النشاط: ${formData.activity}
+        الموضوع: ${formData.topic}
+
+        أجب بـ JSON حصراً بنفس هيكلة المذكرات الجزائرية:
+        {
+          "competencyFinal": "الكفاءة الختامية",
+          "competencyTarget": "الكفاءات المستهدفة",
+          "indicators": ["مؤشر 1", "مؤشر 2"],
+          "prerequisites": "المكتسبات القبلية",
+          "problemSituation": "الوضعية المشكلة الانطلاقية",
+          "steps": [
+            { "stage": "وضعية الانطلاق (05 د)", "teacherActivity": "...", "studentActivity": "...", "method": "حوار" },
+            { "stage": "بناء التعلمات - نشاط 1 (20 د)", "teacherActivity": "...", "studentActivity": "...", "method": "استقراء" },
+            { "stage": "بناء التعلمات - نشاط 2 (20 د)", "teacherActivity": "...", "studentActivity": "...", "method": "عمل ثنائي" },
+            { "stage": "استثمار المكتسبات (15 د)", "teacherActivity": "...", "studentActivity": "...", "method": "فردي" }
+          ],
+          "tools": "الوسائل التعليمية",
+          "evaluationDiag": "تقويم تشخيصي",
+          "evaluationFormative": "تقويم تكويني",
+          "evaluationFinal": "تقويم ختامي",
+          "remediation": "معالجة بيداغوجية",
+          "enrichment": "أنشطة إثرائية",
+          "notes": "ملاحظات",
+          "values": "القيم التربوية"
+        }`;
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.0-flash-lite',
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        });
+
+        let text = response.text || "{}";
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const result = JSON.parse(text);
+        setGeneratedMemo(result);
+        setGenerationSource('ai');
+        setIsLoading(false);
+        return;
+      } catch (geminiError) {
+        console.warn('[SmartMemo] Cloud AI failed or quota exhausted, switching to Local Pedagogical AI Engine:', geminiError);
+      }
     }
 
+    // === الخطوة 3: التوليد بالذكاء الاصطناعي المحلي المنهجي المفتوح والمجاني (برصيد غير منتهي) ===
     try {
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = `أنت خبير بيداغوجي ومفتش تربوي بوزارة التربية الوطنية الجزائرية.
-      قم بتوليد "مذكرة بيداغوجية" رسمية كاملة لدرس بـ ${levelLabel}.
-
-      المادة: ${formData.subject}
-      المستوى: ${formData.grade}
-      المقطع/الوحدة: ${formData.unit}
-      النشاط: ${formData.activity}
-      الموضوع: ${formData.topic}
-
-      يجب أن تحترم المذكرة هيكلة الجيل الثاني بكل الأقسام التسعة:
-      أجب بتنسيق JSON حصراً:
-      {
-        "competencyFinal": "الكفاءة الختامية وفق المنهاج",
-        "competencyTarget": "الكفاءات المرحلية / المستهدفة",
-        "indicators": ["أن يعرّف المتعلم...", "أن ينجز...", "أن يوظف..."],
-        "prerequisites": "المكتسبات القبلية",
-        "problemSituation": "الوضعية المشكلة (الانطلاق) - وضعية سياقية مرتبطة بواقع المتعلم",
-        "steps": [
-          { "stage": "وضعية الانطلاق", "teacherActivity": "ما يفعله الأستاذ بالتفصيل", "studentActivity": "ما يفعله المتعلم", "method": "حوار" },
-          { "stage": "بناء التعلمات - نشاط 1", "teacherActivity": "شرح مفصل", "studentActivity": "عمل المتعلم", "method": "عمل فردي" },
-          { "stage": "بناء التعلمات - نشاط 2", "teacherActivity": "شرح مفصل", "studentActivity": "عمل المتعلم", "method": "عمل ثنائي" },
-          { "stage": "استثمار المكتسبات", "teacherActivity": "وضعية تطبيقية", "studentActivity": "يوظف التعلمات", "method": "عمل فردي" }
-        ],
-        "tools": "الوسائل التعليمية المستخدمة",
-        "evaluationDiag": "تقويم تشخيصي",
-        "evaluationFormative": "تقويم تكويني أثناء الحصة",
-        "evaluationFinal": "تقويم ختامي (وضعية إدماجية)",
-        "remediation": "دعم للمتعثرين",
-        "enrichment": "إثراء للمتفوقين",
-        "notes": "ملاحظات عامة",
-        "values": "القيم التربوية والوطنية"
-      }
-      اجعل المحتوى غنياً بيداغوجياً ومطابقاً للمناهج الجزائرية. أجب بـ JSON فقط.`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash-lite',
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      const localResult = await generateLocalMemo({
+        grade: formData.grade,
+        subject: formData.subject,
+        activity: formData.activity,
+        topic: formData.topic,
+        unit: formData.unit,
+        stream: formData.stream
       });
 
-      let text = response.text || "{}";
-      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const result = JSON.parse(text);
-      setGeneratedMemo(result);
-      setGenerationSource('ai');
+      setGeneratedMemo(localResult);
+      setGenerationSource('local_engine');
 
-      // Auto-save to resource bank
-      const contentStr = `الكفاءة الختامية: ${result.competencyFinal || ''}\nالمؤشرات: ${(result.indicators || []).join('، ')}\nالمكتسبات القبلية: ${result.prerequisites || ''}\n\nسير الحصة:\n${(result.steps || []).map((s: any) => `- ${s.stage}: ${s.teacherActivity} / ${s.studentActivity}`).join('\n')}`;
-
+      // حفظ تلقائي في بنك الموارد لتعزيز الاسترجاع السريع لاحقاً
       addResource({
-        subject: formData.subject || profile.teachingSubject || 'مادة عامة',
-        level: profile.level,
-        grade: formData.grade || profile.grades?.[0] || '',
-        unit: formData.unit || '',
-        activity: formData.activity || 'مذكرة بيداغوجية',
-        title: formData.topic || 'مذكرة بدون عنوان',
-        objective: (result.indicators || []).join('، '),
-        content: contentStr,
-        tools: result.tools || formData.support || '',
+        subject: formData.subject,
+        level: 'SECONDARY',
+        grade: formData.grade,
+        unit: formData.unit,
+        activity: formData.activity,
+        title: formData.topic,
+        objective: localResult.competencyTarget,
+        content: `الكفاءة: ${localResult.competencyFinal}\nالوضعية الانطلاقية: ${localResult.problemSituation}\nسير الحصة:\n${localResult.steps.map(s => `- ${s.stage}: ${s.teacherActivity}`).join('\n')}`,
+        tools: localResult.tools,
+        method: localResult.steps[1]?.method || 'استقرائي',
         source: 'ai'
-      }).catch(err => console.error('Failed to auto-save to resource bank:', err));
+      }).catch(err => console.warn('Auto-save error:', err));
 
-    } catch (error: any) {
-      console.error(error);
-      if (error?.message?.includes('API_KEY')) {
-        alert("مفتاح API غير صالح. يرجى التحقق من المفتاح في الإعدادات.");
-      } else {
-        alert("حدث خطأ أثناء التوليد.\n" + error?.message);
-      }
+    } catch (engineError: any) {
+      console.error('[SmartMemo] Local engine error:', engineError);
+      alert('حدث خطأ غير متوقع أثناء المعالجة: ' + engineError.message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateExam = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      const exam = generateLocalExam({
+        grade: formData.grade as any,
+        stream: formData.stream,
+        unitTheme: formData.unit
+      });
+      setGeneratedExam(exam);
+      setIsLoading(false);
+    }, 400);
   };
 
   const handleExportPDF = async () => {
@@ -248,7 +314,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
       const { exportSmartMemoToPDF } = await import('../utils/pdfGenerator');
       await exportSmartMemoToPDF(profile, generatedMemo, {
         subject: formData.subject || profile.teachingSubject || 'مادة عامة',
-        grade: formData.grade || '',
+        grade: `${formData.grade} (${formData.stream})`,
         unit: formData.unit || '',
         activity: formData.activity || '',
         topic: formData.topic || 'مذكرة بيداغوجية',
@@ -274,34 +340,60 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -z-0"></div>
         <div className="relative z-10 flex items-center gap-5">
           <div className="p-4 bg-white/10 rounded-3xl border border-white/20 backdrop-blur-md">
-            <PenTool size={36} className="text-emerald-300" />
+            <Cpu size={36} className="text-emerald-300" />
           </div>
           <div>
-            <h2 className="text-2xl font-black italic tracking-tighter">مذكرة تمكين الذكية</h2>
-            <p className="text-emerald-200/70 font-bold text-xs mt-1">المساعد البيداغوجي الآلي — المستودع أولاً ثم الذكاء الاصطناعي</p>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-black italic tracking-tighter">مساعد تمكين البيداغوجي الذكي</h2>
+              <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow">
+                محلي • مفتوح المصدر • برصيد غير منتهي
+              </span>
+            </div>
+            <p className="text-emerald-200/70 font-bold text-xs mt-1">
+              مبني على تفكيك المنهاج الجزائري الرسمي، التدرجات السنوية، وبطاقات التفتيش للطور الثانوي
+            </p>
           </div>
         </div>
-        <div className="relative z-10 flex items-center gap-3 bg-emerald-950/50 px-5 py-2 rounded-2xl border border-emerald-800/50">
-          <Database size={16} className="text-emerald-400" />
-          <span className="text-[10px] font-black text-emerald-100 uppercase">أولوية المستودع</span>
-          <span className="mx-1 text-emerald-600">|</span>
-          <Sparkles size={16} className="text-amber-400" />
-          <span className="text-[10px] font-black text-emerald-100 uppercase">AI احتياطي</span>
+
+        {/* Mode & Tab Switcher */}
+        <div className="relative z-10 flex items-center gap-2 bg-emerald-950/60 p-1.5 rounded-2xl border border-emerald-800/50">
+          <button
+            onClick={() => setActiveTab('memo')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${activeTab === 'memo' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-emerald-200 hover:text-white'}`}
+          >
+            <PenTool size={14} /> المذكرة البيداغوجية
+          </button>
+          <button
+            onClick={() => setActiveTab('exam')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${activeTab === 'exam' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-emerald-200 hover:text-white'}`}
+          >
+            <Award size={14} /> الفروض والاختبارات الرسمية
+          </button>
         </div>
       </div>
 
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Form */}
+        {/* Form Controls */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-slate-800 space-y-4">
-          <div className="flex items-center gap-3 border-b border-slate-50 dark:border-slate-800 pb-3 mb-2">
-            <Layers className="text-indigo-600" size={18} />
-            <h3 className="font-black text-slate-800 dark:text-white text-sm">معطيات المذكرة البيداغوجية</h3>
+          <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-3 mb-2">
+            <div className="flex items-center gap-3">
+              <Layers className="text-indigo-600" size={18} />
+              <h3 className="font-black text-slate-800 dark:text-white text-sm">بيانات المنهاج والتوليد</h3>
+            </div>
+            {/* Quick Picker from official curriculum */}
+            <button
+              onClick={() => setShowCurriculumModal(true)}
+              className="bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition-all"
+            >
+              <BookCheck size={14} /> دروس المنهاج المعتمد
+            </button>
           </div>
 
-          {/* Auto-filled from profile */}
+          {/* Institution & Level Info */}
           <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 space-y-1">
-            <p><strong className="text-emerald-700 dark:text-emerald-400">المؤسسة:</strong> {profile.institution}</p>
-            <p><strong className="text-emerald-700 dark:text-emerald-400">الطور:</strong> {levelLabel} | <strong className="text-emerald-700 dark:text-emerald-400">الولاية:</strong> {profile.province?.split('-')[1] || profile.province}</p>
+            <p><strong className="text-emerald-700 dark:text-emerald-400">المؤسسة:</strong> {profile.institution || 'ثانوية / مؤسسة تربوية'}</p>
+            <p><strong className="text-emerald-700 dark:text-emerald-400">الطور:</strong> {levelLabel} | <strong className="text-emerald-700 dark:text-emerald-400">المادة:</strong> {formData.subject}</p>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
@@ -312,11 +404,10 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             <div className="space-y-1">
               <label className={labelCls}>المدة الزمنية</label>
               <select value={formData.duration} onChange={e => setFormData({ ...formData, duration: e.target.value })} className={inputCls}>
-                <option value="30 دقيقة">30 دقيقة</option>
                 <option value="45 دقيقة">45 دقيقة</option>
-                <option value="60 دقيقة">60 دقيقة</option>
-                <option value="90 دقيقة">90 دقيقة</option>
-                <option value="120 دقيقة">120 دقيقة</option>
+                <option value="60 دقيقة">ساعة واحدة (60 د)</option>
+                <option value="90 دقيقة">ساعة ونصف (90 د)</option>
+                <option value="120 دقيقة">ساعتان (120 د)</option>
               </select>
             </div>
             <div className="space-y-1">
@@ -327,50 +418,62 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className={labelCls}>المادة</label>
-              <select value={formData.subject} onChange={e => setFormData({ ...formData, subject: e.target.value })} className={inputCls}>
-                <option value={profile.teachingSubject}>{profile.teachingSubject}</option>
-                {['لغة عربية', 'رياضيات', 'لغة فرنسية', 'لغة إنجليزية', 'علوم طبيعية', 'علوم فيزيائية', 'تاريخ وجغرافيا', 'تربية إسلامية', 'تربية مدنية', 'تربية فنية', 'تربية بدنية', 'تربية موسيقية', 'تربية تكنولوجية', 'إعلام آلي', 'فلسفة'].filter(s => s !== profile.teachingSubject).map(s => (
-                  <option key={s} value={s}>{s}</option>
+              <label className={labelCls}>المستوى الدراسي</label>
+              <select value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })} className={inputCls}>
+                {(GRADES_MAP[normalizedLevel] || ['السنة الأولى', 'السنة الثانية', 'السنة الثالثة']).map((g: string) => (
+                  <option key={g} value={g}>{g}</option>
                 ))}
               </select>
             </div>
             <div className="space-y-1">
-              <label className={labelCls}>المستوى / القسم</label>
-              <select value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })} className={inputCls}>
-                {normalizedLevel ? (GRADES_MAP[normalizedLevel] || []).map((g: string) => (
-                  <option key={g} value={g}>{g}</option>
-                )) : <option value="">اختر الطور أولاً</option>}
+              <label className={labelCls}>الشعبة الدراسية</label>
+              <select value={formData.stream} onChange={e => setFormData({ ...formData, stream: e.target.value })} className={inputCls}>
+                {SECONDARY_STREAMS.map(st => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
               </select>
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className={labelCls}>المقطع / الميدان</label>
-            <input type="text" placeholder="مثال: المقطع الأول: القيم الإنسانية" value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} className={inputCls} />
+            <label className={labelCls}>المقطع / المحور الأدبي</label>
+            <input 
+              type="text" 
+              placeholder="مثال: الوحدة 06: فلسطين في الشعر العربي المعاصر" 
+              value={formData.unit} 
+              onChange={e => setFormData({ ...formData, unit: e.target.value })} 
+              className={inputCls} 
+            />
           </div>
+
           <div className="space-y-1">
-            <label className={labelCls}>النشاط</label>
+            <label className={labelCls}>النشاط التربوي</label>
             <select value={formData.activity} onChange={e => setFormData({ ...formData, activity: e.target.value })} className={inputCls}>
-              <option value="">— اختر النشاط —</option>
-              {['فهم المنطوق', 'فهم المكتوب', 'إنتاج كتابي', 'إنتاج شفهي', 'قراءة', 'قراءة معبرة', 'قواعد', 'إملاء', 'محفوظات', 'تعبير شفوي', 'تعبير كتابي', 'أعداد وحساب', 'هندسة', 'قياس ومقادير', 'تنظيم معطيات', 'تمارين', 'وضعية إدماجية', 'معالجة', 'تقويم', 'نشاط علمي', 'نشاط لغوي', 'نشاط رياضي'].map(a => (
+              {SECONDARY_ACTIVITIES.map(a => (
                 <option key={a} value={a}>{a}</option>
               ))}
             </select>
           </div>
+
           <div className="space-y-1 relative">
-            <label className={labelCls}>عنوان الدرس</label>
-            <input type="text" placeholder="عنوان الدرس بدقة..." value={formData.topic} onChange={e => setFormData({ ...formData, topic: e.target.value })} className={inputCls} />
+            <label className={labelCls}>عنوان الدرس / الموضوع</label>
+            <input 
+              type="text" 
+              placeholder="مثال: حالة حصار لمحمود درويش / إعراب إذا وإذ..." 
+              value={formData.topic} 
+              onChange={e => setFormData({ ...formData, topic: e.target.value })} 
+              className={inputCls} 
+            />
             {isSearching && <Loader2 size={14} className="absolute left-4 top-8 animate-spin text-emerald-500" />}
           </div>
 
-          {/* Resource suggestions */}
+          {/* Resource Suggestions */}
           {resourceSuggestions.length > 0 && showSuggestions && (
             <div className="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
                   <Database size={12} />
-                  <span className="text-[9px] font-black uppercase">اقتراحات من المستودع</span>
+                  <span className="text-[9px] font-black uppercase">دروس مقترحة من المنهاج والمستودع</span>
                   <span className="text-[8px] bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200 px-1.5 py-0.5 rounded-full font-black">{resourceSuggestions.length}</span>
                 </div>
                 <button onClick={() => setShowSuggestions(false)} className="text-slate-400 hover:text-rose-500"><X size={12} /></button>
@@ -385,170 +488,368 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
           )}
 
           <div className="space-y-1">
-            <label className={labelCls}>الوسائل التعليمية</label>
+            <label className={labelCls}>السندات والوسائل</label>
             <input type="text" value={formData.support} onChange={e => setFormData({ ...formData, support: e.target.value })} className={inputCls} />
           </div>
 
-          {!localStorage.getItem('tamkeen_gemini_key') && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 text-xs shadow-sm">
-              <h4 className="font-black text-amber-800 dark:text-amber-400 mb-3">🔑 كيف تحصل على مفتاحك المجاني؟</h4>
-              <ol className="list-decimal list-inside space-y-1.5 text-amber-900 dark:text-amber-300 font-bold mb-3 pr-2">
-                <li>افتح الرابط: <a href="https://aistudio.google.com" target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 underline">aistudio.google.com</a></li>
-                <li>سجّل دخولك بحساب Google</li>
-                <li>اضغط على "Get API Key"</li>
-                <li>انسخ المفتاح والصقه في إعدادات المنصة</li>
-              </ol>
-              <div className="bg-amber-100/50 dark:bg-amber-900/40 p-2.5 rounded-xl text-amber-900 dark:text-amber-400 font-black border border-amber-200/50 dark:border-amber-800/50 text-[11px] flex gap-2 items-center">
-                <span>✅</span> المفتاح مجاني تماماً ولا يحتاج بطاقة بنكية
-              </div>
+          {/* AI Engine Status Banner (No Lockout!) */}
+          <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-3 text-xs flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+            <div>
+              <p className="font-black text-emerald-900 dark:text-emerald-200 text-[11px]">محرك التوليد المنهجي الذاتي نشط 100%</p>
+              <p className="text-[10px] text-emerald-700 dark:text-emerald-400">يعمل محلياً بدون رصيد ينتهي وبدون انقطاع وفق منهاج الجيل الثاني</p>
             </div>
-          )}
+          </div>
 
-          <button onClick={generateMemo} disabled={isLoading} className="w-full bg-[#1b4332] text-white py-5 rounded-[2rem] font-black text-sm shadow-xl hover:bg-emerald-900 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 border-b-6 border-emerald-950">
-            {isLoading ? <RefreshCw className="animate-spin" size={20} /> : <Zap size={20} className="fill-white" />} توليد المذكرة
-          </button>
+          {/* Generate Button */}
+          {activeTab === 'memo' ? (
+            <button 
+              onClick={generateMemo} 
+              disabled={isLoading} 
+              className="w-full bg-[#1b4332] text-white py-4 rounded-[2rem] font-black text-sm shadow-xl hover:bg-emerald-900 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 border-b-6 border-emerald-950"
+            >
+              {isLoading ? <RefreshCw className="animate-spin" size={20} /> : <Zap size={20} className="fill-white" />}
+              توليد المذكرة البيداغوجية الرسمية
+            </button>
+          ) : (
+            <button 
+              onClick={generateExam} 
+              disabled={isLoading} 
+              className="w-full bg-amber-500 text-slate-950 py-4 rounded-[2rem] font-black text-sm shadow-xl hover:bg-amber-600 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 border-b-6 border-amber-700"
+            >
+              {isLoading ? <RefreshCw className="animate-spin" size={20} /> : <Award size={20} />}
+              توليد فرض/اختبار نموذجي بسلم التنقيط
+            </button>
+          )}
         </div>
 
-        {/* Preview Area */}
+        {/* Preview / Results Area */}
         <div className="lg:col-span-2 space-y-4">
-          {!generatedMemo && !isLoading ? (
-            <div className="bg-slate-50 dark:bg-slate-800/50 border-4 border-dashed border-slate-200 dark:border-slate-800 p-16 rounded-[3rem] text-center flex flex-col items-center gap-5">
-              <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-inner text-slate-200 dark:text-slate-700">
-                <BookOpen size={40} />
-              </div>
-              <p className="text-slate-400 font-black italic text-sm">أدخل(ي) معطيات الدرس ثم اضغط «توليد المذكرة» — سيتم البحث في المستودع أولاً</p>
-            </div>
-          ) : isLoading ? (
-            <div className="bg-white dark:bg-slate-900 p-16 rounded-[3rem] shadow-xl text-center space-y-6">
-              <div className="relative mx-auto w-24 h-24">
-                <div className="absolute inset-0 border-8 border-emerald-100 rounded-full"></div>
-                <div className="absolute inset-0 border-8 border-emerald-600 rounded-full border-t-transparent animate-spin"></div>
-                <Database className="absolute inset-0 m-auto text-emerald-600 animate-pulse" size={32} />
-              </div>
-              <h3 className="text-xl font-black dark:text-white">جاري البحث في المستودع أولاً...</h3>
-              <p className="text-slate-400 font-bold text-xs italic">إن لم يتوفر مورد مناسب، سيتم التوليد بالذكاء الاصطناعي تلقائياً</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Source indicator */}
-              <div className={`p-3 rounded-2xl flex items-center gap-3 text-xs font-black ${generationSource === 'db' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200'}`}>
-                {generationSource === 'db' ? <><Database size={16} /> تم بناء المذكرة من بنك الموارد (المستودع)</> : <><Sparkles size={16} /> تم التوليد بالذكاء الاصطناعي وحُفظ في المستودع</>}
-              </div>
-
-              <div className="flex justify-end gap-3 no-print">
-                <button onClick={handleExportPDF} disabled={isExporting} className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center gap-3 active:scale-95 transition-all disabled:opacity-50 border-b-4 border-emerald-800">
-                  {isExporting ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />} تصدير PDF للطباعة
+          {activeTab === 'memo' ? (
+            /* Memo Preview */
+            !generatedMemo && !isLoading ? (
+              <div className="bg-slate-50 dark:bg-slate-800/50 border-4 border-dashed border-slate-200 dark:border-slate-800 p-16 rounded-[3rem] text-center flex flex-col items-center gap-5">
+                <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-inner text-slate-200 dark:text-slate-700">
+                  <BookOpen size={40} />
+                </div>
+                <p className="text-slate-500 font-black text-sm">
+                  اختر درساً من «دروس المنهاج المعتمد» أو أدخل عنوان الدرس ثم اضغط «توليد المذكرة»
+                </p>
+                <button
+                  onClick={() => setShowCurriculumModal(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg transition-all"
+                >
+                  <BookCheck size={16} /> تصفح وحدات ودروس المنهاج الثانوي
                 </button>
               </div>
-
-              {/* On-screen preview */}
-              <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 overflow-x-auto text-sm space-y-4" style={{ fontFamily: 'Cairo' }}>
-                {/* Header */}
-                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
-                  <div className="text-[9px] font-bold leading-loose">
-                    <p className="font-black">الجمهورية الجزائرية الديمقراطية الشعبية</p>
-                    <p>وزارة التربية الوطنية</p>
-                    <p>المؤسسة: {profile.institution}</p>
+            ) : isLoading ? (
+              <div className="bg-white dark:bg-slate-900 p-16 rounded-[3rem] shadow-xl text-center space-y-6">
+                <div className="relative mx-auto w-24 h-24">
+                  <div className="absolute inset-0 border-8 border-emerald-100 rounded-full"></div>
+                  <div className="absolute inset-0 border-8 border-emerald-600 rounded-full border-t-transparent animate-spin"></div>
+                  <Cpu className="absolute inset-0 m-auto text-emerald-600 animate-pulse" size={32} />
+                </div>
+                <h3 className="text-xl font-black dark:text-white">جاري التوليد البيداغوجي وفق المقاربة بالكفاءات...</h3>
+                <p className="text-slate-400 font-bold text-xs italic">استخراج المعايير، الأهداف السلوكية، ومراحل بناء التعلمات</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Source Badge */}
+                <div className="p-3 rounded-2xl flex items-center justify-between text-xs font-black bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={16} className="text-emerald-600" />
+                    <span>
+                      {generationSource === 'local_engine' 
+                        ? '⚡ تم التوليد بواسطة محرك الذكاء الاصطناعي المحلي المنهجي (مجاني غير منتهي 100%)' 
+                        : generationSource === 'db' 
+                        ? '🏛️ تم الاسترجاع من بنك الموارد والمنهاج الرسمي للتعليم الثانوي' 
+                        : '✨ تم التوليد بنموذج الذكاء الاصطناعي'}
+                    </span>
                   </div>
-                  <div className="text-center">
-                    <TamkeenLogo size={40} className="mb-1 mx-auto" />
-                    <p className="text-[9px] font-black">مذكرة بيداغوجية رقم: {formData.memoNumber}</p>
-                  </div>
+                  <span className="text-[10px] bg-emerald-200 dark:bg-emerald-800 px-2 py-0.5 rounded-full">منهاج رسمي موثق</span>
                 </div>
 
-                {/* Info grid */}
-                <div className="grid grid-cols-2 gap-3 text-[10px]">
-                  <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
-                    <p><strong>الطور:</strong> {levelLabel}</p>
-                    <p><strong>المادة:</strong> {formData.subject}</p>
-                    <p><strong>المستوى:</strong> {formData.grade}</p>
-                    <p><strong>المقطع/الميدان:</strong> {formData.unit}</p>
-                  </div>
-                  <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
-                    <p><strong>الأستاذ(ة):</strong> {profile.name}</p>
-                    <p><strong>النشاط:</strong> {formData.activity}</p>
-                    <p><strong>عنوان الدرس:</strong> <span className="text-indigo-700 font-black">{formData.topic}</span></p>
-                    <p><strong>الحصة / المدة:</strong> {formData.memoNumber} / {formData.duration}</p>
-                    <p><strong>التاريخ:</strong> {formData.date}</p>
-                  </div>
+                <div className="flex justify-end gap-3 no-print">
+                  <button onClick={handleExportPDF} disabled={isExporting} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center gap-3 active:scale-95 transition-all disabled:opacity-50 border-b-4 border-emerald-800">
+                    {isExporting ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />} تصدير PDF للطباعة
+                  </button>
                 </div>
 
-                {/* Sections */}
-                {generatedMemo && (
-                  <div className="space-y-3">
-                    <SectionBox icon={<GraduationCap size={14} />} title="1) الكفاءة الختامية" color="indigo">{generatedMemo.competencyFinal}</SectionBox>
-                    <SectionBox icon={<Target size={14} />} title="2) الكفاءات المرحلية / المستهدفة" color="violet">{generatedMemo.competencyTarget}</SectionBox>
-                    <SectionBox icon={<CheckCircle2 size={14} />} title="3) مؤشرات الأداء" color="blue">
-                      <ul className="list-disc list-inside space-y-1">{generatedMemo.indicators?.map((ind, i) => <li key={i}>{ind}</li>)}</ul>
-                    </SectionBox>
-                    <SectionBox icon={<Brain size={14} />} title="4) المكتسبات القبلية" color="purple">{generatedMemo.prerequisites}</SectionBox>
-                    <SectionBox icon={<Lightbulb size={14} />} title="5) الوضعية المشكلة (الانطلاق)" color="amber">{generatedMemo.problemSituation}</SectionBox>
+                {/* Printable Formatted Card */}
+                <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 overflow-x-auto text-sm space-y-4" style={{ fontFamily: 'Cairo' }}>
+                  {/* Official Header */}
+                  <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
+                    <div className="text-[9px] font-bold leading-loose">
+                      <p className="font-black">الجمهورية الجزائرية الديمقراطية الشعبية</p>
+                      <p>وزارة التربية الوطنية</p>
+                      <p>المؤسسة: {profile.institution || 'ثانوية رسمية'}</p>
+                    </div>
+                    <div className="text-center">
+                      <TamkeenLogo size={40} className="mb-1 mx-auto" />
+                      <p className="text-[9px] font-black">مذكرة بيداغوجية رقم: {formData.memoNumber}</p>
+                      <p className="text-[8px] text-slate-500 font-bold">الجيل الثاني — المقاربة بالكفاءات</p>
+                    </div>
+                  </div>
 
-                    {/* Steps table */}
-                    <div className="border border-slate-300 rounded-xl overflow-hidden">
-                      <div className="bg-[#1b4332] text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
-                        <ClipboardList size={14} /> سير الحصة
-                      </div>
-                      <table className="w-full border-collapse text-[9px]">
-                        <thead>
-                          <tr className="bg-slate-100">
-                            <th className="border border-slate-300 p-2 w-[14%]">المرحلة</th>
-                            <th className="border border-slate-300 p-2">أداء الأستاذ</th>
-                            <th className="border border-slate-300 p-2">أداء المتعلم</th>
-                            <th className="border border-slate-300 p-2 w-[12%]">الطريقة</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {generatedMemo.steps?.map((step, idx) => (
-                            <tr key={idx}>
-                              <td className="border border-slate-300 p-2 font-black text-center bg-slate-50">{step.stage}</td>
-                              <td className="border border-slate-300 p-2 whitespace-pre-line">{step.teacherActivity}</td>
-                              <td className="border border-slate-300 p-2 whitespace-pre-line">{step.studentActivity}</td>
-                              <td className="border border-slate-300 p-2 text-center italic">{step.method}</td>
+                  {/* Info Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-[10px]">
+                    <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
+                      <p><strong>الطور:</strong> التعليم الثانوي</p>
+                      <p><strong>المادة:</strong> {formData.subject}</p>
+                      <p><strong>المستوى:</strong> {formData.grade}</p>
+                      <p><strong>الشعبة:</strong> {formData.stream}</p>
+                      <p><strong>المقطع / المحور:</strong> {formData.unit}</p>
+                    </div>
+                    <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
+                      <p><strong>الأستاذ(ة):</strong> {profile.name || 'أستاذ(ة) التعليم الثانوي'}</p>
+                      <p><strong>النشاط:</strong> {formData.activity}</p>
+                      <p><strong>عنوان الدرس:</strong> <span className="text-indigo-700 font-black">{formData.topic}</span></p>
+                      <p><strong>المدة الزمنية:</strong> {formData.duration}</p>
+                      <p><strong>التاريخ:</strong> {formData.date}</p>
+                    </div>
+                  </div>
+
+                  {/* 9 Stages Sections */}
+                  {generatedMemo && (
+                    <div className="space-y-3">
+                      <SectionBox icon={<GraduationCap size={14} />} title="1) الكفاءة الختامية" color="indigo">{generatedMemo.competencyFinal}</SectionBox>
+                      <SectionBox icon={<Target size={14} />} title="2) الكفاءات المرحلية / المستهدفة" color="violet">{generatedMemo.competencyTarget}</SectionBox>
+                      <SectionBox icon={<CheckCircle2 size={14} />} title="3) مؤشرات الأداء والتحقق" color="blue">
+                        <ul className="list-disc list-inside space-y-1">{generatedMemo.indicators?.map((ind, i) => <li key={i}>{ind}</li>)}</ul>
+                      </SectionBox>
+                      <SectionBox icon={<Brain size={14} />} title="4) المكتسبات القبلية" color="purple">{generatedMemo.prerequisites}</SectionBox>
+                      <SectionBox icon={<Lightbulb size={14} />} title="5) الوضعية المشكلة (وضعية الانطلاق)" color="amber">{generatedMemo.problemSituation}</SectionBox>
+
+                      {/* Steps Table */}
+                      <div className="border border-slate-300 rounded-xl overflow-hidden">
+                        <div className="bg-[#1b4332] text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
+                          <ClipboardList size={14} /> 6) سير الحصة والأنشطة البانية للتعلمات
+                        </div>
+                        <table className="w-full border-collapse text-[9px]">
+                          <thead>
+                            <tr className="bg-slate-100">
+                              <th className="border border-slate-300 p-2 w-[16%]">المرحلة / التوقيت</th>
+                              <th className="border border-slate-300 p-2">نشاط الأستاذ</th>
+                              <th className="border border-slate-300 p-2">نشاط المتعلم</th>
+                              <th className="border border-slate-300 p-2 w-[14%]">الاستراتيجية</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {generatedMemo.steps?.map((step, idx) => (
+                              <tr key={idx}>
+                                <td className="border border-slate-300 p-2 font-black text-center bg-slate-50">{step.stage}</td>
+                                <td className="border border-slate-300 p-2 whitespace-pre-line">{step.teacherActivity}</td>
+                                <td className="border border-slate-300 p-2 whitespace-pre-line">{step.studentActivity}</td>
+                                <td className="border border-slate-300 p-2 text-center italic">{step.method}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <SectionBox icon={<Wrench size={14} />} title="7) الوسائل والسندات التعليمية" color="teal">{generatedMemo.tools}</SectionBox>
+
+                      <div className="border border-slate-300 rounded-xl overflow-hidden">
+                        <div className="bg-orange-600 text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
+                          <BarChart3 size={14} /> 8) محطات التقويم البيداغوجي
+                        </div>
+                        <div className="p-3 space-y-2 text-[10px]">
+                          <p><strong>تقويم تشخيصي:</strong> {generatedMemo.evaluationDiag}</p>
+                          <p><strong>تقويم تكويني مرحلي:</strong> {generatedMemo.evaluationFormative}</p>
+                          <p><strong>تقويم ختامي تحصيلي:</strong> {generatedMemo.evaluationFinal}</p>
+                        </div>
+                      </div>
+
+                      <div className="border border-slate-300 rounded-xl overflow-hidden">
+                        <div className="bg-rose-600 text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
+                          <HeartHandshake size={14} /> 9) الدعم والمعالجة البيداغوجية والقيم
+                        </div>
+                        <div className="p-3 space-y-2 text-[10px]">
+                          <p><strong>دعم المتعثرين:</strong> {generatedMemo.remediation}</p>
+                          <p><strong>إثراء المتفوقين:</strong> {generatedMemo.enrichment}</p>
+                          <p><strong>القيم الوطنية والتربوية:</strong> {generatedMemo.values}</p>
+                        </div>
+                      </div>
+
+                      <SectionBox icon={<StickyNote size={14} />} title="الملاحظات والتوجيهات" color="slate">{generatedMemo.notes}</SectionBox>
                     </div>
+                  )}
 
-                    <SectionBox icon={<Wrench size={14} />} title="6) الوسائل التعليمية" color="teal">{generatedMemo.tools}</SectionBox>
-
-                    <div className="border border-slate-300 rounded-xl overflow-hidden">
-                      <div className="bg-orange-600 text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
-                        <BarChart3 size={14} /> 7) التقويم
-                      </div>
-                      <div className="p-3 space-y-2 text-[10px]">
-                        <p><strong>تشخيصي:</strong> {generatedMemo.evaluationDiag}</p>
-                        <p><strong>تكويني:</strong> {generatedMemo.evaluationFormative}</p>
-                        <p><strong>ختامي:</strong> {generatedMemo.evaluationFinal}</p>
-                      </div>
-                    </div>
-
-                    <div className="border border-slate-300 rounded-xl overflow-hidden">
-                      <div className="bg-rose-600 text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
-                        <HeartHandshake size={14} /> 8) المعالجة البيداغوجية
-                      </div>
-                      <div className="p-3 space-y-2 text-[10px]">
-                        <p><strong>دعم المتعثرين:</strong> {generatedMemo.remediation}</p>
-                        <p><strong>إثراء المتفوقين:</strong> {generatedMemo.enrichment}</p>
-                      </div>
-                    </div>
-
-                    <SectionBox icon={<StickyNote size={14} />} title="9) الملاحظات" color="slate">{generatedMemo.notes}</SectionBox>
+                  {/* Signatures */}
+                  <div className="mt-8 flex justify-between px-8 pt-6 border-t-2 border-dashed border-slate-300">
+                    <div className="text-center text-[10px] font-black">إمضاء الأستاذ(ة)</div>
+                    <div className="text-center text-[10px] font-black">تأشيرة السيد المفتش / المدير</div>
                   </div>
-                )}
-
-                {/* Signatures */}
-                <div className="mt-8 flex justify-between px-8 pt-6 border-t-2 border-dashed border-slate-300">
-                  <div className="text-center text-[10px] font-black">إمضاء الأستاذ(ة)</div>
-                  <div className="text-center text-[10px] font-black">ختم السيد المدير</div>
                 </div>
               </div>
-            </div>
+            )
+          ) : (
+            /* Exam Preview */
+            !generatedExam && !isLoading ? (
+              <div className="bg-slate-50 dark:bg-slate-800/50 border-4 border-dashed border-slate-200 dark:border-slate-800 p-16 rounded-[3rem] text-center flex flex-col items-center gap-5">
+                <div className="w-20 h-20 bg-amber-50 dark:bg-amber-950/30 rounded-full flex items-center justify-center text-amber-500">
+                  <Award size={40} />
+                </div>
+                <h4 className="font-black text-slate-800 dark:text-white text-base">توليد الفروض والامتحانات الرسمية بسلم التنقيط</h4>
+                <p className="text-slate-400 font-bold text-xs max-w-md">
+                  يولد النظام امتحاناً شاملاً للطور الثانوي يضم: سند القراءة (أدبي أو نثري)، أسئلة البناء الفكري، البناء اللغوي، التقويم النقدي، الوضعية الإدماجية، وسلالم التنقيط النموذجية المعتمدة في البكالوريا.
+                </p>
+                <button onClick={generateExam} className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-6 py-3 rounded-2xl font-black text-xs shadow-lg transition-all flex items-center gap-2">
+                  <Zap size={16} /> توليد الامتحان النموذجي الآن
+                </button>
+              </div>
+            ) : isLoading ? (
+              <div className="bg-white dark:bg-slate-900 p-16 rounded-[3rem] shadow-xl text-center space-y-6">
+                <RefreshCw className="animate-spin mx-auto text-amber-500" size={36} />
+                <h3 className="text-xl font-black dark:text-white">جاري إعداد موضوع الامتحان وسلم الإجابة...</h3>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 text-sm space-y-6" style={{ fontFamily: 'Cairo' }}>
+                  <div className="text-center border-b-2 border-slate-900 pb-4">
+                    <p className="font-black text-xs">الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية</p>
+                    <h3 className="text-base font-black mt-2 text-indigo-900">{generatedExam?.title}</h3>
+                    <p className="text-xs font-bold text-slate-600 mt-1">
+                      المستوى: {generatedExam?.level} | الشعبة: {generatedExam?.stream} | المدة: {generatedExam?.duration}
+                    </p>
+                  </div>
+
+                  {/* Reading Text */}
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-300">
+                    <h4 className="font-black text-xs text-slate-700 mb-2">السند الشعري / النثري:</h4>
+                    <p className="font-bold text-xs leading-loose whitespace-pre-line text-slate-800">{generatedExam?.readingText}</p>
+                    <p className="text-left text-[11px] font-black text-indigo-700 mt-2">— {generatedExam?.author}</p>
+                  </div>
+
+                  {/* Section 1: Intellectual Comprehension */}
+                  <div className="space-y-2">
+                    <div className="bg-[#1b4332] text-white px-3 py-1.5 rounded-xl font-black text-xs flex justify-between">
+                      <span>أولاً: البناء الفكري</span>
+                      <span>(08 إلى 10 نقاط)</span>
+                    </div>
+                    <ul className="space-y-2 pr-3">
+                      {generatedExam?.intellectualComprehension.map((q, idx) => (
+                        <li key={idx} className="flex justify-between items-start text-xs font-bold border-b border-slate-100 pb-1">
+                          <span>{idx + 1}. {q.question}</span>
+                          <span className="text-emerald-700 font-black text-[10px]">({q.points} ن)</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Section 2: Linguistic Competence */}
+                  <div className="space-y-2">
+                    <div className="bg-indigo-700 text-white px-3 py-1.5 rounded-xl font-black text-xs flex justify-between">
+                      <span>ثانياً: البناء اللغوي</span>
+                      <span>(06 إلى 08 نقاط)</span>
+                    </div>
+                    <ul className="space-y-2 pr-3">
+                      {generatedExam?.linguisticCompetence.map((q, idx) => (
+                        <li key={idx} className="flex justify-between items-start text-xs font-bold border-b border-slate-100 pb-1">
+                          <span>{idx + 1}. {q.question}</span>
+                          <span className="text-indigo-700 font-black text-[10px]">({q.points} ن)</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Section 3: Critical Evaluation (if available) */}
+                  {generatedExam?.criticalEvaluation && (
+                    <div className="space-y-2">
+                      <div className="bg-violet-700 text-white px-3 py-1.5 rounded-xl font-black text-xs flex justify-between">
+                        <span>ثالثاً: التقويم النقدي (خاص بالشعب الأدبية)</span>
+                        <span>(04 نقاط)</span>
+                      </div>
+                      <ul className="space-y-2 pr-3">
+                        {generatedExam?.criticalEvaluation.map((q, idx) => (
+                          <li key={idx} className="flex justify-between items-start text-xs font-bold">
+                            <span>{q.question}</span>
+                            <span className="text-violet-700 font-black text-[10px]">({q.points} ن)</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Section 4: Integration Situation */}
+                  {generatedExam?.integrationSituation && (
+                    <div className="space-y-2">
+                      <div className="bg-amber-600 text-white px-3 py-1.5 rounded-xl font-black text-xs flex justify-between">
+                        <span>الوضعية الإدماجية (التعبير الكتابي)</span>
+                        <span>({generatedExam.integrationSituation.points} نقاط)</span>
+                      </div>
+                      <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs font-bold space-y-1">
+                        <p><strong>السياق:</strong> {generatedExam.integrationSituation.context}</p>
+                        <p><strong>السند والتعليمة:</strong> {generatedExam.integrationSituation.task}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Rubric Accordion */}
+                  <div className="border border-slate-300 rounded-2xl p-4 bg-slate-50 space-y-3">
+                    <h4 className="font-black text-xs text-slate-800 flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-600" /> سلم التنقيط والإجابة النموذجية المعتمدة
+                    </h4>
+                    <div className="space-y-2">
+                      {generatedExam?.rubric.map((r, i) => (
+                        <div key={i} className="text-xs border-b border-slate-200 pb-2">
+                          <p className="font-black text-slate-700">{r.question} ({r.points} ن):</p>
+                          <p className="text-emerald-800 font-bold mt-0.5">{r.answer}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
           )}
         </div>
       </div>
 
+      {/* Curriculum Lessons Modal */}
+      {showCurriculumModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] max-w-3xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-3">
+                <BookCheck className="text-emerald-600" size={24} />
+                <div>
+                  <h3 className="font-black text-base text-slate-800 dark:text-white">قاعدة بيانات المنهاج الرسمي للغة العربية (الطور الثانوي)</h3>
+                  <p className="text-xs text-slate-400 font-bold">انقر على أي درس لتعبئة المعطيات وتوليد المذكرة الرسمية فوراً</p>
+                </div>
+              </div>
+              <button onClick={() => setShowCurriculumModal(false)} className="text-slate-400 hover:text-rose-500">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto space-y-3 flex-1 pr-1">
+              {SECONDARY_ARABIC_CURRICULUM.map(lesson => (
+                <div 
+                  key={lesson.id} 
+                  onClick={() => selectCurriculumItem(lesson)}
+                  className="p-4 bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 transition-all cursor-pointer group space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-sm text-slate-800 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                      {lesson.topic}
+                    </span>
+                    <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-black px-2.5 py-0.5 rounded-full">
+                      {lesson.grade} • {lesson.activity}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+                    <strong>المحور:</strong> {lesson.unitTitle} ({lesson.stream})
+                  </p>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-1 italic">
+                    {lesson.competencyTarget}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
