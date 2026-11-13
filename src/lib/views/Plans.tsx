@@ -142,6 +142,15 @@ export default function PlansView({ profile, lang, type }: { profile: TeacherPro
           </div>
 
           <button
+            onClick={() => navigate('/resources?tab=guides')}
+            className="bg-emerald-950/70 hover:bg-emerald-900 text-emerald-100 hover:text-white px-4 py-3 rounded-2xl font-black text-xs border border-emerald-700/60 transition-all flex items-center gap-2 shadow-md"
+            title="الانتقال إلى بنك الأدلة والمناهج والتشريع المدرسي"
+          >
+            <BookOpen size={16} className="text-amber-300" />
+            الأدلة والمناهج الرسمية
+          </button>
+
+          <button
             onClick={handleExportPDF}
             disabled={isExporting}
             className="bg-white hover:bg-emerald-50 text-slate-900 px-5 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center gap-2 active:scale-95 transition-all disabled:opacity-50 border border-emerald-200"

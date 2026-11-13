@@ -8,6 +8,8 @@ import { getSupabaseClient } from '../config/supabaseClient';
 import { Resource, ResourceFile } from '../types';
 import { findCurriculumLesson, SECONDARY_ARABIC_CURRICULUM } from '../lib/ai/secondaryArabicCurriculumData';
 import { generateLocalMemo } from '../lib/ai/localCurriculumEngine';
+import { OFFICIAL_CURRICULUM_GUIDES, searchOfficialCurriculumGuides, getGuidesCategoriesSummary, CurriculumGuideItem } from '../data/officialCurriculumGuidesDB';
+
 
 // ── Title Normalization ──
 
@@ -451,3 +453,8 @@ export async function smartFetchResource(params: {
 
     return { resource: null, source: 'none' };
 }
+
+// ── Official Algerian Curriculum Guides & Legislation ──
+
+export { OFFICIAL_CURRICULUM_GUIDES, searchOfficialCurriculumGuides, getGuidesCategoriesSummary };
+export type { CurriculumGuideItem };
