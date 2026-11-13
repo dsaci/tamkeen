@@ -20,16 +20,29 @@ interface MemoData {
 }
 
 interface MemoContent {
+  institution?: string;
+  targetGroup?: string;
+  unitNumberAndTitle?: string;
+  unitDuration?: string;
+  activity?: string;
+  topic?: string;
+  support?: string;
   competencyFinal: string;
-  competencyTarget: string;
+  competencyTarget?: string;
+  objectivesList?: string[];
   indicators: string[];
   prerequisites: string;
   problemSituation: string;
+  toolsNote?: string;
   steps: {
     stage: string;
+    objectiveDomain?: string;
     teacherActivity: string;
+    strategy?: string;
     studentActivity: string;
-    method: string;
+    evaluationType?: string;
+    indicatorsAndTiming?: string;
+    method?: string;
   }[];
   tools: string;
   evaluationDiag: string;
@@ -39,6 +52,13 @@ interface MemoContent {
   enrichment: string;
   notes: string;
   values: string;
+  isIntegration?: boolean;
+  writingTechniques?: string;
+  rhetoricResources?: string;
+  linguisticResources?: string;
+  intellectualResources?: string;
+  integrationTasks?: { section: string; resources: string; pattern: string; indicators: string }[];
+  rubricCriteria?: { criterion: string; checkMethod: string; remediation?: string }[];
 }
 
 const LEVEL_MAP: any = { PRIMARY: 'primary', 'ابتدائي': 'primary', MIDDLE: 'middle', 'متوسط': 'middle', SECONDARY: 'secondary', 'ثانوي': 'secondary' };
@@ -115,6 +135,27 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
   const [resourceSuggestions, setResourceSuggestions] = useState<Resource[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Read URL query params when arriving from Syllabus Distribution / Plans page
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlGrade = params.get('grade');
+    const urlStream = params.get('stream');
+    const urlUnit = params.get('unit');
+    const urlTopic = params.get('topic');
+    const urlActivity = params.get('activity');
+
+    if (urlTopic || urlUnit || urlGrade) {
+      setFormData(prev => ({
+        ...prev,
+        grade: urlGrade || prev.grade,
+        stream: urlStream || prev.stream,
+        unit: urlUnit || prev.unit,
+        topic: urlTopic || prev.topic,
+        activity: urlActivity || prev.activity
+      }));
+    }
+  }, []);
 
   // Auto-search resource bank
   useEffect(() => {
@@ -284,7 +325,8 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
         activity: formData.activity,
         topic: formData.topic,
         unit: formData.unit,
-        stream: formData.stream
+        stream: formData.stream,
+        institution: profile.institution
       });
 
       setGeneratedMemo(localResult);
@@ -615,104 +657,166 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
                 </div>
 
                 {/* Printable Formatted Card */}
-                <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 overflow-x-auto text-sm space-y-4" style={{ fontFamily: 'Cairo' }}>
-                  {/* Official Header */}
-                  <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
-                    <div className="text-[9px] font-bold leading-loose">
-                      <p className="font-black">الجمهورية الجزائرية الديمقراطية الشعبية</p>
-                      <p>وزارة التربية الوطنية</p>
-                      <p>المؤسسة: {profile.institution || 'ثانوية رسمية'}</p>
+                <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 overflow-x-auto text-sm space-y-5" style={{ fontFamily: 'Cairo' }}>
+                  {/* Official Inspection Header */}
+                  <div className="space-y-3 border-b-2 border-slate-900 pb-4">
+                    <div className="flex justify-between items-start">
+                      <div className="text-[10px] font-bold leading-relaxed space-y-0.5">
+                        <p className="font-black text-xs">الجمهورية الجزائرية الديمقراطية الشعبية</p>
+                        <p>وزارة التربية الوطنية</p>
+                        <p>المؤسسة: {profile.institution || generatedMemo.institution || 'مدرسة أشبال الأمّة وعواع المدني ن ع 1 –المسيلة-'}</p>
+                      </div>
+                      <div className="text-center">
+                        <TamkeenLogo size={40} className="mb-1 mx-auto" />
+                        <p className="text-[10px] font-black">مذكرة بيداغوجية رقم: {formData.memoNumber}</p>
+                        <p className="text-[8px] text-slate-500 font-bold">الجيل الثاني — المقاربة بالكفاءات</p>
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <TamkeenLogo size={40} className="mb-1 mx-auto" />
-                      <p className="text-[9px] font-black">مذكرة بيداغوجية رقم: {formData.memoNumber}</p>
-                      <p className="text-[8px] text-slate-500 font-bold">الجيل الثاني — المقاربة بالكفاءات</p>
-                    </div>
-                  </div>
 
-                  {/* Info Grid */}
-                  <div className="grid grid-cols-2 gap-3 text-[10px]">
-                    <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
-                      <p><strong>الطور:</strong> {levelLabel === 'ثانوي' ? 'التعليم الثانوي' : levelLabel === 'متوسط' ? 'التعليم المتوسط' : 'التعليم الابتدائي'}</p>
-                      <p><strong>المادة:</strong> {formData.subject}</p>
-                      <p><strong>المستوى:</strong> {formData.grade}</p>
-                      {isSecondary && <p><strong>الشعبة:</strong> {formData.stream}</p>}
-                      <p><strong>المقطع / المحور:</strong> {formData.unit}</p>
+                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-slate-50 p-3 rounded-2xl border border-slate-300">
+                      <div className="space-y-1">
+                        <p><strong>الثانوية / المؤسسة:</strong> {profile.institution || generatedMemo.institution || 'مدرسة أشبال الأمة'}</p>
+                        <p><strong>الوحدة التعلمية:</strong> {generatedMemo.unitNumberAndTitle || formData.unit}</p>
+                        <p><strong>النشاط:</strong> <span className="font-black text-emerald-800">{formData.activity}</span></p>
+                        <p><strong>الموضوع:</strong> <span className="font-black text-indigo-700">{formData.topic}</span></p>
+                      </div>
+                      <div className="space-y-1">
+                        <p><strong>الفئة المستهدفة:</strong> {generatedMemo.targetGroup || `${formData.grade} (${formData.stream})`}</p>
+                        <p><strong>المدة الزمنية للوحدة:</strong> {generatedMemo.unitDuration || '06 ساعات'} • <strong>الحصة:</strong> {formData.duration}</p>
+                        <p><strong>السندات التربوية:</strong> {formData.support}</p>
+                        <p><strong>الأستاذ(ة):</strong> {profile.name || 'أستاذ(ة) التعليم الثانوي'}</p>
+                      </div>
                     </div>
-                    <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
-                      <p><strong>الأستاذ(ة):</strong> {profile.name || 'أستاذ(ة) التعليم الثانوي'}</p>
-                      <p><strong>النشاط:</strong> {formData.activity}</p>
-                      <p><strong>عنوان الدرس:</strong> <span className="text-indigo-700 font-black">{formData.topic}</span></p>
-                      <p><strong>المدة الزمنية:</strong> {formData.duration}</p>
-                      <p><strong>التاريخ:</strong> {formData.date}</p>
-                    </div>
-                  </div>
 
-                  {/* 9 Stages Sections */}
-                  {generatedMemo && (
-                    <div className="space-y-3">
-                      <SectionBox icon={<GraduationCap size={14} />} title="1) الكفاءة الختامية" color="indigo">{generatedMemo.competencyFinal}</SectionBox>
-                      <SectionBox icon={<Target size={14} />} title="2) الكفاءات المرحلية / المستهدفة" color="violet">{generatedMemo.competencyTarget}</SectionBox>
-                      <SectionBox icon={<CheckCircle2 size={14} />} title="3) مؤشرات الأداء والتحقق" color="blue">
-                        <ul className="list-disc list-inside space-y-1">{generatedMemo.indicators?.map((ind, i) => <li key={i}>{ind}</li>)}</ul>
-                      </SectionBox>
-                      <SectionBox icon={<Brain size={14} />} title="4) المكتسبات القبلية" color="purple">{generatedMemo.prerequisites}</SectionBox>
-                      <SectionBox icon={<Lightbulb size={14} />} title="5) الوضعية المشكلة (وضعية الانطلاق)" color="amber">{generatedMemo.problemSituation}</SectionBox>
-
-                      {/* Steps Table */}
-                      <div className="border border-slate-300 rounded-xl overflow-hidden">
-                        <div className="bg-[#1b4332] text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
-                          <ClipboardList size={14} /> 6) سير الحصة والأنشطة البانية للتعلمات
-                        </div>
-                        <table className="w-full border-collapse text-[9px]">
-                          <thead>
-                            <tr className="bg-slate-100">
-                              <th className="border border-slate-300 p-2 w-[16%]">المرحلة / التوقيت</th>
-                              <th className="border border-slate-300 p-2">نشاط الأستاذ</th>
-                              <th className="border border-slate-300 p-2">نشاط المتعلم</th>
-                              <th className="border border-slate-300 p-2 w-[14%]">الاستراتيجية</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {generatedMemo.steps?.map((step, idx) => (
-                              <tr key={idx}>
-                                <td className="border border-slate-300 p-2 font-black text-center bg-slate-50">{step.stage}</td>
-                                <td className="border border-slate-300 p-2 whitespace-pre-line">{step.teacherActivity}</td>
-                                <td className="border border-slate-300 p-2 whitespace-pre-line">{step.studentActivity}</td>
-                                <td className="border border-slate-300 p-2 text-center italic">{step.method}</td>
-                              </tr>
+                    {/* Competency & Objectives */}
+                    <div className="p-3 bg-emerald-50/70 rounded-2xl border border-emerald-200 text-[10px] space-y-2">
+                      <div>
+                        <strong className="text-emerald-900 font-black">الكفاءة: </strong>
+                        <span className="text-slate-800 font-bold leading-relaxed">{generatedMemo.competencyFinal}</span>
+                      </div>
+                      {generatedMemo.objectivesList && generatedMemo.objectivesList.length > 0 && (
+                        <div>
+                          <strong className="text-emerald-900 font-black block mb-1">الأهداف التعلمية:</strong>
+                          <ul className="list-disc list-inside space-y-0.5 text-slate-700 font-bold pr-2">
+                            {generatedMemo.objectivesList.map((obj, i) => (
+                              <li key={i}>{obj}</li>
                             ))}
-                          </tbody>
-                        </table>
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Tools Note */}
+                    <div className="p-2 bg-slate-100 rounded-xl border border-slate-200 text-[9px] text-slate-600 font-bold">
+                      💡 {generatedMemo.toolsNote || 'ملاحظة: تحدد الوسائل الكتاب المدرسي - الكتب: المصادر والمراجع – الأسناد المكتوبة (المطبوعات و الصور) والمرئية ( فيديو) والمسموعة (تسجيل صوتي).'}
+                    </div>
+                  </div>
+
+                  {/* Core 6-Column Inspection Table */}
+                  <div className="border border-slate-300 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="bg-[#1b4332] text-white px-4 py-2.5 text-xs font-black flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ClipboardList size={16} /> النُّص الأدبيّ وروافده (سير الحصة والأنشطة البانية للتعلمات)
                       </div>
+                      <span className="text-[10px] bg-emerald-600/80 px-2 py-0.5 rounded-full">المقاربة بالكفاءات</span>
+                    </div>
+                    <table className="w-full border-collapse text-[10px]">
+                      <thead>
+                        <tr className="bg-slate-100 font-black text-slate-800">
+                          <th className="border border-slate-300 p-2 w-[14%] text-center">وضعيّات التَّعلُّم</th>
+                          <th className="border border-slate-300 p-2 w-[10%] text-center">الهدف التعلُّمي</th>
+                          <th className="border border-slate-300 p-2 w-[34%]">الأنشطة البانية للتّعلمات: نشاطُ الأُستاذ</th>
+                          <th className="border border-slate-300 p-2 w-[22%]">نشاطُ المُتعلِّم</th>
+                          <th className="border border-slate-300 p-2 w-[10%] text-center">التّقويم</th>
+                          <th className="border border-slate-300 p-2 w-[10%] text-center">معايير ومؤشّرات الإنجاز</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {generatedMemo.steps?.map((step, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                            <td className="border border-slate-300 p-2 font-black text-center bg-slate-50 text-[10px]">{step.stage}</td>
+                            <td className="border border-slate-300 p-2 font-bold text-center text-[10px] text-emerald-800">{step.objectiveDomain || 'معرفيّ'}</td>
+                            <td className="border border-slate-300 p-2 whitespace-pre-line text-[10px] leading-relaxed">{step.teacherActivity}</td>
+                            <td className="border border-slate-300 p-2 whitespace-pre-line text-[10px] leading-relaxed">{step.studentActivity}</td>
+                            <td className="border border-slate-300 p-2 text-center font-bold text-[10px] italic">{step.evaluationType || step.method || 'تكوينيّ'}</td>
+                            <td className="border border-slate-300 p-2 text-center font-black text-[10px] text-slate-700 bg-slate-50">{step.indicatorsAndTiming || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-                      <SectionBox icon={<Wrench size={14} />} title="7) الوسائل والسندات التعليمية" color="teal">{generatedMemo.tools}</SectionBox>
-
-                      <div className="border border-slate-300 rounded-xl overflow-hidden">
-                        <div className="bg-orange-600 text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
-                          <BarChart3 size={14} /> 8) محطات التقويم البيداغوجي
-                        </div>
-                        <div className="p-3 space-y-2 text-[10px]">
-                          <p><strong>تقويم تشخيصي:</strong> {generatedMemo.evaluationDiag}</p>
-                          <p><strong>تقويم تكويني مرحلي:</strong> {generatedMemo.evaluationFormative}</p>
-                          <p><strong>تقويم ختامي تحصيلي:</strong> {generatedMemo.evaluationFinal}</p>
-                        </div>
+                  {/* Integration Tasks Table (if available) */}
+                  {generatedMemo.isIntegration && generatedMemo.integrationTasks && (
+                    <div className="border border-slate-300 rounded-2xl overflow-hidden mt-4">
+                      <div className="bg-amber-600 text-white px-4 py-2 text-xs font-black flex items-center gap-2">
+                        <ClipboardList size={16} /> جدول المهام والمقاطع لإنتاج الوضعية الإدماجية
                       </div>
-
-                      <div className="border border-slate-300 rounded-xl overflow-hidden">
-                        <div className="bg-rose-600 text-white px-4 py-2 text-[11px] font-black flex items-center gap-2">
-                          <HeartHandshake size={14} /> 9) الدعم والمعالجة البيداغوجية والقيم
-                        </div>
-                        <div className="p-3 space-y-2 text-[10px]">
-                          <p><strong>دعم المتعثرين:</strong> {generatedMemo.remediation}</p>
-                          <p><strong>إثراء المتفوقين:</strong> {generatedMemo.enrichment}</p>
-                          <p><strong>القيم الوطنية والتربوية:</strong> {generatedMemo.values}</p>
-                        </div>
-                      </div>
-
-                      <SectionBox icon={<StickyNote size={14} />} title="الملاحظات والتوجيهات" color="slate">{generatedMemo.notes}</SectionBox>
+                      <table className="w-full border-collapse text-[10px]">
+                        <thead className="bg-slate-100 font-black">
+                          <tr>
+                            <th className="border border-slate-300 p-2 w-[15%]">المقاطع</th>
+                            <th className="border border-slate-300 p-2">الموارد المستهدفة</th>
+                            <th className="border border-slate-300 p-2 w-[20%] text-center">النّمط</th>
+                            <th className="border border-slate-300 p-2 w-[20%] text-center">المؤشّر</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {generatedMemo.integrationTasks.map((t, idx) => (
+                            <tr key={idx}>
+                              <td className="border border-slate-300 p-2 font-black text-center bg-slate-50">{t.section}</td>
+                              <td className="border border-slate-300 p-2">{t.resources}</td>
+                              <td className="border border-slate-300 p-2 text-center font-bold">{t.pattern}</td>
+                              <td className="border border-slate-300 p-2 text-center font-black text-emerald-700">{t.indicators}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
+
+                  {/* Rubric Grid (if available) */}
+                  {generatedMemo.isIntegration && generatedMemo.rubricCriteria && (
+                    <div className="border border-slate-300 rounded-2xl overflow-hidden mt-4">
+                      <div className="bg-emerald-700 text-white px-4 py-2 text-xs font-black flex items-center gap-2">
+                        <CheckCircle2 size={16} /> شبكة التّقييم الذاتي والجماعي للإنتاج البيداغوجي
+                      </div>
+                      <table className="w-full border-collapse text-[10px]">
+                        <thead className="bg-slate-100 font-black">
+                          <tr>
+                            <th className="border border-slate-300 p-2 w-[22%]">المعيار</th>
+                            <th className="border border-slate-300 p-2">طريقة التّحقّق ومؤشرات الأداء</th>
+                            <th className="border border-slate-300 p-2 w-[8%] text-center">نعم</th>
+                            <th className="border border-slate-300 p-2 w-[8%] text-center">لا</th>
+                            <th className="border border-slate-300 p-2 w-[18%]">المعالجة البيداغوجية</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {generatedMemo.rubricCriteria.map((r, idx) => (
+                            <tr key={idx}>
+                              <td className="border border-slate-300 p-2 font-black bg-slate-50">{r.criterion}</td>
+                              <td className="border border-slate-300 p-2">{r.checkMethod}</td>
+                              <td className="border border-slate-300 p-2 text-center">⬜</td>
+                              <td className="border border-slate-300 p-2 text-center">⬜</td>
+                              <td className="border border-slate-300 p-2 text-slate-600 italic">{r.remediation || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Remediation and Values */}
+                  <div className="grid grid-cols-2 gap-3 text-[10px] pt-2">
+                    <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
+                      <strong className="text-emerald-800">الدعم والمعالجة البيداغوجية:</strong>
+                      <p>{generatedMemo.remediation || 'متابعة فردية للمتعثرين ورأب الصدع المعرفي'}</p>
+                    </div>
+                    <div className="border border-slate-300 p-3 rounded-xl bg-slate-50 space-y-1">
+                      <strong className="text-emerald-800">القيم الوطنية والتربوية:</strong>
+                      <p>{generatedMemo.values || 'الاعتزاز باللغة العربية والهوية الوطنية'}</p>
+                    </div>
+                  </div>
 
                   {/* Signatures */}
                   <div className="mt-8 flex justify-between px-8 pt-6 border-t-2 border-dashed border-slate-300">

@@ -5,7 +5,7 @@ import {
   FileStack, Settings as SettingsIcon, Sun, Moon, Copy, Check, BookOpen,
   Calculator, FileEdit, Sparkles, QrCode, ShieldCheck, Wifi, Fingerprint, Database,
   CloudCheck, Shield, MessageSquare, Bell, Users, UserCog, HeartHandshake, HelpCircle, Heart, Calendar,
-  ChevronDown, ChevronUp, Layers, PenLine, Monitor, Library, Zap, Compass, Home, CreditCard
+  ChevronDown, ChevronUp, Layers, PenLine, Monitor, Library, Zap, Compass, Home, CreditCard, CalendarDays
 } from 'lucide-react';
 import { AdminNotificationBanner } from './components/AdminNotificationBanner';
 import { useAuth } from './contexts/AuthContext';
@@ -72,7 +72,7 @@ export const translations: Record<string, any> = {
     memo: "المذكرة الذكية",
     absence: "رصد الغياب",
     resources: "بنك الموارد الشامل",
-    annual: "المخططات السنوية",
+    annual: "التوزيع السنوي والشهري",
     settings: "إعدادات المنصة",
     database: "قاعدة البيانات",
     admin: "لوحة تحكم المسؤول",
@@ -442,13 +442,14 @@ const App: React.FC = () => {
                 title: 'الإدارة الصفية والوثائق',
                 icon: LayoutDashboard,
                 color: 'text-emerald-500 bg-emerald-500/10',
-                badge: '5 وحدات',
+                badge: '6 وحدات',
                 items: [
                   { id: '/dashboard', label: t.dashboard, icon: BarChart3 },
                   { id: '/korras-yawmi', label: t.journal, icon: LayoutDashboard },
                   { id: '/grading', label: t.grading, icon: Calculator },
                   { id: '/absence', label: t.absence, icon: UserCheck },
                   { id: '/timetable', label: 'جداول التوقيت', icon: Calendar },
+                  { id: '/annual', label: 'التوزيع السنوي والشهري', icon: CalendarDays },
                 ]
               },
               {

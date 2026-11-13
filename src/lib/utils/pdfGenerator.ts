@@ -324,12 +324,78 @@ export const exportSmartMemoToPDF = async (
         memo.steps.forEach((st: any) => {
             stepsHtml += `
             <tr>
-                <td style="padding: 6px; border: 1px solid #000; font-weight: bold; text-align: center; background: #f9fafb; width: 15%; font-size: 10px;">${st.stage || ''}</td>
-                <td style="padding: 6px; border: 1px solid #000; font-size: 10px; line-height: 1.4;">${st.teacherActivity || ''}</td>
-                <td style="padding: 6px; border: 1px solid #000; font-size: 10px; line-height: 1.4;">${st.studentActivity || ''}</td>
-                <td style="padding: 6px; border: 1px solid #000; text-align: center; font-size: 9px; font-style: italic; width: 12%;">${st.method || ''}</td>
+                <td style="padding: 6px; border: 1px solid #000; font-weight: bold; text-align: center; background: #f9fafb; width: 14%; font-size: 9px;">${st.stage || ''}</td>
+                <td style="padding: 6px; border: 1px solid #000; text-align: center; width: 10%; font-size: 9px; font-weight: bold;">${st.objectiveDomain || 'معرفيّ'}</td>
+                <td style="padding: 6px; border: 1px solid #000; font-size: 9.5px; line-height: 1.4; width: 34%;">${(st.teacherActivity || '').replace(/\n/g, '<br/>')}</td>
+                <td style="padding: 6px; border: 1px solid #000; font-size: 9.5px; line-height: 1.4; width: 22%;">${(st.studentActivity || '').replace(/\n/g, '<br/>')}</td>
+                <td style="padding: 6px; border: 1px solid #000; text-align: center; font-size: 9px; width: 10%; font-weight: bold;">${st.evaluationType || st.method || 'تكوينيّ'}</td>
+                <td style="padding: 6px; border: 1px solid #000; text-align: center; font-size: 9px; width: 10%;">${st.indicatorsAndTiming || ''}</td>
             </tr>`;
         });
+    }
+
+    let integrationHtml = '';
+    if (memo.isIntegration) {
+        let taskRows = '';
+        if (memo.integrationTasks && Array.isArray(memo.integrationTasks)) {
+            memo.integrationTasks.forEach((t: any) => {
+                taskRows += `
+                <tr>
+                    <td style="padding: 5px; border: 1px solid #000; font-weight: bold; width: 15%; text-align: center; background: #f9fafb;">${t.section}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 45%;">${t.resources}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 20%; text-align: center;">${t.pattern}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 20%; text-align: center;">${t.indicators}</td>
+                </tr>`;
+            });
+        }
+
+        let rubricRows = '';
+        if (memo.rubricCriteria && Array.isArray(memo.rubricCriteria)) {
+            memo.rubricCriteria.forEach((r: any) => {
+                rubricRows += `
+                <tr>
+                    <td style="padding: 5px; border: 1px solid #000; font-weight: bold; width: 25%; background: #f9fafb;">${r.criterion}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 45%;">${r.checkMethod}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 8%; text-align: center;"></td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 8%; text-align: center;"></td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 14%; font-size: 9px;">${r.remediation || ''}</td>
+                </tr>`;
+            });
+        }
+
+        integrationHtml = `
+        <!-- Integration Tasks Table -->
+        <div style="font-weight: 900; font-size: 11px; margin: 12px 0 4px 0;">جدول المهام والمقاطع لإنتاج الوضعية الإدماجية:</div>
+        <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 10px; font-size: 10px;">
+            <thead class="bg-gray-header" style="background-color: #e5e7eb;">
+                <tr>
+                    <th style="padding: 5px; border: 1px solid #000;">المقاطع</th>
+                    <th style="padding: 5px; border: 1px solid #000;">الموارد المستهدفة</th>
+                    <th style="padding: 5px; border: 1px solid #000;">النّمط</th>
+                    <th style="padding: 5px; border: 1px solid #000;">المؤشّر</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${taskRows}
+            </tbody>
+        </table>
+
+        <!-- Rubric Grid -->
+        <div style="font-weight: 900; font-size: 11px; margin: 10px 0 4px 0;">شبكة التّقييم الذاتي والجماعي للإنتاج:</div>
+        <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 10px; font-size: 9.5px;">
+            <thead class="bg-gray-header" style="background-color: #e5e7eb;">
+                <tr>
+                    <th style="padding: 5px; border: 1px solid #000;">المعيار</th>
+                    <th style="padding: 5px; border: 1px solid #000;">طريقة التّحقّق</th>
+                    <th style="padding: 5px; border: 1px solid #000; width: 8%;">نعم</th>
+                    <th style="padding: 5px; border: 1px solid #000; width: 8%;">لا</th>
+                    <th style="padding: 5px; border: 1px solid #000;">المعالجة</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rubricRows}
+            </tbody>
+        </table>`;
     }
 
     container.innerHTML = `
@@ -340,53 +406,53 @@ export const exportSmartMemoToPDF = async (
       <div style="display: flex; flex-direction: column; min-height: 100%; text-align: right; color: #000; background: #fff;">
           ${getOfficialAlgerianHeaderHTML(profile, `مذكرة بيداغوجية رقم: ${meta.memoNumber || '01'}`, `الموضوع: ${meta.topic}`, meta.grade)}
 
-          <!-- Memo Meta Grid -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; font-size: 11px;">
-              <div style="border: 1px solid #000; padding: 8px; background: #f9fafb;">
-                  <p style="margin: 0 0 3px 0;"><strong>المادة:</strong> ${meta.subject}</p>
-                  <p style="margin: 0 0 3px 0;"><strong>المستوى:</strong> ${meta.grade}</p>
-                  <p style="margin: 0;"><strong>المقطع / الميدان:</strong> ${meta.unit}</p>
+          <!-- Memo Meta Grid Matching Official Inspection Standard -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; font-size: 11px;">
+              <div style="border: 1px solid #000; padding: 8px; background: #f9fafb; line-height: 1.5;">
+                  <p style="margin: 0 0 3px 0;"><strong>المؤسسة / الثانوية:</strong> ${profile.institution || memo.institution || 'مدرسة أشبال الأمّة وعواع المدني ن ع 1 –المسيلة-'}</p>
+                  <p style="margin: 0 0 3px 0;"><strong>الفئة المستهدفة:</strong> ${meta.grade}</p>
+                  <p style="margin: 0 0 3px 0;"><strong>الوحدة التّعلُّمية:</strong> ${memo.unitNumberAndTitle || meta.unit}</p>
+                  <p style="margin: 0;"><strong>المدَّة الزّمنية للوحدة:</strong> ${memo.unitDuration || '06 ساعات'}</p>
               </div>
-              <div style="border: 1px solid #000; padding: 8px; background: #f9fafb;">
-                  <p style="margin: 0 0 3px 0;"><strong>النشاط:</strong> ${meta.activity}</p>
-                  <p style="margin: 0 0 3px 0;"><strong>عنوان الدرس:</strong> ${meta.topic}</p>
+              <div style="border: 1px solid #000; padding: 8px; background: #f9fafb; line-height: 1.5;">
+                  <p style="margin: 0 0 3px 0;"><strong>النّشاط:</strong> ${meta.activity}</p>
+                  <p style="margin: 0 0 3px 0;"><strong>الموضوع:</strong> ${meta.topic}</p>
+                  <p style="margin: 0 0 3px 0;"><strong>السّندات التّربوية:</strong> ${memo.support || meta.unit}</p>
                   <p style="margin: 0;"><strong>الحصة والمدة:</strong> ${meta.memoNumber} (${meta.duration}) • <strong>التاريخ:</strong> ${meta.date}</p>
               </div>
           </div>
 
-          <!-- Competencies Boxes -->
-          <div style="border: 1px solid #000; padding: 8px; margin-bottom: 6px; font-size: 11px;">
-              <span style="font-weight: 900; text-decoration: underline;">1) الكفاءة الختامية:</span>
+          <!-- Competency -->
+          <div style="border: 1px solid #000; padding: 8px; margin-bottom: 6px; font-size: 11px; background: #fff;">
+              <strong style="text-decoration: underline;">الكفاءة:</strong>
               <span> ${memo.competencyFinal || ''}</span>
           </div>
 
-          <div style="border: 1px solid #000; padding: 8px; margin-bottom: 6px; font-size: 11px;">
-              <span style="font-weight: 900; text-decoration: underline;">2) الكفاءات المرحلية / المستهدفة:</span>
-              <span> ${memo.competencyTarget || ''}</span>
-          </div>
-
-          ${memo.indicators ? `
-          <div style="border: 1px solid #000; padding: 8px; margin-bottom: 6px; font-size: 11px;">
-              <div style="font-weight: 900; text-decoration: underline; margin-bottom: 3px;">3) مؤشرات الأداء:</div>
-              <ul style="margin: 0; padding-right: 20px;">
-                  ${memo.indicators.map((ind: string) => `<li>${ind}</li>`).join('')}
+          <!-- Objectives List -->
+          ${memo.objectivesList && memo.objectivesList.length > 0 ? `
+          <div style="border: 1px solid #000; padding: 8px; margin-bottom: 6px; font-size: 10.5px;">
+              <strong style="text-decoration: underline; margin-bottom: 4px; display: block;">الأهداف التّعلُّميّة:</strong>
+              <ul style="margin: 0; padding-right: 20px; line-height: 1.4;">
+                  ${memo.objectivesList.map((obj: string) => `<li>${obj}</li>`).join('')}
               </ul>
           </div>` : ''}
 
-          <div style="border: 1px solid #000; padding: 8px; margin-bottom: 6px; font-size: 11px;">
-              <span style="font-weight: 900; text-decoration: underline;">4) الوضعية المشكلة (وضعية الانطلاق):</span>
-              <p style="margin: 4px 0 0 0; line-height: 1.4;">${memo.problemSituation || ''}</p>
+          <!-- Tools Note -->
+          <div style="border: 1px dashed #666; padding: 6px 8px; margin-bottom: 8px; font-size: 10px; color: #333; background: #fafafa;">
+              ${memo.toolsNote || 'ملاحظة: تحدد الوسائل الكتاب المدرسي - الكتب: المصادر والمراجع – الأسناد المكتوبة (المطبوعات و الصور) والمرئية ( فيديو) والمسموعة (تسجيل صوتي).'}
           </div>
 
-          <!-- Steps Table -->
-          <div style="font-weight: 900; font-size: 12px; margin: 8px 0 4px 0;">سير الحصة البيداغوجية (بناء التعلمات):</div>
+          <!-- Steps Table (Official 6 Columns) -->
+          <div style="font-weight: 900; font-size: 12px; margin: 8px 0 4px 0;">النُّص الأدبيّ وروافده (سير الحصة والأنشطة البانية للتعلمات):</div>
           <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 10px;">
               <thead class="bg-gray-header" style="background-color: #e5e7eb;">
                   <tr>
-                      <th style="padding: 6px; border: 1px solid #000; width: 15%; font-size: 11px;">المرحلة</th>
-                      <th style="padding: 6px; border: 1px solid #000; font-size: 11px;">أداء الأستاذ</th>
-                      <th style="padding: 6px; border: 1px solid #000; font-size: 11px;">أداء المتعلم</th>
-                      <th style="padding: 6px; border: 1px solid #000; width: 12%; font-size: 11px;">الطريقة</th>
+                      <th style="padding: 6px; border: 1px solid #000; width: 14%; font-size: 10px; font-weight: 900;">وضعيّات التَّعلُّم</th>
+                      <th style="padding: 6px; border: 1px solid #000; width: 10%; font-size: 10px; font-weight: 900;">الهدف التعلُّمي</th>
+                      <th style="padding: 6px; border: 1px solid #000; width: 34%; font-size: 10px; font-weight: 900;">نشاطُ الأُستاذ</th>
+                      <th style="padding: 6px; border: 1px solid #000; width: 22%; font-size: 10px; font-weight: 900;">نشاطُ المُتعلِّم</th>
+                      <th style="padding: 6px; border: 1px solid #000; width: 10%; font-size: 10px; font-weight: 900;">التّقويم</th>
+                      <th style="padding: 6px; border: 1px solid #000; width: 10%; font-size: 10px; font-weight: 900;">معايير ومؤشّرات الإنجاز</th>
                   </tr>
               </thead>
               <tbody>
@@ -394,15 +460,17 @@ export const exportSmartMemoToPDF = async (
               </tbody>
           </table>
 
-          <!-- Tools & Evaluation -->
+          ${integrationHtml}
+
+          <!-- Pedagogical Notes & Remediation -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; font-size: 10px;">
               <div style="border: 1px solid #000; padding: 6px;">
-                  <strong style="text-decoration: underline;">الوسائل التعليمية:</strong>
-                  <p style="margin: 2px 0 0 0;">${memo.tools || 'السبورة، الكتاب المدرسي'}</p>
+                  <strong style="text-decoration: underline;">الدعم والمعالجة البيداغوجية:</strong>
+                  <p style="margin: 2px 0 0 0;">${memo.remediation || 'متابعة فردية للمتعثرين وتثبيت القواعد الأساسية'}</p>
               </div>
               <div style="border: 1px solid #000; padding: 6px;">
-                  <strong style="text-decoration: underline;">التقويم التكويني:</strong>
-                  <p style="margin: 2px 0 0 0;">${memo.evaluationFormative || 'ملاحظة وتصويب إنجازات التلاميذ'}</p>
+                  <strong style="text-decoration: underline;">القيم والتوجهات الوطنية:</strong>
+                  <p style="margin: 2px 0 0 0;">${memo.values || 'الاعتزاز باللغة العربية والهوية الوطنية والأخلاق الفاضلة'}</p>
               </div>
           </div>
 
@@ -415,6 +483,92 @@ export const exportSmartMemoToPDF = async (
 };
 
 // ============================================================================
+// 2️⃣ ب تصدير التوزيع السنوي والشهري للمنهاج (Official Syllabus Distribution)
+// ============================================================================
+export const exportSyllabusDistributionToPDF = async (
+    profile: TeacherProfile,
+    dist: any,
+    activeTrimester: 1 | 2 | 3 | 'all' = 'all'
+): Promise<void> => {
+    const exportTime = new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    container.style.width = '1123px'; // A4 Landscape
+    container.style.minHeight = '794px';
+    container.style.backgroundColor = '#ffffff';
+    container.style.color = '#000000';
+    container.style.padding = '20px 25px';
+    container.style.direction = 'rtl';
+    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.zIndex = '-1000';
+
+    const trimesters = activeTrimester === 'all'
+        ? dist.trimesters
+        : dist.trimesters.filter((t: any) => t.trimester === activeTrimester);
+
+    let rowsHtml = '';
+    trimesters.forEach((trim: any) => {
+        trim.months.forEach((m: any) => {
+            m.weeks.forEach((w: any) => {
+                rowsHtml += `
+                <tr style="${w.isExamPeriod ? 'background-color: #fef3c7; font-weight: bold;' : ''}">
+                    <td style="padding: 5px; border: 1px solid #000; text-align: center; font-weight: 900; width: 4%; font-size: 9.5px;">${w.weekNumber}</td>
+                    <td style="padding: 5px; border: 1px solid #000; text-align: center; font-weight: bold; width: 7%; font-size: 9.5px;">${w.monthNameAr}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 17%; font-size: 9.5px; font-weight: bold;">${w.unitTitle}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 22%; font-size: 9.5px;">${w.literaryText}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 17%; font-size: 9.5px;">${w.grammar}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 15%; font-size: 9.5px;">${w.rhetoricOrProsody || '—'}</td>
+                    <td style="padding: 5px; border: 1px solid #000; width: 18%; font-size: 9.5px;">${w.writingOrIntegration}</td>
+                </tr>`;
+            });
+        });
+    });
+
+    container.innerHTML = `
+      <style>
+        * { color: #000 !important; border-color: #000 !important; box-sizing: border-box; }
+        .bg-gray-header { background-color: #e5e7eb !important; -webkit-print-color-adjust: exact; }
+      </style>
+      <div style="display: flex; flex-direction: column; min-height: 100%; text-align: right; color: #000; background: #fff;">
+          ${getOfficialAlgerianHeaderHTML(profile, 'التوزيع السنوي والشهري لمنهاج اللغة العربية وآدابها', `المستوى: ${dist.grade} (${dist.stream}) — العام الدراسي: ${dist.academicYear}`, `الحجم الساعي: ${dist.weeklyHours} سا/أسبوعياً`)}
+
+          <!-- Meta Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border: 1px solid #000; padding: 6px 12px; margin-bottom: 10px; font-size: 11px; background: #f9fafb;">
+              <span><strong>المؤسسة:</strong> ${profile.institution || 'مؤسسة تعليمية رسمية'}</span>
+              <span><strong>الأستاذ(ة):</strong> ${profile.name || 'أستاذ(ة) التعليم الثانوي'}</span>
+              <span><strong>المادة:</strong> ${dist.subject}</span>
+              <span><strong>الفترة:</strong> ${activeTrimester === 'all' ? 'كامل السنة الدراسية (3 فصول)' : `الفصل الدراسي ${activeTrimester}`}</span>
+          </div>
+
+          <!-- Table -->
+          <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 12px; font-size: 9.5px;">
+              <thead class="bg-gray-header" style="background-color: #e5e7eb;">
+                <tr>
+                  <th style="padding: 6px; border: 1px solid #000; width: 4%; text-align: center;">الأسبوع</th>
+                  <th style="padding: 6px; border: 1px solid #000; width: 7%; text-align: center;">الشهر</th>
+                  <th style="padding: 6px; border: 1px solid #000; width: 17%;">الوحدة والمحور الأدبي</th>
+                  <th style="padding: 6px; border: 1px solid #000; width: 22%;">النص الأدبي والقراءة</th>
+                  <th style="padding: 6px; border: 1px solid #000; width: 17%;">قواعد اللغة والإعراب</th>
+                  <th style="padding: 6px; border: 1px solid #000; width: 15%;">البلاغة والعروض</th>
+                  <th style="padding: 6px; border: 1px solid #000; width: 18%;">الوضعية الإدماجية والإنتاج</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+          </table>
+
+          ${getOfficialAlgerianFooterHTML(profile, { showTeacher: true, showDirector: true, showInspector: true, exportTime })}
+      </div>
+    `;
+
+    const cleanTitle = `${dist.grade}_${dist.stream}`.replace(/[\s/\\:]+/g, '_');
+    await renderAndDownloadPDF(container, `توزيع_المنهاج_${cleanTitle}.pdf`, 'l');
+};
+
 // 3️⃣ تصدير محضر النقاط الرسمي (Official Grading Sheet Export)
 // ============================================================================
 export const exportGradingSheetToPDF = async (
