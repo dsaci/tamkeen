@@ -3,7 +3,7 @@ export type SchoolLevel = 'PRIMARY' | 'MIDDLE' | 'SECONDARY' | 'HIGH';
 export type ShiftType = 'SINGLE' | 'PARTIAL' | 'FULL';
 export type AppLanguage = 'ar' | 'en' | 'fr';
 export type TeachingLanguage = 'ar' | 'en' | 'fr';
-export type TabType = 'hub' | 'dashboard' | 'journal' | 'grading' | 'absence' | 'resources' | 'annual' | 'settings' | 'memo' | 'database' | 'admin' | 'messages';
+export type TabType = 'hub' | 'dashboard' | 'journal' | 'grading' | 'absence' | 'resources' | 'annual' | 'settings' | 'memo' | 'database' | 'admin' | 'messages' | 'faraheedy';
 
 export interface TeacherProfile {
   tamkeenId: string;

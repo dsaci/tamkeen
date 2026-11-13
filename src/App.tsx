@@ -171,6 +171,7 @@ const App: React.FC = () => {
     if (path === '/timetable') return 'timetable';
     if (path === '/calendar') return 'calendar';
     if (path === '/copilot') return 'copilot';
+    if (path === '/faraheedy') return 'faraheedy';
     if (path === '/exam-generator') return 'exam-generator';
     if (path === '/worksheet-generator') return 'worksheet-generator';
     if (path === '/presentation-stepper') return 'presentation-stepper';
