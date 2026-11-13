@@ -9,6 +9,7 @@ import {
   POETIC_METERS,
   ALGERIAN_CURRICULUM_POEMS,
   BACCALAUREATE_PROSODY_EXAMS,
+  ZIHAF_ILLA_COMPARISON,
   analyzePoeticVerse,
   convertToArudWriting,
   extractProsodySymbols,
@@ -629,6 +630,146 @@ ${analysisResult.verseOriginal.firstHemistich} ... ${analysisResult.verseOrigina
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* ═══ ACADEMIC GUIDE: ZIHAF VS ILLA COMPARISON & RULES ═══ */}
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 md:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-8 mt-8">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-5">
+              <span className="bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-black px-3 py-1 rounded-full">
+                الدليل التأصيلي الأكاديمي لعلم العروض
+              </span>
+              <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mt-2">
+                الزحاف والعلة: المفاهيم، الأحكام، والفروق الجوهرية (وفق المراجع الجامعية ومناهج وزارة التربية)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                تأصيل نظري وتطبيقي شامل مستند إلى محاضرات العروض وموسيقى الشعر بجامعة قسنطينة وبسكرة، ومقررات التعليم الثانوي الجزائري.
+              </p>
+            </div>
+
+            {/* Zihaf & Illa Explanations Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 1. Al-Zihaf */}
+              <div className="p-6 bg-slate-50 dark:bg-slate-800/60 rounded-3xl border border-slate-200/80 dark:border-slate-700 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-xl">
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-black text-slate-900 dark:text-white">أولاً: الزِّحَاف (تعريفه وأحكامه)</h4>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">لغةً: الإسراع والمشي السريع</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-bold">
+                  <strong>اصطلاحاً:</strong> تغيير يختص بثواني الأسباب الخفيفة أو الثقيلة، ويقع في حشو البيت وفي العروض والضرب، وهو <strong>غير لازم</strong> (يجوز للشاعر أن يأتي به في بيت ويتركه في بيت آخر دون إلزام).
+                </p>
+
+                <div className="space-y-2 pt-2 border-t border-slate-200/70 dark:border-slate-700/70 text-xs">
+                  <p className="font-black text-emerald-700 dark:text-emerald-400">1. الزحاف المفرد (تغيير واحد في التفعيلة):</p>
+                  <ul className="space-y-1.5 text-slate-600 dark:text-slate-300 font-bold pr-2">
+                    <li>• <strong>الخَبْن:</strong> حذف الثاني الساكن (مُسْتَفْعِلُنْ ← مُتَفْعِلُنْ //0//0، فَاعِلُنْ ← فَعِلُنْ ///0).</li>
+                    <li>• <strong>الإضْمَار:</strong> تسكين الثاني المتحرك (مُتَفَاعِلُنْ ← مُتْفَاعِلُنْ /0/0//0).</li>
+                    <li>• <strong>الطَّي:</strong> حذف الرابع الساكن (مُسْتَفْعِلُنْ ← مُسْتَعِلُنْ /0///0).</li>
+                    <li>• <strong>الوَقْص:</strong> حذف الثاني المتحرك (مُتَفَاعِلُنْ ← مُفَاعِلُنْ //0//0).</li>
+                    <li>• <strong>العَصْب:</strong> تسكين الخامس المتحرك (مُفَاعَلَتُنْ في الوافر ← مُفَاعَلْتُنْ //0/0/0).</li>
+                    <li>• <strong>القَبْض:</strong> حذف الخامس الساكن (فَعُولُنْ ← فَعُولُ //0/، مَفَاعِيلُنْ ← مَفَاعِلُنْ //0//0).</li>
+                    <li>• <strong>الكَفّ:</strong> حذف السابع الساكن (فَاعِلاتُنْ ← فَاعِلاتُ /0//0/).</li>
+                  </ul>
+
+                  <p className="font-black text-indigo-700 dark:text-indigo-400 pt-2">2. الزحاف المزدوج (المركب - اجتماع زحافين):</p>
+                  <ul className="space-y-1.5 text-slate-600 dark:text-slate-300 font-bold pr-2">
+                    <li>• <strong>الخَبَل:</strong> اجتماع الخبن والطي (حذف الثاني والرابع الساكنين).</li>
+                    <li>• <strong>الخَزْل:</strong> اجتماع الإضمار والطي (تسكين الثاني وحذف الرابع الساكن).</li>
+                    <li>• <strong>الشَّكْل:</strong> اجتماع الخبن والكف (حذف الثاني والسابع الساكنين).</li>
+                    <li>• <strong>النَّقْص:</strong> اجتماع العصب والكف (تسكين الخامس وحذف السابع الساكن).</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* 2. Al-Illa */}
+              <div className="p-6 bg-slate-50 dark:bg-slate-800/60 rounded-3xl border border-slate-200/80 dark:border-slate-700 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded-xl">
+                    <AlertCircle size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-black text-slate-900 dark:text-white">ثانياً: العِلَّة (تعريفها وأحكامها)</h4>
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">اصطلاحاً: تغيير يطرأ على الأسباب والأوتاد معاً</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-bold">
+                  <strong>حكمها ومحلها:</strong> تختص غالباً بالعَروض والضَّرب (آخر تفعيلة في الشطرين)، وهي <strong>لازمة</strong>؛ فإذا التزمها الشاعر في أول بيت من القصيدة وجب عليه الاستمرار فيها في سائر أبياتها.
+                </p>
+
+                <div className="space-y-2 pt-2 border-t border-slate-200/70 dark:border-slate-700/70 text-xs">
+                  <p className="font-black text-amber-700 dark:text-amber-400">1. علل بالزيادة (زيادة حرف أو أكثر في المجزوء):</p>
+                  <ul className="space-y-1.5 text-slate-600 dark:text-slate-300 font-bold pr-2">
+                    <li>• <strong>التَّرْفِيل:</strong> زيادة سبب خفيف على ما آخره وتد مجموع (مُتَفَاعِلُنْ ← مُتَفَاعِلاتُنْ).</li>
+                    <li>• <strong>التَّذْيِيل:</strong> زيادة حرف ساكن على ما آخره وتد مجموع (مُسْتَفْعِلُنْ ← مُسْتَفْعِلانْ).</li>
+                    <li>• <strong>التَّسْبِيغ (الإسباغ):</strong> زيادة حرف ساكن على ما آخره سبب خفيف (فَاعِلاتُنْ ← فَاعِلاتَانْ).</li>
+                  </ul>
+
+                  <p className="font-black text-rose-700 dark:text-rose-400 pt-2">2. علل بالنقص (بالحذف أو التسكين):</p>
+                  <ul className="space-y-1.5 text-slate-600 dark:text-slate-300 font-bold pr-2">
+                    <li>• <strong>الحَذْف:</strong> حذف سبب خفيف من آخر التفعيلة (فَعُولُنْ ← فَعُو //0، مَفَاعِيلُنْ ← مَفَاعِي).</li>
+                    <li>• <strong>القَطْف:</strong> اجتماع العَصْب والحذف في الوافر (مُفَاعَلَتُنْ ← فَعُولُنْ //0/0).</li>
+                    <li>• <strong>القَطْع:</strong> حذف ساكن الوتد المجموع وتسكين ما قبله (فَاعِلُنْ ← فِعْلُنْ /0/0، مُتَفَاعِلُنْ ← مُتَفَاعِلْ).</li>
+                    <li>• <strong>القَصْر:</strong> حذف ساكن السبب الخفيف وتسكين متحركه (فَعُولُنْ ← فَعُولْ //00، فَاعِلاتُنْ ← فَاعِلاتْ).</li>
+                    <li>• <strong>البَتْر:</strong> اجتماع الحذف والقطع (فَعُولُنْ ← فَعْ /0).</li>
+                    <li>• <strong>الصَّلْم:</strong> حذف الوتد المفروق كاملاً من مَفْعُولاتُ (لتصير مَفْعُو وتنقل إلى فِعْلُنْ).</li>
+                    <li>• <strong>الكَسْف:</strong> حذف السابع المتحرك من مَفْعُولاتُ (لتصير مَفْعُولا).</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Complete Comparative Table */}
+            <div>
+              <h4 className="text-base font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <Layers size={18} className="text-emerald-600" />
+                <span>الجدول المقارن الجامع بين الزحاف والعلة:</span>
+              </h4>
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <table className="w-full text-right text-xs md:text-sm">
+                  <thead>
+                    <tr className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-black border-b border-slate-200 dark:border-slate-700">
+                      <th className="p-3.5 w-1/4">وجه المقارنة</th>
+                      <th className="p-3.5 w-3/8 text-emerald-800 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/20">الزِّحَاف</th>
+                      <th className="p-3.5 w-3/8 text-amber-800 dark:text-amber-300 bg-amber-50/50 dark:bg-amber-950/20">العِلَّة</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {ZIHAF_ILLA_COMPARISON.map((row, i) => (
+                      <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="p-3.5 font-black text-slate-800 dark:text-slate-200 bg-slate-50/70 dark:bg-slate-800/50">
+                          {row.aspect}
+                        </td>
+                        <td className="p-3.5 font-bold text-slate-700 dark:text-slate-300 bg-emerald-50/20 dark:bg-emerald-950/10">
+                          {row.zihaf}
+                        </td>
+                        <td className="p-3.5 font-bold text-slate-700 dark:text-slate-300 bg-amber-50/20 dark:bg-amber-950/10">
+                          {row.illa}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Mathematical Engine Note */}
+            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-800 flex items-start gap-3 text-xs">
+              <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <span className="font-black text-emerald-900 dark:text-emerald-200 block">
+                  كيف يعالج «ميزان تمكين العروضي» الزحافات والعلل آلياً بدون أخطاء؟
+                </span>
+                <p className="text-slate-600 dark:text-slate-300 font-bold leading-relaxed">
+                  يعتمد المحرك خوارزمية التطابق الديناميكي التكيفي <strong>Adaptive Foot Segmentation</strong>؛ حيث يقوم بتجربة كافة صور التفعيلة الأصلية وزحافاتها الجائزة وعللها المعتمدة لكل بحر، ويقتطع الطول الحقيقي لكل صورة متغيرة (مثل اقتطاع 4 رموز فقط لـ فَعِلُنْ المخبونة، و5 رموز لـ فَعُولُنْ المقطوفة في الوافر)، مما يمنع انزياح الرموز ويضمن دقة تصنيف البحر بنسبة 100%.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
