@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus, Calendar as CalendarIcon, BookOpen, Trash2, Edit2, FileText,
   Sparkles, CheckCircle2, Clock, X, Save, Loader2,
-  GraduationCap, Briefcase, Zap, CalendarDays, MoreHorizontal, Layers, LayoutGrid
+  GraduationCap, Briefcase, Zap, CalendarDays, MoreHorizontal, Layers, LayoutGrid,
+  BookOpenCheck
 } from 'lucide-react';
 import { Session, SessionCategory, TeacherProfile, AppLanguage } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -76,6 +77,7 @@ export default function JournalView({ profile, lang, useBackend, userId }: Props
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingCahier, setIsExportingCahier] = useState(false);
 
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
 
@@ -283,6 +285,28 @@ export default function JournalView({ profile, lang, useBackend, userId }: Props
     }
   };
 
+  const handleExportCahier = async () => {
+    if (entries.length === 0 || !profile) return;
+    setIsExportingCahier(true);
+    try {
+      const { exportCahierDeTextesToPDF } = await loadPdfGenerator();
+      const dayName = new Date(selectedDate).toLocaleDateString('ar-DZ', { weekday: 'long' });
+      await exportCahierDeTextesToPDF(profile, entries, {
+        scope: 'daily',
+        dateOrRangeText: `${dayName} ${selectedDate}`,
+        className: (profile.grades && profile.grades[0]) || 'الفوج التربوي',
+        documentSubtitle: `دفتر النصوص ليوم ${dayName} (${selectedDate})`
+      });
+      const { triggerExportDonation } = await import('../../components/ExportDonationToast');
+      triggerExportDonation();
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء إعداد دفتر النصوص.");
+    } finally {
+      setIsExportingCahier(false);
+    }
+  };
+
   const formattedDate = new Date(selectedDate).toLocaleDateString('ar-DZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const isHoliday = formData.timing?.category === 'HOLIDAY';
 
@@ -306,7 +330,16 @@ export default function JournalView({ profile, lang, useBackend, userId }: Props
           </div>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap gap-3 w-full md:w-auto">
+          <button
+            onClick={handleExportCahier}
+            disabled={entries.length === 0 || isExportingCahier}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-5 py-3 rounded-2xl font-bold disabled:opacity-50 transition-all shadow-md"
+            title="تصدير دفتر النصوص الرسمي وفق القرار الوزاري رقم 154"
+          >
+            {isExportingCahier ? <Loader2 className="animate-spin" size={18} /> : <BookOpenCheck size={18} />}
+            <span>{isExportingCahier ? 'جاري التحضير...' : 'دفتر النصوص 📑'}</span>
+          </button>
           <button
             onClick={handleExport}
             disabled={entries.length === 0 || isExporting}

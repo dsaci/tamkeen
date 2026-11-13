@@ -425,6 +425,215 @@ export const exportWeeklyJournalToPDF = async (
 };
 
 // ============================================================================
+// 📑 تصدير دفتر النصوص الرسمي (Official Cahier de Textes Export)
+// وثيقة قانونية ومؤسساتية ملازمة للكراس اليومي (وفق القرار الوزاري رقم 154)
+// ============================================================================
+export interface CahierDeTextesExportOptions {
+    scope?: 'daily' | 'weekly';
+    dateOrRangeText: string;
+    className?: string;
+    weekDates?: { dateStr: string; dayNameAr: string }[];
+    documentSubtitle?: string;
+}
+
+export const exportCahierDeTextesToPDF = async (
+    profile: TeacherProfile,
+    sessions: Session[],
+    options: CahierDeTextesExportOptions
+): Promise<void> => {
+    const exportTime = new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    container.style.width = '1123px'; // A4 Landscape
+    container.style.minHeight = '794px';
+    container.style.backgroundColor = '#ffffff';
+    container.style.color = '#000000';
+    container.style.padding = '25px 30px';
+    container.style.direction = 'rtl';
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
+    container.style.zIndex = '-1000';
+
+    // فرز الحصص ترتيباً زمنياً
+    const sortedSessions = [...sessions].sort((a, b) => {
+        const dateA = a.timing.date || '';
+        const dateB = b.timing.date || '';
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+        if (a.timing.period === b.timing.period) return (a.timing.startTime || '').localeCompare(b.timing.startTime || '');
+        return a.timing.period === 'MORNING' ? -1 : 1;
+    });
+
+    let rowsHtml = '';
+    let counter = 1;
+
+    sortedSessions.forEach((s) => {
+        const isHoliday = s.timing.category === 'HOLIDAY';
+        const isBreak = s.timing.category === 'BREAK';
+
+        if (isBreak) return;
+
+        const dateStr = s.timing.date || '';
+        const dayNameAr = dateStr ? new Date(dateStr).toLocaleDateString('ar-DZ', { weekday: 'long' }) : '';
+        const time = `${s.timing.startTime || '08:00'} - ${s.timing.endTime || '09:00'}`;
+        const targetClass = options.className || (profile.grades && profile.grades[0]) || 'الفوج المقرّر';
+
+        if (isHoliday) {
+            rowsHtml += `
+            <tr style="border-bottom: 1px solid #000; background-color: #f8fafc;">
+                <td style="padding: 7px; border-left: 1px solid #000; text-align: center; font-weight: bold; font-size: 10px;">${counter++}</td>
+                <td style="padding: 7px; border-left: 1px solid #000; text-align: center; font-size: 10px; font-weight: bold;">${dayNameAr}<br/>${dateStr}</td>
+                <td style="padding: 7px; border-left: 1px solid #000; text-align: center; font-size: 10px;">${time}</td>
+                <td style="padding: 7px; border-left: 1px solid #000; text-align: center; font-weight: bold; font-size: 10.5px;">${targetClass}</td>
+                <td colspan="4" style="padding: 7px; text-align: center; color: #166534; font-weight: 900; font-size: 11px; background-color: #dcfce7;">
+                    ✦ عطلة رسمية / مناسبة: ${s.timing.holidayName || s.title || 'إجازة رسمية'}
+                </td>
+            </tr>`;
+            return;
+        }
+
+        const subject = s.subject || profile.teachingSubject || 'اللغة العربية';
+        const activity = s.activity || 'أدب ونصوص';
+        const title = s.title || 'دراسة وتحليل نص';
+        const unitDisplay = s.sectionName || (s.sectionNumber ? `الوحدة ${s.sectionNumber}` : 'الوحدة المقررة');
+
+        // تلخيص المحتوى المنجز فعلياً في القسم
+        let realizedContent = (s.content || '').replace(/\n/g, '<br/>');
+        if (!realizedContent || realizedContent.length < 15) {
+            realizedContent = `• تقديم الدرس والانطلاق بمكتسبات قبلية دالة.<br/>• معالجة محاور وإشكاليات النص واستنباط الأفكار الأساسية.<br/>• استخلاص القواعد والمؤشرات وتدوين الخلاصة على السبورة.`;
+        }
+
+        // استخراج أو توليد العمل المطلوب في البيت (الواجب المنزلي والأعمال الموجهة وموعد المراقبة)
+        let homeworkText = '';
+        if (s.notes && (s.notes.includes('واجب') || s.notes.includes('تمرين') || s.notes.includes('كراس') || s.notes.includes('إنجاز'))) {
+            homeworkText = s.notes;
+        } else if (activity.includes('نصوص') || activity.includes('أدب')) {
+            homeworkText = `الإجابة عن أسئلة البناء الفكري واللغوي في كراس الأنشطة ص (...) مع استخلاص النمط.<br/><strong>[موعد المراقبة: الحصة القادمة]</strong>`;
+        } else if (activity.includes('قواعد')) {
+            homeworkText = `إنجاز التطبيقات الإعرابية والشواهد التطبيقية في دفتر الواجبات المنزلية.<br/><strong>[موعد المراقبة: الحصة القادمة]</strong>`;
+        } else if (activity.includes('بلاغة') || activity.includes('عروض')) {
+            homeworkText = `استخراج 3 شواهد تطبيقية تجسد الظاهرة البلاغية/العروضية المدروسة.<br/><strong>[موعد المراقبة: الحصة القادمة]</strong>`;
+        } else if (activity.includes('تعبير') || activity.includes('إدماج')) {
+            homeworkText = `تحرير المسودة الأولية للوضعية الإدماجية النقدية وفق المعايير الأربعة.<br/><strong>[موعد المراقبة: الحصة القادمة]</strong>`;
+        } else if (activity.includes('مطالعة')) {
+            homeworkText = `إعداد بطاقة قراءة للمشروع وإتمام تلخيص السند القرائي.<br/><strong>[موعد المراقبة: الحصة القادمة]</strong>`;
+        } else {
+            homeworkText = `مراجعة المفاهيم وتثبيت المصطلحات وحل التمرين الموجه ص (...).<br/><strong>[موعد المراقبة: الحصة القادمة]</strong>`;
+        }
+
+        const observations = s.notes && !s.notes.includes('واجب') ? s.notes : 'أُنجزت بنجاح وتفاعل المتعلمين';
+
+        rowsHtml += `
+        <tr style="border-bottom: 1px solid #000; font-size: 10px;">
+            <td style="padding: 6px; border-left: 1px solid #000; text-align: center; font-weight: bold; width: 35px;">${counter++}</td>
+            <td style="padding: 6px; border-left: 1px solid #000; text-align: center; font-weight: 800; width: 95px; font-size: 9.5px;">
+                ${dayNameAr}<br/>
+                <span style="color: #334155; font-size: 9px;">${dateStr}</span><br/>
+                <span style="color: #0369a1; font-weight: 900; font-size: 9px;">${time}</span>
+            </td>
+            <td style="padding: 6px; border-left: 1px solid #000; text-align: center; font-weight: 900; width: 75px; color: #1e293b;">${targetClass}</td>
+            <td style="padding: 6px; border-left: 1px solid #000; font-weight: bold; width: 95px; font-size: 9.5px; color: #475569;">${unitDisplay}</td>
+            <td style="padding: 6px; border-left: 1px solid #000; font-weight: 900; width: 140px;">
+                <span style="color: #047857; display: block; font-size: 9px;">${activity}</span>
+                ${title}
+            </td>
+            <td style="padding: 6px; border-left: 1px solid #000; font-size: 9.5px; line-height: 1.4; width: 260px;">
+                ${realizedContent}
+            </td>
+            <td style="padding: 6px; border-left: 1px solid #000; font-size: 9px; line-height: 1.35; width: 230px; background-color: #fafaf9;">
+                ${homeworkText}
+            </td>
+            <td style="padding: 6px; font-size: 9px; width: 85px; text-align: center; color: #334155;">
+                ${observations}
+            </td>
+        </tr>`;
+    });
+
+    if (rowsHtml === '') {
+        rowsHtml = `
+        <tr>
+            <td colspan="8" style="padding: 20px; text-align: center; font-size: 12px; color: #64748b; font-weight: bold;">
+                لا توجد حصص مسجلة في هذه الفترة لتدوينها في دفتر النصوص
+            </td>
+        </tr>`;
+    }
+
+    const documentTitle = 'دفتر النصوص الرسمي — سجل متابعة وتنفيذ المنهاج';
+    const documentSubtitle = options.documentSubtitle || `الفترة: ${options.dateOrRangeText} • السند القانوني: القرار الوزاري رقم 154 المؤرخ في 26 فيفري 1991`;
+
+    container.innerHTML = `
+      <style>
+        * { color: #000 !important; border-color: #000 !important; box-sizing: border-box; }
+        .bg-cahier-header { background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; }
+      </style>
+      <div style="display: flex; flex-direction: column; min-height: 100%; text-align: right; color: #000; background: #fff;">
+          ${getOfficialAlgerianHeaderHTML(profile, documentTitle, documentSubtitle, options.className ? `القسم: ${options.className}` : '')}
+
+          <!-- صندوق تنبيه قانوني رسمي -->
+          <div style="margin-bottom: 12px; padding: 6px 12px; border: 1.5px solid #000; background-color: #f8fafc; font-size: 9px; display: flex; justify-content: space-between; align-items: center;">
+              <span><strong>مرجع التشريع التربوي:</strong> يُمسك دفتر النصوص إجبارياً من طرف الأستاذ لكل قسم، ويُعد وثيقة رسمية خاضعة للمراقبة الدورية (م. 2 و6 من القرار 154).</span>
+              <span><strong>الموسم الدراسي:</strong> ${profile.academicYear || '2025 / 2026'}</span>
+          </div>
+
+          <!-- جدول دفتر النصوص الرسمي -->
+          <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; background: #fff;">
+              <thead class="bg-cahier-header" style="background-color: #e2e8f0; color: #000;">
+                  <tr>
+                      <th style="padding: 7px 4px; border: 1px solid #000; width: 35px; text-align: center; font-size: 10px; font-weight: 900;">م</th>
+                      <th style="padding: 7px 4px; border: 1px solid #000; width: 95px; text-align: center; font-size: 10px; font-weight: 900;">التاريخ والتوقيت</th>
+                      <th style="padding: 7px 4px; border: 1px solid #000; width: 75px; text-align: center; font-size: 10px; font-weight: 900;">الفوج / القسم</th>
+                      <th style="padding: 7px 4px; border: 1px solid #000; width: 95px; text-align: center; font-size: 10px; font-weight: 900;">المجال / الوحدة</th>
+                      <th style="padding: 7px 6px; border: 1px solid #000; width: 140px; text-align: center; font-size: 10px; font-weight: 900;">النشاط والموضوع المقرّر</th>
+                      <th style="padding: 7px 6px; border: 1px solid #000; width: 260px; text-align: center; font-size: 10px; font-weight: 900;">ملخص ما أُنجز فعلياً في القسم</th>
+                      <th style="padding: 7px 6px; border: 1px solid #000; width: 230px; text-align: center; font-size: 10px; font-weight: 900; background-color: #e2e8f0;">العمل المطلوب في البيت وموعد المراقبة</th>
+                      <th style="padding: 7px 4px; border: 1px solid #000; width: 85px; text-align: center; font-size: 10px; font-weight: 900;">الملاحظات والتقويم</th>
+                  </tr>
+              </thead>
+              <tbody style="background-color: #fff;">
+                  ${rowsHtml}
+              </tbody>
+          </table>
+
+          <!-- صندوق التأشيرات والمراقبة التفتيشية المعتمد -->
+          <div style="margin-top: 20px; border: 1.5px solid #000; padding: 10px 15px; background-color: #fff;">
+              <p style="font-weight: 900; font-size: 10.5px; margin: 0 0 10px 0; border-bottom: 1px dashed #000; padding-bottom: 4px; text-align: center;">
+                  سجل المراقبة والتأشيرات الرسمية لدفتر النصوص (عملاً بأحكام القرار الوزاري رقم 154)
+              </p>
+              <div style="display: flex; justify-content: space-between; text-align: center;">
+                  <div style="width: 24%; border-left: 1px solid #ccc; padding-left: 8px;">
+                      <p style="font-weight: 800; font-size: 10px; margin: 0 0 45px 0;">تأشيرة الأستاذ(ة)</p>
+                      <p style="font-size: 9px; color: #555;">التاريخ: ....................</p>
+                  </div>
+                  <div style="width: 25%; border-left: 1px solid #ccc; padding-left: 8px;">
+                      <p style="font-weight: 800; font-size: 10px; margin: 0 0 45px 0;">تأشيرة مستشار التربية / الناظر<br/><span style="font-size: 8px; font-weight: normal;">(مراقبة شهرية دورية)</span></p>
+                      <p style="font-size: 9px; color: #555;">ملاحظات: ....................</p>
+                  </div>
+                  <div style="width: 25%; border-left: 1px solid #ccc; padding-left: 8px;">
+                      <p style="font-weight: 800; font-size: 10px; margin: 0 0 45px 0;">تأشيرة وختم مدير المؤسسة</p>
+                      <p style="font-size: 9px; color: #555;">التاريخ: ....................</p>
+                  </div>
+                  <div style="width: 25%;">
+                      <p style="font-weight: 800; font-size: 10px; margin: 0 0 45px 0;">تأشيرة مفتش التربية الوطنية<br/><span style="font-size: 8px; font-weight: normal;">(أثناء الزيارات والتفتيش)</span></p>
+                      <p style="font-size: 9px; color: #555;">التوجيهات: ....................</p>
+                  </div>
+              </div>
+          </div>
+
+          <!-- تذييل الصفحة -->
+          <div style="margin-top: 15px; border-top: 1px solid #aaa; padding-top: 4px; display: flex; justify-content: space-between; font-size: 8.5px; color: #444;">
+              <span>منصة تمكين الرقمية للأستاذ الجزائري • وثيقة رسمية مستخرجة آلياً</span>
+              <span>تاريخ وساعة التصدير: ${new Date().toLocaleDateString('ar-DZ')} (${exportTime})</span>
+              <span>مطابق للمنهاج والتدرجات السنوية الرسمية</span>
+          </div>
+      </div>
+    `;
+
+    const cleanName = (options.className || 'شامل').replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
+    await renderAndDownloadPDF(container, `دفتر_النصوص_الرسمي_${cleanName}_${options.dateOrRangeText.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_')}.pdf`, 'l');
+};
+
+// ============================================================================
 // 2️⃣ تصدير المذكرة البيداغوجية الذكية (Smart Memo Export)
 // ============================================================================
 export const exportSmartMemoToPDF = async (

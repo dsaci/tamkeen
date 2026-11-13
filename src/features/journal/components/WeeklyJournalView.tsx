@@ -6,7 +6,8 @@ import { cn } from '../../../lib/utils';
 import {
   CalendarDays, Sparkles, Clock, Edit3, Trash2, Plus, Loader2,
   FileDown, Settings, ChevronRight, ChevronLeft, CheckCircle2,
-  BookOpen, Layers, Zap, Info, ShieldCheck, Printer, RefreshCw
+  BookOpen, Layers, Zap, Info, ShieldCheck, Printer, RefreshCw,
+  BookOpenCheck
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import {
@@ -45,6 +46,7 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingWeek, setIsGeneratingWeek] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingCahier, setIsExportingCahier] = useState(false);
   const [isTimetableModalOpen, setIsTimetableModalOpen] = useState(false);
   const [isPacingModalOpen, setIsPacingModalOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
@@ -259,6 +261,35 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
     }
   };
 
+  // Export Cahier de Textes (دفتر النصوص الرسمي) to PDF
+  const handleExportCahierDeTextes = async () => {
+    if (!profile || weekSessions.length === 0) {
+      alert('لا توجد حصص مسجلة لتصدير دفتر النصوص في هذا الأسبوع.');
+      return;
+    }
+    setIsExportingCahier(true);
+    try {
+      const { exportCahierDeTextesToPDF } = await import('../../../lib/utils/pdfGenerator');
+      const firstDate = weekInfo.dates[0]?.formatted.slice(0, 10) || '';
+      const lastDate = weekInfo.dates[4]?.formatted.slice(0, 10) || '';
+      await exportCahierDeTextesToPDF(
+        profile,
+        weekSessions,
+        {
+          scope: 'weekly',
+          dateOrRangeText: `من ${firstDate} إلى ${lastDate}`,
+          className: (profile.grades && profile.grades[0]) || 'جميع الأفواج المقررة',
+          documentSubtitle: `دفتر النصوص الرسمي للأسبوع من الأحد ${firstDate} إلى الخميس ${lastDate} (شهر ${monthNameAr})`
+        }
+      );
+    } catch (e) {
+      console.error(e);
+      alert('حدث خطأ أثناء تصدير دفتر النصوص.');
+    } finally {
+      setIsExportingCahier(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in" dir="rtl">
       {/* Top Banner & Week Navigation Bar */}
@@ -354,16 +385,30 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
           </Button>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-wrap">
+          {/* تصدير دفتر النصوص الرسمي */}
+          <Button
+            onClick={handleExportCahierDeTextes}
+            disabled={weekSessions.length === 0 || isExportingCahier}
+            isLoading={isExportingCahier}
+            className="rounded-2xl text-xs font-black px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md shadow-amber-500/20 active:scale-95 transition-all border-none"
+            leftIcon={<BookOpenCheck size={16} className="text-yellow-100" />}
+            title="تصدير دفتر النصوص الرسمي للأسبوع وفق القرار الوزاري 154"
+          >
+            تصدير دفتر النصوص 📑
+          </Button>
+
+          {/* تصدير الكراس اليومي */}
           <Button
             variant="secondary"
             onClick={handleExportWeeklyPDF}
             disabled={weekSessions.length === 0 || isExporting}
             isLoading={isExporting}
-            className="rounded-2xl text-xs font-bold px-5 py-3"
+            className="rounded-2xl text-xs font-bold px-4 py-3"
             leftIcon={<FileDown size={16} className="text-indigo-600" />}
+            title="تصدير الكراس اليومي الأسبوعي"
           >
-            تصدير الأسبوع (PDF)
+            تصدير الكراس اليومي (PDF)
           </Button>
 
           <span className="text-xs font-black bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3.5 py-2 rounded-2xl border border-slate-200 dark:border-slate-600 whitespace-nowrap">

@@ -1,304 +1,207 @@
 import React, { useState } from 'react';
-import { BookOpen, Calendar, ArrowLeft, Search, Tag, X } from 'lucide-react';
-
-const ARTICLES = [
-  {
-    id: 1,
-    title: 'التدريس المتمايز: خطة عملية لإدارة فصل متعدد المستويات',
-    excerpt: 'كيف تتعامل مع الفروق الفردية داخل القسم وتصمم أنشطة تناسب جميع مستويات التلاميذ.',
-    date: '10 سبتمبر 2026', category: 'بيداغوجيا',
-    image: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=800',
-    content: `# التدريس المتمايز: كيف تدير فصلاً متعدد المستويات؟
-
-## ما هو التدريس المتمايز؟
-التدريس المتمايز هو نهج بيداغوجي يقوم على مبدأ أن التلاميذ مختلفون في قدراتهم واهتماماتهم وأساليب تعلّمهم. بدلاً من تعليم الجميع بنفس الطريقة، يُكيّف الأستاذ أساليبه وأنشطته بما يناسب كل مجموعة.
-
-## الخطوات العملية الثلاث
-
-### 1. التشخيص المبكر
-- في أول أسبوع من الدراسة، أجرِ تقويماً تشخيصياً بسيطاً.
-- صنّف تلاميذك إلى 3 مجموعات: المتقدمون / المتوسطون / الذين يحتاجون دعماً إضافياً.
-
-### 2. تصميم الأنشطة بالتمايز
-- **مجموعة الدعم**: تمارين تطبيقية مباشرة وبسيطة مع مساندة الأستاذ.
-- **المجموعة المتوسطة**: تمارين تقيسيّة تتوافق مع مستوى الكتاب المدرسي.
-- **مجموعة الإثراء**: تحديات ووضعيات مركبة ومشاريع إضافية.
-
-### 3. إدارة الوقت داخل الحصة
-- اعمل مع مجموعة واحدة مباشرة بينما تعمل المجموعتان الأخريان باستقلالية.
-- استخدم بطاقات العمل الذاتي لتوفير وقتك.
-
-## أدوات مفيدة
-- تطبيق تمكين: يساعدك على بناء أوراق عمل متمايزة في دقائق.
-- الجداول التعاونية: تجمّع التلاميذ المتقاربين في المستوى.
-
-## خلاصة
-التمايز ليس ترفاً بيداغوجياً، بل ضرورة ديموقراطية تضمن حق كل تلميذ في التعلم وفق إيقاعه الخاص.`
-  },
-  {
-    id: 2,
-    title: '30 برومبت للتقويم التكويني: أسئلة سريعة وبطاقات خروج',
-    excerpt: 'استخدم هذه الأوامر مع المساعد الذكي لتوليد أسئلة تقويم تكويني سريعة وفعالة.',
-    date: '5 سبتمبر 2026', category: 'ذكاء اصطناعي',
-    image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=800',
-    content: `# 30 برومبت ذكي للتقويم التكويني
-
-## ما هو التقويم التكويني؟
-هو التقويم المستمر الذي يجري خلال عملية التعلم لا في نهايتها. هدفه مساعدة التلميذ على تصحيح مساره، وليس منحه علامة.
-
-## كيف تستخدم هذه البرومبتات؟
-انسخ أي برومبت وضعه في المساعد الذكي مع تحديد المادة والمستوى.
-
-## البرومبتات الـ 30
-
-### أسئلة الفهم السريع (5 أسئلة)
-1. "أنشئ 5 أسئلة فهم سريعة لمادة [المادة] مستوى [المستوى] حول [الموضوع]"
-2. "اكتب 3 أسئلة إجابتها صح/خطأ لتقويم فهم [الموضوع]"
-3. "صغ سؤالاً واحداً عميقاً يكشف سوء فهم شائع في [الموضوع]"
-4. "أنشئ تمريناً تصحيحياً لتلميذ يخطئ في [النقطة المحددة]"
-5. "اكتب سؤالاً مفتوحاً يتيح للتلميذ التعبير عن تعلّمه"
-
-### بطاقات الخروج (5 أنواع)
-6. "اكتب بطاقة خروج: شيء تعلمته / شيء أريد فهمه / سؤال عندي"
-7. "أنشئ بطاقة خروج بنظام 3-2-1: 3 معلومات / 2 أشياء مثيرة / 1 سؤال"
-8. "صمّم بطاقة خروج بالرسم: ارسم ما تعلمته اليوم"
-...
-
-## خلاصة
-التقويم التكويني الجيد يجعل التلميذ شريكاً في تقييم تعلّمه، ويمنح الأستاذ مرآة فورية لفعالية تدريسه.`
-  },
-  {
-    id: 3,
-    title: 'بناء الوضعية الإدماجية: من النظرية إلى التطبيق',
-    excerpt: 'خطوات عملية وتطبيقية لبناء وضعية إدماجية مركبة تتوافق مع المعايير الرسمية.',
-    date: '28 أوت 2026', category: 'ديداكتيك',
-    image: 'https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?auto=format&fit=crop&q=80&w=800',
-    content: `# الوضعية الإدماجية: الدليل العملي الشامل
-
-## تعريف الوضعية الإدماجية
-هي وضعية تعليمية معقدة تضع التلميذ أمام مشكلة حقيقية أو محاكاة للحياة الواقعية، وتستدعي منه توظيف مجموعة من المعارف والمهارات المكتسبة في وحدات تعلمية مختلفة.
-
-## المكونات الثلاثة الأساسية
-
-### 1. السياق (Context)
-- يجب أن يكون السياق **واقعياً وذا معنى** للتلميذ.
-- مثال: "يريد فريق القسم تنظيم رحلة إلى المتحف الوطني..."
-
-### 2. السند (Support)
-- وثيقة / صورة / جدول / نص / خريطة تمدّ التلميذ بالمعلومات.
-- يجب أن يكون السند **كافياً لكن غير مكتمل** (يترك مجالاً للتفكير).
-
-### 3. المهام (Tasks)
-- مهمة 1: فهم وتحليل السند.
-- مهمة 2: توظيف الموارد المكتسبة.
-- مهمة 3: إنتاج كتابي أو حل نهائي.
-
-## أخطاء شائعة يجب تجنبها
-- ❌ وضعية تستدعي موارد غير مدروسة.
-- ❌ مهام متوالية لا تقيس الإدماج الحقيقي.
-- ❌ غياب السياق الواقعي (سؤال مباشر بدل وضعية).
-
-## أمثلة تطبيقية
-
-### للطور الابتدائي — رياضيات
-"تريد والدة ياسمين شراء لوازم للعودة المدرسية بميزانية 2000 دج. اعتمادًا على قائمة الأسعار، ساعدها في اختيار أفضل ما يمكن شراؤه."
-
-### للطور المتوسط — اللغة العربية
-"تلقّت جمعية المدرسة دعوة لتنظيم مسرحية تربوية. كلّف القسم بكتابة النص المسرحي وتوزيع الأدوار."`
-  },
-  {
-    id: 4,
-    title: 'أول أسبوع في التعليم: 10 نصائح للأستاذ الجديد',
-    excerpt: 'دليل عملي لتجاوز التحديات الأولى وبناء علاقة إيجابية مع التلاميذ والإدارة.',
-    date: '1 سبتمبر 2026', category: 'إدارة صف',
-    image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=800',
-    content: `# أول أسبوع في التعليم: دليلك العملي
-
-## اليوم الأول: الانطباع الأول لا يُمحى
-
-### قبل الدخول للقسم
-- احضر مبكراً 20 دقيقة على الأقل.
-- اكتب اسمك على السبورة بخط واضح.
-- رتّب المقاعد بشكل يسهّل التواصل.
-
-### داخل القسم
-1. **قدّم نفسك** بإيجاز: اسمك، تخصصك، توقعاتك من التلاميذ.
-2. **اطلب التعريف**: اجعل كل تلميذ يقول اسمه وشيئاً يحبه.
-3. **وضّح القواعد** بإيجاز: الانضباط، الاحترام، المشاركة.
-
-## الأسبوع الأول: بناء الثقة
-
-### مع التلاميذ
-- احفظ أسماء التلاميذ في أسرع وقت ممكن — هذا يبني الثقة.
-- لا تُعاقب الجماعة على خطأ فرد.
-- كن صارماً في القواعد ودوداً في التعامل.
-
-### مع الإدارة
-- قدّم خطتك السنوية للمدير في أول أسبوع.
-- اطلع على لائحة المدرسة الداخلية.
-- اطلب مرافقة أستاذ متمرس كموجّه.
-
-### مع الأولياء
-- الوضوح من البداية يمنع الغموض لاحقاً.
-- حدّد أوقات الاستقبال وطريقة التواصل.
-
-## 5 أخطاء يقع فيها كل أستاذ جديد
-1. ❌ محاولة أن يكون صديقاً لا أستاذاً.
-2. ❌ إهمال التخطيط للحصة.
-3. ❌ الانشغال بالتقييم من اليوم الأول.
-4. ❌ عدم الاستعانة بالزملاء.
-5. ❌ الاستسلام بسرعة للصعوبات.
-
-## خلاصة
-الأستاذ الناجح لا يُولد، بل يُبنى بالصبر والتأمل والتطوير المستمر.`
-  },
-  {
-    id: 5,
-    title: 'كيف تصمم مذكرة درس احترافية في 20 دقيقة',
-    excerpt: 'نموذج مبسّط لمذكرة تحضير الدرس يوفر وقتك دون الإخلال بالجودة.',
-    date: '20 أوت 2026', category: 'بيداغوجيا',
-    image: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?auto=format&fit=crop&q=80&w=800',
-    content: `# مذكرة الدرس في 20 دقيقة: النموذج المختصر الفعّال
-
-## لماذا تحضير الدرس ضروري؟
-المذكرة ليست إجراءً بيروقراطياً، بل هي خريطة الطريق التي تضمن حصة منظمة ومؤثرة. الأستاذ الذي يحضّر يُدرّس بثقة، والذي لا يحضّر يرتجل.
-
-## النموذج المختصر (8 عناصر أساسية)
-
-| العنصر | مثال |
-|--------|------|
-| المادة + المستوى | رياضيات — السنة 3 متوسط |
-| الميدان/المقطع | الأعداد والعمليات |
-| الكفاءة المستهدفة | يحل مسائل التناسبية |
-| الموارد المعرفية | خاصية التناسب، الجدول |
-| الوضعية التعلمية | وضعية الانطلاق (5 د) + البناء (25 د) + التقويم (10 د) |
-| أدوات التقييم | تمرين ختامي / بطاقة خروج |
-| التمييز | نشاط إثراء للمتقدمين / دعم للمتعثرين |
-| الوسائل | السبورة / بطاقات عمل / تطبيق تمكين |
-
-## الخطوات الـ 20 دقيقة
-- **5 دقائق**: حدّد الكفاءة والموارد.
-- **10 دقائق**: صمّم التسلسل البيداغوجي (انطلاق ← بناء ← تقويم).
-- **5 دقائق**: جهّز بطاقة عمل أو سؤال تقويمي.
-
-## أداة تمكين توفّر عليك الوقت
-بدلاً من كتابة المذكرة يدوياً، استخدم "المذكرة الذكية" في تمكين — تملأ البيانات وتولّد هيكل المذكرة في أقل من دقيقتين.`
-  },
-  {
-    id: 6,
-    title: 'الذكاء الاصطناعي في خدمة الأستاذ الجزائري',
-    excerpt: 'كيف تستخدم أدوات الذكاء الاصطناعي بذكاء دون الإخلال بقيم المهنة التعليمية.',
-    date: '15 أوت 2026', category: 'ذكاء اصطناعي',
-    image: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?auto=format&fit=crop&q=80&w=800',
-    content: `# الذكاء الاصطناعي: صديق الأستاذ لا بديله
-
-## الخوف الشائع
-كثير من الأساتذة يخشون أن يحلّ الذكاء الاصطناعي محلّهم. هذا الخوف مفهوم لكنه غير مبرر. الذكاء الاصطناعي يُلغي المهام الروتينية، لا العلاقة الإنسانية التعليمية.
-
-## ما يُحسنه الذكاء الاصطناعي
-✅ صياغة أسئلة وتمارين في ثوانٍ
-✅ تلخيص نصوص طويلة
-✅ توليد أفكار لأنشطة جديدة
-✅ كتابة رسائل الأولياء
-✅ إعداد خطط فصلية وسنوية
-
-## ما لا يستطيع فعله أبداً
-❌ بناء علاقة ثقة مع التلميذ
-❌ قراءة الحالة النفسية للمتعلم
-❌ التكيّف الفوري مع ردود الفعل داخل الحصة
-❌ تقديم القدوة والنموذج الأخلاقي
-
-## 5 استخدامات فورية في تمكين
-1. **المذكرة الذكية**: جهّز درسك في دقيقتين.
-2. **مولد الاختبارات**: أسئلة وفق الكفاءة مباشرةً.
-3. **أوراق العمل**: وضعيات إدماجية جاهزة.
-4. **المساعد الذكي**: أجب عن أسئلة بيداغوجية معقدة.
-5. **صانع العروض**: عروض بيداغوجية بمراحل الدرس الثلاث.`
-  },
-];
-
-const CATEGORIES = ['الكل', 'بيداغوجيا', 'ذكاء اصطناعي', 'ديداكتيك', 'إدارة صف'];
+import { BookOpen, Calendar, ArrowLeft, Search, Tag, X, Clock, Share2, Printer, Sparkles, Bookmark } from 'lucide-react';
+import { BLOG_ARTICLES, BLOG_CATEGORIES, BlogArticle } from '../../data/blogArticles';
 
 export default function BlogPage() {
-  const [selected, setSelected] = useState<any>(null);
-  const [cat, setCat] = useState('الكل');
-  const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState<BlogArticle | null>(null);
+  const [cat, setCat] = useState<string>('الكل');
+  const [search, setSearch] = useState<string>('');
 
-  const filtered = ARTICLES.filter(a =>
+  const filtered = BLOG_ARTICLES.filter(a =>
     (cat === 'الكل' || a.category === cat) &&
-    (a.title.includes(search) || a.excerpt.includes(search))
+    (a.title.toLowerCase().includes(search.toLowerCase()) || 
+     a.excerpt.toLowerCase().includes(search.toLowerCase()) ||
+     a.tags.some(t => t.toLowerCase().includes(search.toLowerCase())))
   );
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   if (selected) {
     return (
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl mx-auto pb-20">
-        <button onClick={() => setSelected(null)} className="flex items-center gap-2 text-emerald-600 font-black mb-6 hover:gap-3 transition-all">
-          <ArrowLeft size={18} className="rotate-180"/> العودة للمدونة
-        </button>
-        <div className="h-64 rounded-3xl overflow-hidden mb-8">
-          <img src={selected.image} alt={selected.title} className="w-full h-full object-cover"/>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto pb-24 font-sans" dir="rtl">
+        {/* Top Back Navigation & Actions */}
+        <div className="flex items-center justify-between mb-6">
+          <button 
+            onClick={() => setSelected(null)} 
+            className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-black hover:gap-3 transition-all text-sm group"
+          >
+            <ArrowLeft size={18} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
+            <span>العودة لقائمة المقالات البيداغوجية</span>
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs transition-all"
+            title="طباعة المقال"
+          >
+            <Printer size={15} />
+            <span>طباعة المقال</span>
+          </button>
         </div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-xs font-black px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">{selected.category}</span>
-          <span className="text-xs text-slate-400 font-bold flex items-center gap-1"><Calendar size={12}/>{selected.date}</span>
+
+        {/* Hero Image */}
+        <div className="h-72 sm:h-96 rounded-[2.5rem] overflow-hidden mb-8 shadow-xl relative border border-slate-200/60 dark:border-slate-800">
+          <img src={selected.image} alt={selected.title} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          <div className="absolute bottom-6 right-6 left-6 text-white space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-black px-3.5 py-1 bg-emerald-500 text-white rounded-full shadow-md">
+                {selected.category}
+              </span>
+              <span className="text-xs text-slate-200 font-bold flex items-center gap-1 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full">
+                <Calendar size={13} /> {selected.date}
+              </span>
+              <span className="text-xs text-slate-200 font-bold flex items-center gap-1 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full">
+                <Clock size={13} /> {selected.readTime}
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black leading-[1.4] text-white drop-shadow-md">
+              {selected.title}
+            </h1>
+          </div>
         </div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-6 leading-tight">{selected.title}</h1>
-        <div className="prose prose-slate dark:prose-invert max-w-none">
-          <pre className="whitespace-pre-wrap font-sans text-slate-700 dark:text-slate-300 leading-relaxed text-base">{selected.content}</pre>
+
+        {/* Tags */}
+        {selected.tags && selected.tags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-8 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700">
+            <span className="text-xs font-black text-slate-400 flex items-center gap-1">
+              <Tag size={13} /> الكلمات المفتاحية:
+            </span>
+            {selected.tags.map(t => (
+              <span key={t} className="text-xs font-bold px-2.5 py-1 bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 rounded-lg shadow-sm border border-slate-100 dark:border-slate-600">
+                #{t}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Article Body */}
+        <div className="bg-white dark:bg-slate-900 p-8 sm:p-12 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
+          <div className="prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 font-sans leading-[1.8] text-base">
+            <pre className="whitespace-pre-wrap font-sans text-slate-800 dark:text-slate-200 leading-[1.9] text-base md:text-lg">
+              {selected.content}
+            </pre>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="animate-in fade-in zoom-in-95 duration-500 max-w-6xl mx-auto space-y-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-slate-100 dark:border-slate-800">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 flex items-center gap-3">
-            <BookOpen className="text-emerald-500" size={36}/> المدونة التربوية
+    <div className="animate-in fade-in zoom-in-95 duration-500 max-w-6xl mx-auto space-y-8 font-sans pb-24" dir="rtl">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-[#1b4332] via-emerald-800 to-teal-900 text-white p-8 sm:p-10 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-8 border-emerald-950">
+        <div className="space-y-3 relative z-10 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-emerald-700/60 rounded-full border border-emerald-500/40 text-emerald-200 text-xs font-black">
+            <Sparkles size={14} className="text-yellow-300" />
+            <span>مستودع المعرفة البيداغوجية والديداكتيكية والتشريع المدرسي</span>
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-white leading-[1.4]">
+            المدونة التربوية الشاملة
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-bold">مقالات، استراتيجيات، وتوجيهات للمعلم الجزائري.</p>
+          <p className="text-emerald-100/90 text-sm sm:text-base font-bold leading-relaxed">
+            مقالات ودراسات تأصيلية مستخلصة ومفككة من المناهج الرسمية لوزارة التربية، أدلة التفتيش، ومراجع التعليمية وطرائق التدريس الحديثة.
+          </p>
         </div>
-        <div className="relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16}/>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ابحث في المدونة..."
-            className="pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm outline-none focus:border-emerald-500 w-64"/>
-          {search && <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><X size={14}/></button>}
+
+        {/* Search Input */}
+        <div className="relative z-10 w-full md:w-80">
+          <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="ابحث في المقالات والمراجع..."
+            className="w-full pr-11 pl-4 py-3 bg-white/10 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 rounded-2xl font-bold text-sm text-white placeholder:text-slate-300 outline-none focus:border-yellow-300 focus:bg-white/20 transition-all shadow-inner"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-white"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {CATEGORIES.map(c => (
-          <button key={c} onClick={() => setCat(c)}
-            className={`px-4 py-2 rounded-full font-black text-sm transition-all ${
-              cat === c ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
-            }`}>{c}</button>
+      {/* Category Pills */}
+      <div className="flex flex-wrap items-center gap-2 p-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+        <span className="text-xs font-black text-slate-400 px-3">التصنيفات:</span>
+        {BLOG_CATEGORIES.map(c => (
+          <button
+            key={c}
+            onClick={() => setCat(c)}
+            className={`px-4 py-2 rounded-xl font-black text-xs transition-all ${
+              cat === c
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            {c}
+          </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filtered.map(article => (
-          <article key={article.id} onClick={() => setSelected(article)}
-            className="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col hover:-translate-y-2">
-            <div className="h-48 overflow-hidden relative">
-              <img src={article.image} alt={article.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
-              <div className="absolute top-3 right-3">
-                <span className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm text-emerald-700 dark:text-emerald-400 text-[10px] font-black px-2 py-1 rounded-full flex items-center gap-1">
-                  <Tag size={10}/>{article.category}
-                </span>
+      {/* Articles Grid */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+          <BookOpen size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+          <p className="text-slate-500 font-black text-base">لا توجد مقالات مطابقة لبحثك في هذا القسم</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filtered.map(article => (
+            <article
+              key={article.id}
+              onClick={() => setSelected(article)}
+              className="bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-300 group cursor-pointer flex flex-col hover:-translate-y-2 relative"
+            >
+              <div className="h-52 overflow-hidden relative">
+                <img
+                  src={article.image}
+                  alt={article.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                <div className="absolute top-3.5 right-3.5">
+                  <span className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-emerald-800 dark:text-emerald-300 text-[11px] font-black px-3 py-1 rounded-full shadow-md flex items-center gap-1 border border-emerald-100 dark:border-slate-700">
+                    <Tag size={11} /> {article.category}
+                  </span>
+                </div>
+                <div className="absolute bottom-3 right-4 left-4 flex items-center justify-between text-[11px] text-slate-200 font-bold">
+                  <span className="flex items-center gap-1"><Calendar size={12} /> {article.date}</span>
+                  <span className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full"><Clock size={11} /> {article.readTime}</span>
+                </div>
               </div>
-            </div>
-            <div className="p-6 flex flex-col flex-1">
-              <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1 mb-3"><Calendar size={10}/>{article.date}</p>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white mb-3 leading-tight group-hover:text-emerald-600 transition-colors">{article.title}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed flex-1">{article.excerpt}</p>
-              <div className="mt-4 flex items-center gap-1 text-emerald-600 font-black text-sm opacity-0 group-hover:opacity-100 transition-all">
-                <span>اقرأ المقال</span><ArrowLeft size={14} className="rotate-180"/>
+
+              <div className="p-6 sm:p-7 flex flex-col flex-1">
+                <h2 className="text-lg font-black text-slate-900 dark:text-white mb-3 leading-[1.5] group-hover:text-emerald-600 transition-colors">
+                  {article.title}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed flex-1 line-clamp-3">
+                  {article.excerpt}
+                </p>
+
+                {/* Tags Row */}
+                <div className="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                  {article.tags.slice(0, 3).map(tag => (
+                    <span key={tag} className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-4 flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-black text-xs">
+                  <span>قراءة المقال الشامل</span>
+                  <ArrowLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
-      </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

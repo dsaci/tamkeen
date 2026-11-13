@@ -10,7 +10,8 @@ import { useJournalStore } from '../store/journalStore';
 import { Button } from '../../../components/ui/Button';
 import {
     Plus, Loader2, FileText, CalendarDays, Calendar,
-    Sparkles, LayoutGrid, Layers, CheckCircle2, Trash2
+    Sparkles, LayoutGrid, Layers, CheckCircle2, Trash2,
+    BookOpenCheck
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { Session } from '../../../types';
@@ -29,6 +30,7 @@ export const JournalPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSession, setEditingSession] = useState<Session | null>(null);
     const [isExporting, setIsExporting] = useState(false);
+    const [isExportingCahier, setIsExportingCahier] = useState(false);
     const [targetDateForNewSession, setTargetDateForNewSession] = useState<string | null>(null);
 
     const handleSwitchMode = (mode: 'weekly' | 'daily') => {
@@ -69,6 +71,34 @@ export const JournalPage = () => {
             alert("حدث خطأ أثناء إعداد ملف PDF.");
         } finally {
             setIsExporting(false);
+        }
+    };
+
+    const handleExportCahierDaily = async () => {
+        if (entries.length === 0 || !profile) {
+            alert('لا توجد حصص مسجلة في هذا اليوم لتصديرها في دفتر النصوص.');
+            return;
+        }
+        setIsExportingCahier(true);
+        try {
+            const { exportCahierDeTextesToPDF } = await import('../../../lib/utils/pdfGenerator');
+            const dateStr = useJournalStore.getState().selectedDate;
+            const dayName = new Date(dateStr).toLocaleDateString('ar-DZ', { weekday: 'long' });
+            await exportCahierDeTextesToPDF(
+                profile,
+                entries,
+                {
+                    scope: 'daily',
+                    dateOrRangeText: `${dayName} ${dateStr}`,
+                    className: selectedClass || (profile.grades && profile.grades[0]) || 'الفوج المقرّر',
+                    documentSubtitle: `دفتر النصوص الرسمي لحصص يوم ${dayName} (${dateStr})`
+                }
+            );
+        } catch (e) {
+            console.error(e);
+            alert("حدث خطأ أثناء إعداد ملف دفتر النصوص.");
+        } finally {
+            setIsExportingCahier(false);
         }
     };
 
@@ -183,12 +213,21 @@ export const JournalPage = () => {
                                     تصفير اليوم 🗑️
                                 </Button>
                                 <Button
+                                    onClick={handleExportCahierDaily}
+                                    disabled={entries.length === 0 || isExportingCahier}
+                                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                                    leftIcon={isExportingCahier ? <Loader2 className="animate-spin" size={18} /> : <BookOpenCheck size={18} />}
+                                    title="تصدير دفتر النصوص الرسمي لليوم وفق القرار 154"
+                                >
+                                    {isExportingCahier ? 'جاري التحضير...' : 'تصدير دفتر النصوص 📑'}
+                                </Button>
+                                <Button
                                     onClick={handleExport}
                                     disabled={entries.length === 0 || isExporting}
                                     variant="secondary"
                                     leftIcon={isExporting ? <Loader2 className="animate-spin" size={18} /> : <FileText size={18} />}
                                 >
-                                    {isExporting ? 'جاري التحضير...' : 'تصدير PDF لليوم'}
+                                    {isExporting ? 'جاري التحضير...' : 'تصدير الكراس اليومي (PDF)'}
                                 </Button>
                                 <Button
                                     onClick={handleAddNewDaily}
