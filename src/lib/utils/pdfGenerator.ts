@@ -288,6 +288,140 @@ export const exportDailyJournalToPDF = async (
 };
 
 // ============================================================================
+// 1.5️⃣ تصدير الكراس اليومي الأسبوعي الشامل (Weekly Cahier de texte Export)
+// ============================================================================
+export const exportWeeklyJournalToPDF = async (
+    profile: TeacherProfile,
+    weekDates: { dateStr: string; dayNameAr: string }[],
+    sessions: Session[],
+    weekTitle: string = 'الكراس اليومي الأسبوعي'
+): Promise<void> => {
+    const exportTime = new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    container.style.width = '1123px'; // A4 Landscape
+    container.style.minHeight = '794px';
+    container.style.backgroundColor = '#ffffff';
+    container.style.color = '#000000';
+    container.style.padding = '25px 30px';
+    container.style.direction = 'rtl';
+    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.zIndex = '-1000';
+
+    const firstDate = weekDates[0]?.dateStr || '';
+    const lastDate = weekDates[weekDates.length - 1]?.dateStr || '';
+
+    let rowsHtml = '';
+    weekDates.forEach((day) => {
+        const daySessions = sessions.filter(s => s.timing.date === day.dateStr).sort((a, b) => {
+            if (a.timing.period === b.timing.period) return (a.timing.startTime || '').localeCompare(b.timing.startTime || '');
+            return a.timing.period === 'MORNING' ? -1 : 1;
+        });
+
+        // Day Section Header Row
+        rowsHtml += `
+        <tr style="background-color: #1e293b !important; color: #ffffff !important; -webkit-print-color-adjust: exact;">
+            <td colspan="9" style="padding: 8px 12px; font-weight: 900; font-size: 13px; color: #fff !important; text-align: right;">
+                ✦ يوم ${day.dayNameAr} (${day.dateStr}) — [عدد الحصص: ${daySessions.length}]
+            </td>
+        </tr>`;
+
+        if (daySessions.length === 0) {
+            rowsHtml += `
+            <tr style="border-bottom: 1px solid #000;">
+                <td colspan="9" style="padding: 8px; text-align: center; color: #64748b; font-style: italic; font-size: 11px;">
+                    لا توجد حصص مسجلة في هذا اليوم
+                </td>
+            </tr>`;
+        } else {
+            daySessions.forEach((s) => {
+                const isHoliday = s.timing.category === 'HOLIDAY';
+                const isBreak = s.timing.category === 'BREAK';
+
+                const subject = s.subject || '';
+                const activity = s.activity || '';
+                const title = s.title || '';
+                const objective = s.objective || '';
+                const content = (s.content || '').replace(/\n/g, '<br/>');
+                const tools = s.tools || '';
+                const notes = s.notes || '';
+
+                let sectionDisplay = '';
+                if (s.sectionNumber || s.sectionName) {
+                    sectionDisplay = `مقطع ${s.sectionNumber || ''}: ${s.sectionName || ''}`;
+                }
+
+                if (isHoliday) {
+                    rowsHtml += `
+                    <tr style="background-color: #f0fdf4 !important; -webkit-print-color-adjust: exact; border-bottom: 1px solid #000;">
+                        <td colspan="9" style="padding: 10px; text-align: center; color: #15803d !important; font-weight: bold; font-size: 12px;">
+                            *** عطلة رسمية / مناسبة: ${s.timing.holidayName || ''} ***
+                        </td>
+                    </tr>`;
+                } else if (isBreak) {
+                    rowsHtml += `
+                    <tr style="background-color: #fff7ed !important; -webkit-print-color-adjust: exact; border-bottom: 1px solid #000;">
+                        <td colspan="9" style="padding: 6px; text-align: center; color: #c2410c !important; font-weight: bold; font-size: 12px;">
+                            --- استراحة بيداغوجية (${s.timing.breakDuration || 15} د) ---
+                        </td>
+                    </tr>`;
+                } else {
+                    const time = `${s.timing.startTime || ''} - ${s.timing.endTime || ''}`;
+                    rowsHtml += `
+                    <tr style="border-bottom: 1px solid #000; font-size: 10.5px;">
+                        <td style="padding: 6px; border-left: 1px solid #000; text-align: center; font-weight: 800; width: 85px;">${time}</td>
+                        <td style="padding: 6px; border-left: 1px solid #000; font-weight: bold; width: 80px;">${subject}</td>
+                        <td style="padding: 6px; border-left: 1px solid #000; font-weight: bold; width: 80px; color: #047857;">${activity}</td>
+                        <td style="padding: 6px; border-left: 1px solid #000; width: 90px; font-size: 9.5px;">${sectionDisplay}</td>
+                        <td style="padding: 6px; border-left: 1px solid #000; font-weight: 800; width: 130px;">${title}</td>
+                        <td style="padding: 6px; border-left: 1px solid #000; font-size: 9.5px; width: 130px;">${objective}</td>
+                        <td style="padding: 6px; border-left: 1px solid #000; font-size: 9.5px; line-height: 1.35;">${content}</td>
+                        <td style="padding: 6px; border-left: 1px solid #000; font-size: 9px; width: 80px;">${tools}</td>
+                        <td style="padding: 6px; border-left: 1px solid #000; font-size: 9px; width: 75px;">${notes}</td>
+                    </tr>`;
+                }
+            });
+        }
+    });
+
+    container.innerHTML = `
+      <style>
+        * { color: #000 !important; border-color: #000 !important; box-sizing: border-box; }
+        .bg-gray-header { background-color: #e5e7eb !important; -webkit-print-color-adjust: exact; }
+      </style>
+      <div style="display: flex; flex-direction: column; min-height: 100%; text-align: right; color: #000; background: #fff;">
+          ${getOfficialAlgerianHeaderHTML(profile, 'الكراس اليومي الأسبوعي الموحد (دفتر النصوص)', `للأسبوع من الأحد ${firstDate} إلى الخميس ${lastDate}`)}
+
+          <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; background: #fff;">
+              <thead class="bg-gray-header" style="background-color: #e5e7eb; color: #000;">
+                  <tr>
+                      <th style="padding: 8px; border: 1px solid #000; width: 85px; text-align: center; font-size: 11px; font-weight: bold;">التوقيت</th>
+                      <th style="padding: 8px; border: 1px solid #000; width: 80px; font-size: 11px; font-weight: bold;">المادة</th>
+                      <th style="padding: 8px; border: 1px solid #000; width: 80px; font-size: 11px; font-weight: bold;">النشاط</th>
+                      <th style="padding: 8px; border: 1px solid #000; width: 90px; font-size: 11px; font-weight: bold;">المقطع</th>
+                      <th style="padding: 8px; border: 1px solid #000; width: 130px; font-size: 11px; font-weight: bold;">عنوان الحصة</th>
+                      <th style="padding: 8px; border: 1px solid #000; width: 130px; font-size: 11px; font-weight: bold;">الهدف / المؤشر</th>
+                      <th style="padding: 8px; border: 1px solid #000; font-size: 11px; font-weight: bold;">سير الحصة / المحتوى</th>
+                      <th style="padding: 8px; border: 1px solid #000; width: 80px; font-size: 11px; font-weight: bold;">الوسائل</th>
+                      <th style="padding: 8px; border: 1px solid #000; width: 75px; font-size: 11px; font-weight: bold;">الملاحظات</th>
+                  </tr>
+              </thead>
+              <tbody style="background-color: #fff;">
+                  ${rowsHtml}
+              </tbody>
+          </table>
+
+          ${getOfficialAlgerianFooterHTML(profile, { showTeacher: true, showDirector: true, showInspector: true, exportTime })}
+      </div>
+    `;
+
+    await renderAndDownloadPDF(container, `الكراس_اليومي_الأسبوعي_${firstDate}_إلى_${lastDate}.pdf`, 'l');
+};
+
+// ============================================================================
 // 2️⃣ تصدير المذكرة البيداغوجية الذكية (Smart Memo Export)
 // ============================================================================
 export const exportSmartMemoToPDF = async (
