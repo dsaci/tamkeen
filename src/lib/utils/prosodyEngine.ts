@@ -266,6 +266,7 @@ export const FOOT_MUTATIONS_MAP: Record<string, MeterFootMutation[]> = {
     { original: 'مَفَاعِيلُنْ', actual: 'مَفَاعِيلُنْ', pattern: '//0/0/0', kind: 'سالمة', name: 'سالمة', explanation: 'تفعيلة صحيحة سالمة من أي تغيير' },
     { original: 'مَفَاعِيلُنْ', actual: 'مَفَاعِلُنْ', pattern: '//0//0', kind: 'زحاف مفرد', name: 'القبض', explanation: 'حذف الخامس الساكن (الياء). وهو عروض الطويل الواجبة غالباً' },
     { original: 'مَفَاعِيلُنْ', actual: 'مَفَاعِيلُ', pattern: '//0/0/', kind: 'زحاف مفرد', name: 'الكف', explanation: 'حذف السابع الساكن (النون)' },
+    { original: 'مَفَاعِيلُنْ', actual: 'مَفَاعِلُ', pattern: '//0//', kind: 'زحاف مزدوج', name: 'القبض مع الكف', explanation: 'حذف الخامس والسابع الساكنين (قبض عروض الطويل قبل إشباع الروي)' },
     { original: 'مَفَاعِيلُنْ', actual: 'فَعُولُنْ', pattern: '//0/0', kind: 'علة نقص', name: 'الحذف', explanation: 'حذف السبب الخفيف (لُنْ) فتصير مفاعي وتنقل لفعولن' },
     { original: 'مَفَاعِيلُنْ', actual: 'مَفَاعِيلْ', pattern: '//0/00', kind: 'علة نقص', name: 'القصر', explanation: 'حذف ساكن السبب الخفيف وتسكين ما قبله' },
     { original: 'مَفَاعِيلُنْ', actual: 'مَفْعُولُنْ', pattern: '/0/0/0', kind: 'علة جارية مجرى الزحاف', name: 'الخَرْم', explanation: 'حذف أول الوتد المجموع في صدر البيت' },
@@ -275,6 +276,7 @@ export const FOOT_MUTATIONS_MAP: Record<string, MeterFootMutation[]> = {
   'مُتَفَاعِلُنْ': [
     { original: 'مُتَفَاعِلُنْ', actual: 'مُتَفَاعِلُنْ', pattern: '///0//0', kind: 'سالمة', name: 'سالمة', explanation: 'تفعيلة صحيحة سالمة (الجرس الطبيعي لبحر الكامل)' },
     { original: 'مُتَفَاعِلُنْ', actual: 'مُتْفَاعِلُنْ', pattern: '/0/0//0', kind: 'زحاف مفرد', name: 'الإضمار', explanation: 'تسكين الثاني المتحرك (التاء). زحاف واسع الورود في الكامل' },
+    { original: 'مُتَفَاعِلُنْ', actual: 'مُتَفَاعِلُ', pattern: '///0//', kind: 'زحاف مفرد', name: 'الكف', explanation: 'حذف السابع الساكن' },
     { original: 'مُتَفَاعِلُنْ', actual: 'مُفَاعِلُنْ', pattern: '//0//0', kind: 'زحاف مفرد', name: 'الوقص', explanation: 'حذف الثاني المتحرك (التاء)' },
     { original: 'مُتَفَاعِلُنْ', actual: 'مُتَفَاعِلْ', pattern: '///0/0', kind: 'علة نقص', name: 'القطع', explanation: 'حذف ساكن الوتد المجموع وتسكين ما قبله في الضرب' },
     { original: 'مُتَفَاعِلُنْ', actual: 'مُتْفَاعِلْ', pattern: '/0/0/0', kind: 'علة نقص', name: 'إضمار مع قطع', explanation: 'اجتماع تسكين التاء مع قطع ساكن الوتد (مَفْعُولُنْ)' },
@@ -362,47 +364,91 @@ export const cleanPoeticText = (text: string): string => {
     .trim();
 };
 
+const SHAMSIYYAH_LETTERS = 'تثدذرزسشصضطظلن';
+const QAMARIYYAH_LETTERS = 'أإآءئؤابجحخعغفقكمهويد';
+
 export const convertToArudWriting = (text: string, isLastHemistich: boolean = false): string => {
   let cleaned = cleanPoeticText(text);
   if (!cleaned) return '';
 
-  // 1. الكلمات التي تثبت ألفها عروضياً وتسقط إملائياً
-  cleaned = cleaned
-    .replace(/هَٰذَا|هَذَا/g, 'هَاذَا')
-    .replace(/هَٰذِهِ|هَذِهِ/g, 'هَاذِهِي')
-    .replace(/هَٰذَانِ|هَذَانِ/g, 'هَاذَانِ')
-    .replace(/هَٰؤُلاَءِ|هَؤُلاَءِ/g, 'هَاؤُلاَءِ')
-    .replace(/ذَٰلِكَ|ذَلِكَ/g, 'ذَالِكَ')
-    .replace(/لَٰكِنَّ|لَكِنَّ/g, 'لَاكِنْنَ')
-    .replace(/لَٰكِنْ|لَكِنْ/g, 'لَاكِنْ')
-    .replace(/اللَّه|الله/g, 'الْلَاه')
-    .replace(/الرَّحْمَٰن|الرَّحْمَن/g, 'اَرْ رَحْمَان');
+  // 1. توحيد ترتيب الشدة والحركات (في حال كُتبت الحركة قبل الشدة)
+  cleaned = cleaned.replace(/([َُِ])ّ/g, 'ّ$1');
 
-  // 2. فك التنوين إلى نون ساكنة
+  // 2. الكلمات التي تثبت ألفها عروضياً وتسقط إملائياً
   cleaned = cleaned
-    .replace(/([^\s])ً/g, '$1َنْ')
+    .replace(/\bهَٰذَا\b|\bهَذَا\b/g, 'هَاذَا')
+    .replace(/\bهَٰذِهِ\b|\bهَذِهِ\b/g, 'هَاذِهِي')
+    .replace(/\bهَٰذَانِ\b|\bهَذَانِ\b/g, 'هَاذَانِ')
+    .replace(/\bهَٰؤُلَاءِ\b|\bهَؤُلَاءِ\b/g, 'هَاؤُلَاءِ')
+    .replace(/\bذَٰلِكَ\b|\bذَلِكَ\b/g, 'ذَالِكَ')
+    .replace(/\bلَٰكِنَّ\b|\bلَكِنَّ\b/g, 'لَاكِنْنَ')
+    .replace(/\bلَٰكِنْ\b|\bلَكِنْ\b/g, 'لَاكِنْ')
+    .replace(/\bاللَّهِ?\b|\bاللهِ?\b|\bاللَّهَ\b|\bاللهَ\b|\bاللَّهُ\b|\bاللهُ\b/g, 'الْلَاه')
+    .replace(/\bالرَّحْمَٰنِ?\b|\bالرَّحْمَنِ?\b/g, 'اَرْ رَحْمَان');
+
+  // 3. فك التنوين إلى نون ساكنة مع حذف ألف تنوين النصب الزائدة إملائياً
+  cleaned = cleaned
+    .replace(/([^\s])(?:ً[اى]?|اً)/g, '$1َنْ')
     .replace(/([^\s])ٌ/g, '$1ُنْ')
     .replace(/([^\s])ٍ/g, '$1ِنْ');
 
-  // 3. فك الحرف المشدد إلى ساكن فمتحرك
+  // 4. حذف ألف واو الجماعة الفارقة
+  cleaned = cleaned.replace(/ُوا\b/g, 'ُو');
+
+  // 5. قواعد التقاء الساكنين وسقوط همزة الوصل في درج الكلام
+  const H = '[ًٌٍَُِْ]?';
+  const L = '[بتثجحخدذرزسشصضطظعغفقكلمنهويءئؤةأإآى]';
+
+  // أولاً: ال الشمسية في درج الكلام (تسقط الـ التعريف كلياً ويشدد الحرف الشمسي)
+  const sunRegexWithYa = new RegExp(`(${L})${H}([ىي])\\s+ال([${SHAMSIYYAH_LETTERS}])`, 'g');
+  cleaned = cleaned.replace(sunRegexWithYa, '$1ِ $3ّ');
+
+  const sunRegexWithAlif = new RegExp(`(${L})${H}([اى])\\s+ال([${SHAMSIYYAH_LETTERS}])`, 'g');
+  cleaned = cleaned.replace(sunRegexWithAlif, '$1َ $3ّ');
+
+  const sunRegexWithWaw = new RegExp(`(${L})${H}(و)\\s+ال([${SHAMSIYYAH_LETTERS}])`, 'g');
+  cleaned = cleaned.replace(sunRegexWithWaw, '$1ُ $3ّ');
+
+  const sunRegexVowel = new RegExp(`([َُِ])\\s+ال([${SHAMSIYYAH_LETTERS}])`, 'g');
+  cleaned = cleaned.replace(sunRegexVowel, '$1 $2ّ');
+
+  // ثانياً: ال القمرية في درج الكلام (تسقط همزة الوصل وتبقى لام التعريف ساكنة)
+  const moonRegexWithYa = new RegExp(`(${L})${H}([ىي])\\s+الْ?([${QAMARIYYAH_LETTERS}])`, 'g');
+  cleaned = cleaned.replace(moonRegexWithYa, '$1ِ لْ$3');
+
+  const moonRegexWithAlif = new RegExp(`(${L})${H}([اى])\\s+الْ?([${QAMARIYYAH_LETTERS}])`, 'g');
+  cleaned = cleaned.replace(moonRegexWithAlif, '$1َ لْ$3');
+
+  const moonRegexWithWaw = new RegExp(`(${L})${H}(و)\\s+الْ?([${QAMARIYYAH_LETTERS}])`, 'g');
+  cleaned = cleaned.replace(moonRegexWithWaw, '$1ُ لْ$3');
+
+  const moonRegexVowel = new RegExp(`([َُِ])\\s+الْ?([${QAMARIYYAH_LETTERS}])`, 'g');
+  cleaned = cleaned.replace(moonRegexVowel, '$1 لْ$2');
+
+  // ثالثاً: "ال" في أول الكلام
+  const sunStart = new RegExp(`^ال([${SHAMSIYYAH_LETTERS}])`);
+  cleaned = cleaned.replace(sunStart, 'اَ$1ّ');
+  cleaned = cleaned.replace(/^الْ?/, 'اَلْ');
+
+  // دمج الشدات والحركات المكررة إن وجدت
+  cleaned = cleaned.replace(/ّ+/g, 'ّ');
+  cleaned = cleaned.replace(/([َُِ])([َُِ])/g, '$2');
+
+  // 6. فك الحرف المشدد إلى ساكن فمتحرك
   const arabicLettersRegex = /([بتثجحخدذرزسشصضطظعغفقكلمنهويءئؤةأإآى])ّ([َُِ]?)/g;
   cleaned = cleaned.replace(arabicLettersRegex, (_, char, v) => {
     const vowel = v || 'َ';
     return `${char}ْ${char}${vowel}`;
   });
 
-  // 4. حذف ألف واو الجماعة
-  cleaned = cleaned.replace(/ُوا\b/g, 'ُو');
-
-  // 5. إشباع حرف الروي في آخر الشطر
+  // 7. إشباع حرف الروي في آخر الشطر إذا كان متحركاً
   if (isLastHemistich) {
-    const lastCharWithVowel = cleaned.slice(-2);
-    if (lastCharWithVowel.endsWith('َ')) {
-      cleaned = cleaned.slice(0, -1) + 'َا';
-    } else if (lastCharWithVowel.endsWith('ُ')) {
-      cleaned = cleaned.slice(0, -1) + 'ُو';
-    } else if (lastCharWithVowel.endsWith('ِ')) {
-      cleaned = cleaned.slice(0, -1) + 'ِي';
+    if (cleaned.endsWith('َ')) {
+      cleaned = cleaned + 'ا';
+    } else if (cleaned.endsWith('ُ')) {
+      cleaned = cleaned + 'و';
+    } else if (cleaned.endsWith('ِ')) {
+      cleaned = cleaned + 'ي';
     }
   }
 
@@ -536,9 +582,10 @@ export const matchFeetAndZihafat = (symbols: string, meter: PoeticMeter): MeterF
  * الذي يفسر أكبر قدر من الرموز بأعلى درجة تناسق.
  */
 export const scoreMeterFit = (symbols: string, meter: PoeticMeter): number => {
-  let score = 0;
+  let matchedSymbols = 0;
   let cursor = 0;
   const feet = meter.feet;
+  let qualityPoints = 0;
 
   for (let i = 0; i < feet.length && cursor < symbols.length; i++) {
     const baseName = feet[i];
@@ -549,25 +596,23 @@ export const scoreMeterFit = (symbols: string, meter: PoeticMeter): number => {
       const len = mut.pattern.length;
       if (cursor + len <= symbols.length && symbols.slice(cursor, cursor + len) === mut.pattern) {
         cursor += len;
-        // Salima gives 25 points, Zihaf gives 22, Illa in Arud/Darb gives 20
-        score += mut.kind === 'سالمة' ? 25 : 22;
+        matchedSymbols += len;
+        qualityPoints += (mut.kind === 'سالمة' ? 1.0 : 0.95);
         matched = true;
         break;
       }
     }
 
     if (!matched) {
-      // Partial match
-      cursor += 4;
-      score += 5;
+      cursor += 3;
     }
   }
 
-  // Penalty for leftover symbols
+  const coverage = Math.min(1.0, matchedSymbols / Math.max(symbols.length, 1));
   const leftover = Math.abs(symbols.length - cursor);
-  score = Math.max(0, score - leftover * 3);
+  const leftoverPenalty = (leftover / symbols.length) * 40;
 
-  return score;
+  return Math.max(0, Math.round((coverage * 70 + (qualityPoints / feet.length) * 30) - leftoverPenalty));
 };
 
 /**
