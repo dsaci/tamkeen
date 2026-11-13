@@ -6,7 +6,7 @@ import {
   LogOut, ShieldCheck, Star, X, CheckCircle2,
   GraduationCap, ChevronRight, ChevronLeft, Play, Pause,
   Search, ArrowUpRight, Award, Compass, HeartHandshake,
-  FileCheck2, Shield, BellRing, Home, Users
+  FileCheck2, Shield, BellRing, Home, Users, Feather
 } from 'lucide-react';
 import { TeacherProfile, TabType } from '../../types';
 import { TamkeenLogoBrand as TamkeenLogo } from '../../components/ui/TamkeenLogo';
@@ -92,6 +92,32 @@ const SERVICES: ServiceItem[] = [
     ],
     proTip: 'المذكرة الذكية توفر لك هيكلاً بيداغوجياً رصيناً؛ أضف إليها دائماً لمستك الذاتية وراعِ الفروق الفردية وواقع تلاميذ قسمك.',
     tags: ['ذكاء اصطناعي', 'المقاربة بالكفاءات', 'جاهز للطباعة']
+  },
+  {
+    id: '/faraheedy',
+    title: 'ميزان تمكين العروضي',
+    subtitle: 'حوسبة بحور الشعر والتقطيع العروضي',
+    category: 'ai',
+    categoryLabel: 'الذكاء واللغة',
+    icon: Feather,
+    gradient: 'from-teal-500 via-emerald-600 to-indigo-700',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    accentBorder: 'border-emerald-400/40',
+    isAi: true,
+    isHot: true,
+    overview: 'نظام حاسوبي وبيداغوجي متقدم لتشريح الأبيات الشعرية عروضياً، استخراج التفعيلات والكتابة العروضية، وتحديد البحر والروي وفق المناهج الجزائرية (مستوحى من مشروع الفراهيدي).',
+    benefits: [
+      'تشريح آلي فوري يولد الأسطر الأربعة الرسمية (الإملائي، العروضي، الرموز، التفاعيل).',
+      'بنك نماذج جاهزة من مقررات اللغة العربية (عنترة، مفدي زكريا، البارودي، المتنبي...).',
+      'محاكي أسئلة وتطبيقات البكالوريا مع الإجابة النموذجية وسلم التنقيط الوزاري.'
+    ],
+    steps: [
+      { num: '1', text: 'إدخال البيت الشعري', detail: 'أدخل شطري البيت أو اختر نصاً مقرراً من القائمة.' },
+      { num: '2', text: 'التشريح العروضي', detail: 'شاهد التقطيع التفاعلي واستخراج البحر والزحافات والقافية.' },
+      { num: '3', text: 'تصدير ورقة العمل', detail: 'اطبع بطاقة التقطيع أو أدرجها مباشرة في مذكرة الدرس.' }
+    ],
+    proTip: 'استعن بمحاكي أسئلة البكالوريا لتدريب تلاميذك على استخراج الرموز والتفعيلات بدقة وسرعة.',
+    tags: ['تقطيع عروضي', 'بحور الشعر', 'بكالوريا جزائرية', 'الفراهيدي']
   },
   {
     id: '/whiteboard',
@@ -575,33 +601,42 @@ export default function IntroHub({ profile, onNavigate, onGoToLanding, darkMode,
           <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-emerald-500 via-amber-400 to-indigo-500 opacity-80"></div>
 
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            {/* Left: Teacher Info & Status */}
-            <div className="space-y-2 text-right">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-xs font-black border border-amber-200 dark:border-amber-800">
-                  <Star size={12} className="fill-amber-400 text-amber-400" />
-                  <span>{dateInfo}</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
-                  <FileCheck2 size={12} />
-                  <span>{levelLabel}</span>
-                </span>
-                {profile.institution && (
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
-                    {profile.institution}
-                  </span>
-                )}
+            {/* Left: Teacher Info & Status with Avatar */}
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl overflow-hidden border-2 border-amber-400/50 shadow-lg shadow-amber-500/10 shrink-0 bg-slate-100 dark:bg-slate-800">
+                <img
+                  src="/images/default_avatar.jpg"
+                  alt={profile.name}
+                  className="w-full h-full object-cover object-top"
+                />
               </div>
+              <div className="space-y-2 text-right">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-xs font-black border border-amber-200 dark:border-amber-800">
+                    <Star size={12} className="fill-amber-400 text-amber-400" />
+                    <span>{dateInfo}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                    <FileCheck2 size={12} />
+                    <span>{levelLabel}</span>
+                  </span>
+                  {profile.institution && (
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+                      {profile.institution}
+                    </span>
+                  )}
+                </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-[1.5] sm:leading-[1.6] my-2">
-                <span>طاب يومك البيداغوجي، أستاذ</span>{' '}
-                <span className="inline-block text-amber-500 dark:text-amber-400 font-black py-0.5">
-                  {profile.name}
-                </span>
-              </h1>
-              <p className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl pt-1">
-                بوابتك الرقمية المهنية: اختر الخدمة للبدء المباشر، أو انقر على زر دليل الاستخدام لعرض نافذة الشرح البيداغوجية الشفافة.
-              </p>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-[1.5] sm:leading-[1.6] my-2">
+                  <span>طاب يومك البيداغوجي، أستاذ</span>{' '}
+                  <span className="inline-block text-amber-500 dark:text-amber-400 font-black py-0.5">
+                    {profile.name}
+                  </span>
+                </h1>
+                <p className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl pt-1">
+                  بوابتك الرقمية المهنية: اختر الخدمة للبدء المباشر، أو انقر على زر دليل الاستخدام لعرض نافذة الشرح البيداغوجية الشفافة.
+                </p>
+              </div>
             </div>
 
             {/* Right: Quick Launch Shortcuts Bar */}
@@ -617,6 +652,14 @@ export default function IntroHub({ profile, onNavigate, onGoToLanding, darkMode,
                 >
                   <Zap size={13} className="text-violet-500" />
                   <span>تحضير مذكرة</span>
+                </button>
+
+                <button
+                  onClick={() => onNavigate('/faraheedy')}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 transition-all shadow-sm"
+                >
+                  <Feather size={13} className="text-emerald-500" />
+                  <span>ميزان العروض</span>
                 </button>
 
                 <button

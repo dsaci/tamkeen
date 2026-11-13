@@ -18,11 +18,20 @@ export default function DashboardView({ profile }: { profile: TeacherProfile }) 
       return (
          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             <div className="bg-gradient-to-br from-indigo-600 to-blue-800 p-8 rounded-[2.5rem] text-white relative overflow-hidden mb-8 shadow-xl">
-               <div className="relative z-10">
-                  <h3 className="text-3xl font-black mb-2">مرحباً حضرة المسؤول، {profile.name}</h3>
-                  <p className="opacity-90 max-w-2xl font-medium leading-relaxed mb-6">
-                     هذه اللوحة مخصصة لمتابعة ومراقبة حسابات الأساتذة، حيث يمكنك رؤية كافة المدخلات، وتعديل الصلاحيات، ومتابعة آخر النشاطات على مستوى المنصة.
-                  </p>
+               <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                     <h3 className="text-3xl font-black mb-2">مرحباً حضرة المسؤول، {profile.name}</h3>
+                     <p className="opacity-90 max-w-2xl font-medium leading-relaxed mb-6">
+                        هذه اللوحة مخصصة لمتابعة ومراقبة حسابات الأساتذة، حيث يمكنك رؤية كافة المدخلات، وتعديل الصلاحيات، ومتابعة آخر النشاطات على مستوى المنصة.
+                     </p>
+                  </div>
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl overflow-hidden border-2 border-white/40 shadow-2xl shrink-0 bg-white/10">
+                     <img
+                        src="/images/default_avatar.jpg"
+                        alt={profile.name}
+                        className="w-full h-full object-cover object-top"
+                     />
+                  </div>
                </div>
                <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
                <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
@@ -44,14 +53,23 @@ export default function DashboardView({ profile }: { profile: TeacherProfile }) 
          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             {/* Welcome Banner */}
             <div className="bg-gradient-to-br from-emerald-600 to-teal-800 p-8 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl">
-               <div className="relative z-10">
-                  <h3 className="text-3xl font-black mb-2">مرحباً بك، أ. {profile.name}</h3>
-                  <p className="opacity-90 mb-8 font-medium">نرجو لك يوماً دراسياً موفقاً وحافلاً بالإنجازات والتميز البيداغوجي.</p>
-                  <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 inline-block">
-                     <p className="text-sm font-bold flex items-center gap-2">
-                        <CheckCircle2 size={18} className="text-emerald-300" />
-                        حالتك لليوم: إنجاز {completedSessions} من أصل {entries.length} حصص مخططة.
-                     </p>
+               <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                     <h3 className="text-3xl font-black mb-2">مرحباً بك، أ. {profile.name}</h3>
+                     <p className="opacity-90 mb-6 font-medium">نرجو لك يوماً دراسياً موفقاً وحافلاً بالإنجازات والتميز البيداغوجي.</p>
+                     <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 inline-block">
+                        <p className="text-sm font-bold flex items-center gap-2">
+                           <CheckCircle2 size={18} className="text-emerald-300" />
+                           حالتك لليوم: إنجاز {completedSessions} من أصل {entries.length} حصص مخططة.
+                        </p>
+                     </div>
+                  </div>
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl overflow-hidden border-2 border-white/40 shadow-2xl shrink-0 bg-white/10">
+                     <img
+                        src="/images/default_avatar.jpg"
+                        alt={profile.name}
+                        className="w-full h-full object-cover object-top"
+                     />
                   </div>
                </div>
                <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>

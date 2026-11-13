@@ -5,7 +5,8 @@ import {
   FileStack, Settings as SettingsIcon, Sun, Moon, Copy, Check, BookOpen,
   Calculator, FileEdit, Sparkles, QrCode, ShieldCheck, Wifi, Fingerprint, Database,
   CloudCheck, Shield, MessageSquare, Bell, Users, UserCog, HeartHandshake, HelpCircle, Heart, Calendar,
-  ChevronDown, ChevronUp, Layers, PenLine, Monitor, Library, Zap, Compass, Home, CreditCard, CalendarDays
+  ChevronDown, ChevronUp, Layers, PenLine, Monitor, Library, Zap, Compass, Home, CreditCard, CalendarDays,
+  Feather
 } from 'lucide-react';
 import { AdminNotificationBanner } from './components/AdminNotificationBanner';
 import { useAuth } from './contexts/AuthContext';
@@ -40,6 +41,7 @@ import WorksheetGenerator from './lib/views/generators/WorksheetGenerator';
 import PresentationStepper from './lib/views/generators/PresentationStepper';
 import WhiteboardView from './lib/views/WhiteboardView';
 import NewTeacherKit from './lib/views/NewTeacherKit';
+import FaraheedyProsodyView from './lib/views/FaraheedyProsodyView';
 import { QRCodeCanvas } from 'qrcode.react';
 import InspirationBanner from './legacy_components/InspirationBanner';
 import LoadingScreen from './legacy_components/LoadingScreen';
@@ -460,10 +462,11 @@ const App: React.FC = () => {
                 title: 'الذكاء الاصطناعي والمحتوى',
                 icon: Sparkles,
                 color: 'text-indigo-500 bg-indigo-500/10',
-                badge: '6 أدوات',
+                badge: '7 أدوات',
                 items: [
                   { id: '/copilot', label: 'المساعد الذكي', icon: Sparkles },
                   { id: '/mothakira-thakiya', label: t.memo, icon: Zap },
+                  { id: '/faraheedy', label: 'ميزان تمكين العروضي', icon: Feather },
                   { id: '/whiteboard', label: 'السبورة التفاعلية', icon: Sparkles },
                   { id: '/exam-generator', label: 'مولد الاختبارات', icon: PenLine },
                   { id: '/worksheet-generator', label: 'أوراق العمل', icon: Layers },
@@ -792,13 +795,14 @@ const App: React.FC = () => {
                     <div className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300"
                       style={{ background: 'linear-gradient(135deg, #10b981, #f59e0b, #6366f1)', borderRadius: '14px' }}></div>
                     {/* Avatar */}
-                    <div className="relative w-9 h-9 rounded-xl overflow-hidden border-2 border-white/80 dark:border-slate-600/60 shadow-inner">
-                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-teal-500 to-indigo-600"></div>
+                    <div className="relative w-9 h-9 rounded-xl overflow-hidden border-2 border-white/80 dark:border-slate-600/60 shadow-inner bg-slate-100 dark:bg-slate-800">
+                      <img
+                        src="/images/default_avatar.jpg"
+                        alt={profile.name}
+                        className="w-full h-full object-cover object-top"
+                      />
                       {/* Shimmer sweep on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-white font-black text-base drop-shadow-md">{profile.name?.charAt(0) || 'أ'}</span>
-                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none"></div>
                     </div>
                   </div>
 
@@ -831,8 +835,12 @@ const App: React.FC = () => {
                     <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white dark:bg-slate-900 border-t border-r border-slate-100 dark:border-slate-700/60 rotate-[-45deg] mt-px"></span>
 
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-indigo-600 flex items-center justify-center shadow-md">
-                        <span className="text-white font-black text-xl">{profile.name?.charAt(0) || 'أ'}</span>
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-md bg-slate-100 dark:bg-slate-800 shrink-0">
+                        <img
+                          src="/images/default_avatar.jpg"
+                          alt={profile.name}
+                          className="w-full h-full object-cover object-top"
+                        />
                       </div>
                       <div>
                         <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{profile.name}</p>
@@ -905,6 +913,7 @@ const App: React.FC = () => {
                 <Route path="/timetable" element={<TimetableDashboard profile={profile} />} />
                 <Route path="/calendar" element={<CalendarView profile={profile} />} />
                 <Route path="/copilot" element={<Copilot />} />
+                <Route path="/faraheedy" element={<FaraheedyProsodyView profile={profile} />} />
                 <Route path="/exam-generator" element={<ExamGenerator profile={profile} />} />
                 <Route path="/worksheet-generator" element={<WorksheetGenerator profile={profile} />} />
                 <Route path="/presentation-stepper" element={<PresentationStepper />} />
@@ -977,9 +986,13 @@ const App: React.FC = () => {
               <div className="h-32 bg-gradient-to-br from-emerald-600 to-teal-800 relative">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
                 <div className="absolute -bottom-10 right-0 left-0 flex justify-center">
-                  <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full p-2 shadow-lg">
-                    <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-2xl font-black text-emerald-600 border border-emerald-100 dark:border-slate-700">
-                      {profile.name.charAt(0)}
+                  <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full p-1.5 shadow-xl border-2 border-emerald-400">
+                    <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex items-center justify-center">
+                      <img
+                        src="/images/default_avatar.jpg"
+                        alt={profile.name}
+                        className="w-full h-full object-cover object-top"
+                      />
                     </div>
                   </div>
                 </div>

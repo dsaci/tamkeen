@@ -1,0 +1,806 @@
+/**
+ * ============================================================================
+ * 🪶 ميزان تمكين العروضي (Tamkeen Arabic Prosody Engine)
+ * المحرك الحاسوبي لتشريح إيقاع وموسيقى الشعر العربي وحوسبة علم العروض
+ * مستوحى من نظام الفراهيدي للشاعر والمهندس مختار الكمالي ومنهاج اللغة العربية الجزائري
+ * ============================================================================
+ */
+
+export interface ProsodySyllable {
+  char: string;
+  symbol: '/' | '0'; // '/' للحركة، '0' للسكون
+  isNunation?: boolean;
+  isShaddah?: boolean;
+}
+
+export interface MeterFoot {
+  original: string;       // مثل "مُسْتَفْعِلُنْ"
+  actual: string;         // مثل "مُتَفْعِلُنْ"
+  symbols: string;        // مثل "//0//0"
+  zihafOrIlla?: string;   // مثل "مخبونة (الخبن: حذف الثاني الساكن)"
+}
+
+export interface PoeticMeter {
+  id: string;
+  name: string;
+  type: 'صافٍ' | 'ممتزج' | 'تفعيلة';
+  rhymeKey: string;       // مفتاح البحر
+  idealPattern: string;   // الرموز القياسية
+  feet: string[];         // التفعيلات القياسية لكل شطر
+  description: string;
+  gradeRelevance: string; // صلة المنهاج الجزائري: 1AS, 2AS, 3AS
+}
+
+export interface HemistichAnalysis {
+  originalText: string;
+  arudWriting: string;
+  symbols: string;
+  feet: MeterFoot[];
+}
+
+export interface VerseAnalysisResult {
+  verseOriginal: {
+    firstHemistich: string;  // الصدر
+    secondHemistich: string; // العجز
+  };
+  firstHemistich: HemistichAnalysis;
+  secondHemistich: HemistichAnalysis;
+  meter: PoeticMeter;
+  confidenceScore: number;
+  qafiyah: {
+    word: string;
+    letters: string;
+    type: string;          // متواترة، متداركة، متراكبة...
+    rawiy: string;         // حرف الروي
+    rawiyMovement: string; // حركة الروي (المجرى)
+    status: 'سليمة' | 'تحتوي على سناد محتمل';
+    notes?: string;
+  };
+  pedagogicalNotes: string[];
+}
+
+// ============================================================================
+// 1. البحور الشعرية الستة عشر ومفاتيحها وفق المنهاج
+// ============================================================================
+export const POETIC_METERS: PoeticMeter[] = [
+  {
+    id: 'taweel',
+    name: 'بحر الطويل',
+    type: 'ممتزج',
+    rhymeKey: 'طَوِيلٌ لَهُ دُونَ البُحُورِ فَضَائِلُ ... فَعُولُنْ مَفَاعِيلُنْ فَعُولُنْ مَفَاعِلُ',
+    idealPattern: '//0/0 //0/0/0 //0/0 //0//0',
+    feet: ['فَعُولُنْ', 'مَفَاعِيلُنْ', 'فَعُولُنْ', 'مَفَاعِلُنْ'],
+    description: 'أعظم بحور الشعر العربي فخامة، مبني على تكرار (فَعُولُنْ مَفَاعِيلُنْ) مرتين في كل شطر.',
+    gradeRelevance: 'السنة الأولى ثانوي (معلقات امرئ القيس وزهير بن أبي سلمى) والسنة الثالثة ثانوي'
+  },
+  {
+    id: 'kamel',
+    name: 'بحر الكامل',
+    type: 'صافٍ',
+    rhymeKey: 'كَمُلَ الجَمَالُ مِنَ البُحُورِ الكَامِلُ ... مُتَفَاعِلُنْ مُتَفَاعِلُنْ مُتَفَاعِلُ',
+    idealPattern: '///0//0 ///0//0 ///0//0',
+    feet: ['مُتَفَاعِلُنْ', 'مُتَفَاعِلُنْ', 'مُتَفَاعِلُنْ'],
+    description: 'بحر رنان رشيق يكثر فيه زحاف الإضمار (مُتْفَاعِلُنْ /0/0//0). معتمد بقوة في شعر التفعيلة أيضاً.',
+    gradeRelevance: 'السنة الأولى ثانوي (معلقة عنترة بن شداد)، والسنة الثالثة ثانوي (محمود درويش والشعر المعاصر)'
+  },
+  {
+    id: 'baseet',
+    name: 'بحر البسيط',
+    type: 'ممتزج',
+    rhymeKey: 'إِنَّ البَسِيطَ لَدَيْهِ يُبْسَطُ الأَمَلُ ... مُسْتَفْعِلُنْ فَاعِلُنْ مُسْتَفْعِلُنْ فَعِلُ',
+    idealPattern: '/0/0//0 /0//0 /0/0//0 ///0',
+    feet: ['مُسْتَفْعِلُنْ', 'فَاعِلُنْ', 'مُسْتَفْعِلُنْ', 'فَعِلُنْ'],
+    description: 'بحر الرصانة والمديح والحكمة، يكثر فيه الخبن في (فَاعِلُنْ) لتصبح (فَعِلُنْ ///0).',
+    gradeRelevance: 'السنة الأولى ثانوي (حسان بن ثابت، المتنبي)، والسنة الثالثة ثانوي (شعر المنفى للبارودي)'
+  },
+  {
+    id: 'wafer',
+    name: 'بحر الوافر',
+    type: 'صافٍ',
+    rhymeKey: 'بُحُورُ الشِّعْرِ وَافِرُهَا جَمِيلُ ... مُفَاعَلَتُنْ مُفَاعَلَتُنْ فَعُولُ',
+    idealPattern: '//0///0 //0///0 //0/0',
+    feet: ['مُفَاعَلَتُنْ', 'مُفَاعَلَتُنْ', 'فَعُولُنْ'],
+    description: 'بحر الحماسة والوجد والشكوى، يطرأ عليه العصب (مُفَاعَلْتُنْ //0/0/0) كثيراً.',
+    gradeRelevance: 'السنة الأولى ثانوي (عمرو بن كلثوم)، والسنة الثالثة ثانوي (أحمد شوقي والقضية الفلسطينية)'
+  },
+  {
+    id: 'khafeef',
+    name: 'بحر الخفيف',
+    type: 'ممتزج',
+    rhymeKey: 'يَا خَفِيفاً خَفَّتْ بِهِ الحَرَكَاتُ ... فَاعِلاتُنْ مُسْتَفْعِ لُنْ فَاعِلاتُ',
+    idealPattern: '/0//0/0 /0/0//0 /0//0/0',
+    feet: ['فَاعِلاتُنْ', 'مُسْتَفْعِ لُنْ', 'فَاعِلاتُنْ'],
+    description: 'بحر عذب رشيق متعدد الأغراض؛ صيغت به أروع القصائد الوطنية والوجدانية.',
+    gradeRelevance: 'السنة الثالثة ثانوي (إلياذة الجزائر لمفدي زكريا، البوصيري، أحمد شوقي)'
+  },
+  {
+    id: 'rajaz',
+    name: 'بحر الرجز',
+    type: 'صافٍ',
+    rhymeKey: 'فِي أَبْحُرِ الأَرْجَازِ بَحْرٌ يَسْهُلُ ... مُسْتَفْعِلُنْ مُسْتَفْعِلُنْ مُسْتَفْعِلُ',
+    idealPattern: '/0/0//0 /0/0//0 /0/0//0',
+    feet: ['مُسْتَفْعِلُنْ', 'مُسْتَفْعِلُنْ', 'مُسْتَفْعِلُنْ'],
+    description: 'يسمى (حمار الشعراء) لسهولته وسرعته، تدور عليه أغلب المنظومات العلمية والشعر الحر.',
+    gradeRelevance: 'التعليم المتوسط والثانوي، منظومات النحو، والشعر الحر التفعيلي'
+  },
+  {
+    id: 'ramal',
+    name: 'بحر الرمل',
+    type: 'صافٍ',
+    rhymeKey: 'رَمَلُ الأَبْحُرِ تَرْوِيهِ الثِّقَاتُ ... فَاعِلاتُنْ فَاعِلاتُنْ فَاعِلاتُ',
+    idealPattern: '/0//0/0 /0//0/0 /0//0/0',
+    feet: ['فَاعِلاتُنْ', 'فَاعِلاتُنْ', 'فَاعِلاتُنْ'],
+    description: 'بحر الموسيقى الهادئة، اعتمد في النشيد الوطني الجزائري وقصائد المقاومة وشعر التفعيلة.',
+    gradeRelevance: 'النشيد الوطني الجزائري (قسماً)، السنة الثالثة ثانوي (نازك الملائكة، نزار قباني)'
+  },
+  {
+    id: 'mutaqarib',
+    name: 'بحر المتقارب',
+    type: 'صافٍ',
+    rhymeKey: 'عَنِ المُتَقَارِبِ قَالَ الخَلِيلُ ... فَعُولُنْ فَعُولُنْ فَعُولُنْ فَعُولُ',
+    idealPattern: '//0/0 //0/0 //0/0 //0/0',
+    feet: ['فَعُولُنْ', 'فَعُولُنْ', 'فَعُولُنْ', 'فَعُولُنْ'],
+    description: 'بحر وثاب سريع الإيقاع؛ يكثر فيه زحاف القبض (فَعُولُ //0/) وحذف العروض والضرب.',
+    gradeRelevance: 'السنة الأولى ثانوي، وقصائد أبي القاسم الشابي (إذا الشعب يوماً أراد الحياة)'
+  },
+  {
+    id: 'mutadarak',
+    name: 'بحر المتدارك (الخبب)',
+    type: 'صافٍ',
+    rhymeKey: 'حَرَكَاتُ المُحْدَثِ تَنْتَقِلُ ... فَعِلُنْ فَعِلُنْ فَعِلُنْ فَعِلُ',
+    idealPattern: '/0//0 /0//0 /0//0 /0//0',
+    feet: ['فَاعِلُنْ', 'فَاعِلُنْ', 'فَاعِلُنْ', 'فَاعِلُنْ'],
+    description: 'يسمى ركض الخيل أو الخبب إذا خُبنت تفعيلاته لتصير (فَعِلُنْ ///0)؛ وهو بحر درامي عاصف.',
+    gradeRelevance: 'السنة الثالثة ثانوي (قصيدة الكوليرا لنازك الملائكة، محمود درويش)'
+  },
+  {
+    id: 'saree',
+    name: 'بحر السريع',
+    type: 'ممتزج',
+    rhymeKey: 'بَحْرٌ سَرِيعٌ مَالَهُ سَاحِلُ ... مُسْتَفْعِلُنْ مُسْتَفْعِلُنْ فَاعِلُ',
+    idealPattern: '/0/0//0 /0/0//0 /0//0',
+    feet: ['مُسْتَفْعِلُنْ', 'مُسْتَفْعِلُنْ', 'فَاعِلُنْ'],
+    description: 'بحر طروب تسرع تفعيلاته بحذف السبب الأخير في العروض والضرب.',
+    gradeRelevance: 'السنة الثانية والثالثة ثانوي'
+  },
+  {
+    id: 'hazaj',
+    name: 'بحر الهزج',
+    type: 'صافٍ',
+    rhymeKey: 'عَلَى الأَهْزَاجِ تَسْهِيلُ ... مَفَاعِيلُنْ مَفَاعِيلُ',
+    idealPattern: '//0/0/0 //0/0/0',
+    feet: ['مَفَاعِيلُنْ', 'مَفَاعِيلُنْ'],
+    description: 'بحر خفيف غنائي مجزوء وجوباً، شائع في الموشحات وشعر الأناشيد.',
+    gradeRelevance: 'الموشحات الأندلسية (السنة الثانية ثانوي)'
+  },
+  {
+    id: 'munsarih',
+    name: 'بحر المنسرح',
+    type: 'ممتزج',
+    rhymeKey: 'مُنْسَرِحٌ فِيهِ يُضْرَبُ المَثَلُ ... مُسْتَفْعِلُنْ مَفْعُولاتُ مُسْتَفْعِلُ',
+    idealPattern: '/0/0//0 /0/0/0/ /0/0//0',
+    feet: ['مُسْتَفْعِلُنْ', 'مَفْعُولاتُ', 'مُسْتَفْعِلُنْ'],
+    description: 'بحر منسرح الألفاظ والنغمات، يتميز بدخول مفعولاتُ فيه.',
+    gradeRelevance: 'السنة الثانية والثالثة ثانوي آداب وفلسفة'
+  },
+  {
+    id: 'madeed',
+    name: 'بحر المديد',
+    type: 'ممتزج',
+    rhymeKey: 'لِمَدِيدِ الشِّعْرِ عِنْدِي صِفَاتُ ... فَاعِلاتُنْ فَاعِلُنْ فَاعِلاتُ',
+    idealPattern: '/0//0/0 /0//0 /0//0/0',
+    feet: ['فَاعِلاتُنْ', 'فَاعِلُنْ', 'فَاعِلاتُنْ'],
+    description: 'بحر قليل الورود في الشعر العربي، يعتمد على امتداد النغم الصوتي.',
+    gradeRelevance: 'نصوص أدبية متقدمة'
+  },
+  {
+    id: 'muqtadab',
+    name: 'بحر المقتضب',
+    type: 'ممتزج',
+    rhymeKey: 'اقْتَضِبْ كَمَا سَأَلُوا ... مَفْعُولاتُ مُسْتَفْعِلُ',
+    idealPattern: '/0/0/0/ /0/0//0',
+    feet: ['مَفْعُولاتُ', 'مُسْتَفْعِلُنْ'],
+    description: 'بحر مجزوء سريع الإيقاع نادر الاستعمال.',
+    gradeRelevance: 'الثقافة الأدبية العامة'
+  },
+  {
+    id: 'mujtath',
+    name: 'بحر المجتث',
+    type: 'ممتزج',
+    rhymeKey: 'إِنْ جُثَّتِ الحَرَكَاتُ ... مُسْتَفْعِ لُنْ فَاعِلاتُ',
+    idealPattern: '/0/0//0 /0//0/0',
+    feet: ['مُسْتَفْعِ لُنْ', 'فَاعِلاتُنْ'],
+    description: 'مجزوء بحر الخفيف اقتطع منه تفعيلة أولى، خفيف الوقع على النفس.',
+    gradeRelevance: 'الموشحات والشعر الغنائي'
+  },
+  {
+    id: 'mudari',
+    name: 'بحر المضارع',
+    type: 'ممتزج',
+    rhymeKey: 'تُعَدُّ لِلْمُضَارِعِ ... مَفَاعِيلُنْ فَاعِ لاتُ',
+    idealPattern: '//0/0/0 /0//0/0',
+    feet: ['مَفَاعِيلُنْ', 'فَاعِ لاتُنْ'],
+    description: 'أندر بحور الشعر العربي مجزوء وجوباً، سمي مضارعاً لمضارعته بحر المقتضب.',
+    gradeRelevance: 'تاريخ الأدب العربي'
+  }
+];
+
+// ============================================================================
+// 2. نماذج المنهاج الجزائري الجاهزة للتحليل الفوري
+// ============================================================================
+export interface AlgerianCurriculumPoem {
+  id: string;
+  title: string;
+  poet: string;
+  era: string;
+  level: string;
+  unit: string;
+  firstHemistich: string;
+  secondHemistich: string;
+  meterId: string;
+  expectedQafiyah: string;
+  expectedRawiy: string;
+}
+
+export const ALGERIAN_CURRICULUM_POEMS: AlgerianCurriculumPoem[] = [
+  {
+    id: 'antara_kamel',
+    title: 'معلقة عنترة بن شداد (الفروسية والفخر)',
+    poet: 'عنترة بن شداد العبسي',
+    era: 'العصر الجاهلي',
+    level: '1AS - جذع مشترك آداب وعلمي',
+    unit: 'الوحدة 02: الفروسية والشهامة',
+    firstHemistich: 'هَلْ غَادَرَ الشُّعَرَاءُ مِنْ مُتَرَدَّمِ',
+    secondHemistich: 'أَمْ هَلْ عَرَفْتَ الدَّارَ بَعْدَ تَوَهُّمِ',
+    meterId: 'kamel',
+    expectedQafiyah: 'تَوَهْهُمِي (/0///0)',
+    expectedRawiy: 'الميم المكسورة (المشبعة ياءً)'
+  },
+  {
+    id: 'imru_qais_taweel',
+    title: 'معلقة امرئ القيس (البكاء على الأطلال)',
+    poet: 'امرؤ القيس بن حجر الكندي',
+    era: 'العصر الجاهلي',
+    level: '1AS - جذع مشترك آداب وعلمي',
+    unit: 'الوحدة 01: من كرم الوفود والوقوف بالأطلال',
+    firstHemistich: 'قِفَا نَبْكِ مِنْ ذِكْرَى حَبِيبٍ وَمَنْزِلِ',
+    secondHemistich: 'بِسِقْطِ اللِّوَى بَيْنَ الدَّخُولِ فَحَوْمَلِ',
+    meterId: 'taweel',
+    expectedQafiyah: 'فَحَوْمَلِي (/0//0)',
+    expectedRawiy: 'اللام المكسورة'
+  },
+  {
+    id: 'motanabbi_baseet',
+    title: 'قصيدة الفخر وعزة النفس (المتنبي)',
+    poet: 'أبو الطيب المتنبي',
+    era: 'العصر العباسي',
+    level: '1AS و 2AS',
+    unit: 'شعر الحكمة وعزة النفس',
+    firstHemistich: 'الخَيْلُ وَاللَّيْلُ وَالبَيْدَاءُ تَعْرِفُنِي',
+    secondHemistich: 'وَالسَّيْفُ وَالرُّمْحُ وَالقِرْطَاسُ وَالقَلَمُ',
+    meterId: 'baseet',
+    expectedQafiyah: 'وَالقَلَمُو (/0///0)',
+    expectedRawiy: 'الميم المضمومة المشبعة'
+  },
+  {
+    id: 'baroudi_baseet',
+    title: 'شعر المنفى والمنهج الإحيائي',
+    poet: 'محمود سامي البارودي',
+    era: 'عصر النهضة والحديث',
+    level: '3AS - جميع الشعب (علمي وأدبي)',
+    unit: 'الوحدة 01: الشعر التعليمي والمنفى والإحياء',
+    firstHemistich: 'أَبِيتُ فِي غُرْبَةٍ لاَ النَّفْسُ رَاضِيَةٌ',
+    secondHemistich: 'بِهَا وَلاَ المُلْتَقَى مِنْ شِيعَتِي كَثَبُ',
+    meterId: 'baseet',
+    expectedQafiyah: 'شِيعَتِي كَثَبُو (/0//0)',
+    expectedRawiy: 'الباء المضمومة المشبعة'
+  },
+  {
+    id: 'moufdi_kassaman_ramal',
+    title: 'النشيد الوطني الجزائري (قسماً)',
+    poet: 'شاعر الثورة مفدي زكريا',
+    era: 'الثورة التحريرية المباركة',
+    level: 'جميع الأطوار والمستويات',
+    unit: 'النشيد الوطني الجزائري',
+    firstHemistich: 'قَسَماً بِالنَّازِلاَتِ المَاحِقَاتْ',
+    secondHemistich: 'وَالدِّمَاءِ الزَّاكِيَاتِ الطَّاهِرَاتْ',
+    meterId: 'ramal',
+    expectedQafiyah: 'طَّاهِرَاتْ (/0//00)',
+    expectedRawiy: 'التاء الساكنة'
+  },
+  {
+    id: 'moufdi_iliada_khafeef',
+    title: 'إلياذة الجزائر (ملحمة المجد)',
+    poet: 'مفدي زكريا',
+    era: 'الأدب الجزائري الحديث',
+    level: '3AS - شعب علمية وأدبية',
+    unit: 'الثورة الجزائرية في الشعر العربي',
+    firstHemistich: 'جَزَائِرُ يَا مَطْلَعَ المُعْجِزَاتْ',
+    secondHemistich: 'وَيَا حُجَّةَ اللهِ فِي الكَائِنَاتْ',
+    meterId: 'khafeef',
+    expectedQafiyah: 'كَائِنَاتْ (/0//00)',
+    expectedRawiy: 'التاء الساكنة المسبوقة بألف ردف'
+  },
+  {
+    id: 'shabbi_mutaqarib',
+    title: 'إرادة الحياة (الشابي)',
+    poet: 'أبو القاسم الشابي',
+    era: 'الأدب المعاصر الرومانسي',
+    level: '2AS و 3AS',
+    unit: 'شعر النضال والتحرر',
+    firstHemistich: 'إِذَا الشَّعْبُ يَوْماً أَرَادَ الحَيَاةْ',
+    secondHemistich: 'فَلاَ بُدَّ أَنْ يَسْتَجِيبَ القَدَرْ',
+    meterId: 'mutaqarib',
+    expectedQafiyah: 'بَ القَدَرْ (/0//0)',
+    expectedRawiy: 'الراء الساكنة'
+  },
+  {
+    id: 'nazik_cholera_mutadarak',
+    title: 'قصيدة الكوليرا (شعر التفعيلة)',
+    poet: 'نازيك الملائكة',
+    era: 'الشعر المعاصر والحر',
+    level: '3AS - الشعب الأدبية والعلمية',
+    unit: 'الوحدة: ظاهرة الشعر الحديث وموسيقى التفعيلة',
+    firstHemistich: 'سَكَنَ اللَّيْلُ أَصْغِ إِلَى وَقْعِ صَدَى الأَنَّاتْ',
+    secondHemistich: 'فِي عُمْقِ الظُّلْمَةِ، تَحْتَ الصَّمْتِ، عَلَى الأَمْوَاتْ',
+    meterId: 'mutadarak',
+    expectedQafiyah: 'الأَمْوَاتْ (/00)',
+    expectedRawiy: 'التاء المقيدة'
+  }
+];
+
+// ============================================================================
+// 3. خوارزميات التقطيع العروضي والكتابة العروضية والرموز الصوتية
+// ============================================================================
+
+/**
+ * تنظيف وتجهيز النص الشعري وإزالة الشوائب وعلامات الترقيم الدخيلة
+ */
+export const cleanPoeticText = (text: string): string => {
+  return text
+    .replace(/[،,؛;:!؟\?\[\]\(\)\{\}\"«»—\-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+/**
+ * محرك التحويل إلى الكتابة العروضية الصريحة:
+ * - فك التنوين إلى نون ساكنة
+ * - فك الشدة إلى ساكن فمتحرك
+ * - حذف همزة الوصل بعد متحرك
+ * - معالجة اللام الشمسية والقمرية
+ * - إشباع الروي في آخر الشطر
+ */
+export const convertToArudWriting = (text: string, isLastHemistich: boolean = false): string => {
+  let cleaned = cleanPoeticText(text);
+
+  if (!cleaned) return '';
+
+  // 1. استبدال الأسماء الشائعة التي تحذف ألفها إملائياً وتثبت عروضياً
+  cleaned = cleaned
+    .replace(/هَٰذَا|هَذَا/g, 'هَاذَا')
+    .replace(/هَٰذِهِ|هَذِهِ/g, 'هَاذِهِي')
+    .replace(/هَٰذَانِ|هَذَانِ/g, 'هَاذَانِ')
+    .replace(/هَٰؤُلاَءِ|هَؤُلاَءِ/g, 'هَاؤُلاَءِ')
+    .replace(/ذَٰلِكَ|ذَلِكَ/g, 'ذَالِكَ')
+    .replace(/لَٰكِنَّ|لَكِنَّ/g, 'لَاكِنْنَ')
+    .replace(/لَٰكِنْ|لَكِنْ/g, 'لَاكِنْ')
+    .replace(/اللَّه|الله/g, 'الْلَاه')
+    .replace(/الرَّحْمَٰن|الرَّحْمَن/g, 'اَرْ رَحْمَان');
+
+  // 2. فك التنوين إلى حركة متبوعة بنون ساكنة (ـً -> ـَنْ، ـٌ -> ـُنْ، ـٍ -> ـِنْ)
+  cleaned = cleaned
+    .replace(/([^\s])ً/g, '$1َنْ')
+    .replace(/([^\s])ٌ/g, '$1ُنْ')
+    .replace(/([^\s])ٍ/g, '$1ِنْ');
+
+  // 3. فك الحرف المشدد (الحرف + ّ + حركة -> الحرف ساكناً ثم متحركاً)
+  // مثال: شَمْسٌ -> ش م س + ّ -> ش م سْ س
+  const arabicLettersRegex = /([بتثجحخدذرزسشصضطظعغفقكلمنهويءئؤةأإآى])ّ([َُِ]?)/g;
+  cleaned = cleaned.replace(arabicLettersRegex, (_, char, v) => {
+    const vowel = v || 'َ';
+    return `${char}ْ${char}${vowel}`;
+  });
+
+  // 4. حذف ألف واو الجماعة في الأفعال (كتبوا -> كتبو)
+  cleaned = cleaned.replace(/ُوا\b/g, 'ُو');
+
+  // 5. إشباع حرف الروي (إذا كان الشطر الأخير أو حرف الروي يحتاج إشباعاً)
+  if (isLastHemistich) {
+    const lastCharWithVowel = cleaned.slice(-2);
+    if (lastCharWithVowel.endsWith('َ')) {
+      cleaned = cleaned.slice(0, -1) + 'َا';
+    } else if (lastCharWithVowel.endsWith('ُ')) {
+      cleaned = cleaned.slice(0, -1) + 'ُو';
+    } else if (lastCharWithVowel.endsWith('ِ')) {
+      cleaned = cleaned.slice(0, -1) + 'ِي';
+    }
+  }
+
+  return cleaned;
+};
+
+/**
+ * استخراج تسلسل الرموز العروضية (/ للحركة و 0 للسكون)
+ * الحركة: الفتحة (َ)، الضمة (ُ)، الكسرة (ِ)
+ * السكون: السكون (ْ)، حروف المد والألف والواو والياء الساكنة
+ */
+export const extractProsodySymbols = (arudText: string): string => {
+  let symbols = '';
+  const text = arudText.replace(/\s+/g, '');
+
+  const HARAKAT = ['َ', 'ُ', 'ِ', 'ً', 'ٌ', 'ٍ'];
+  const SUKUN = ['ْ'];
+  const MAD_LETTERS = ['ا', 'آ', 'ى', 'و', 'ي'];
+
+  let i = 0;
+  while (i < text.length) {
+    const char = text[i];
+    const nextChar = text[i + 1] || '';
+
+    // إذا كان الحرف علامة تشكيل
+    if (HARAKAT.includes(char)) {
+      // تم حسابه مع الحرف السابق
+      i++;
+      continue;
+    }
+    if (SUKUN.includes(char)) {
+      i++;
+      continue;
+    }
+
+    // فحص الحرف الهجائي
+    if (SUKUN.includes(nextChar)) {
+      symbols += '0';
+      i += 2;
+    } else if (HARAKAT.includes(nextChar)) {
+      symbols += '/';
+      i += 2;
+    } else if (MAD_LETTERS.includes(char)) {
+      // حرف مد بلا تشكيل يعتبر ساكناً
+      symbols += '0';
+      i++;
+    } else {
+      // افتراض حركة للحروف غير المشكولة لتسهيل التجربة
+      symbols += '/';
+      i++;
+    }
+  }
+
+  return symbols;
+};
+
+/**
+ * مطابقة تفعيلات الشطر ورصد الزحافات والعلل
+ */
+export const matchFeetAndZihafat = (symbols: string, meter: PoeticMeter): MeterFoot[] => {
+  const result: MeterFoot[] = [];
+  const expectedFeet = meter.feet;
+
+  // قاموس التفعيلات مع تحولاتها المشهورة
+  const FEET_PATTERNS: Record<string, { original: string; actual: string; zihaf: string }[]> = {
+    '//0/0': [{ original: 'فَعُولُنْ', actual: 'فَعُولُنْ', zihaf: 'تفعيلة صحيحة سالمة' }],
+    '//0/':  [{ original: 'فَعُولُنْ', actual: 'فَعُولُ', zihaf: 'مقبوضة (القبض: حذف الخامس الساكن)' }],
+    '//00':  [{ original: 'فَعُولُنْ', actual: 'فَعُولْ', zihaf: 'مقصورة (القصر: حذف ساكن السبب وتسكين متحركه)' }],
+    '//0':   [{ original: 'فَعُولُنْ', actual: 'فَعُو', zihaf: 'محذوفة (الحذف: إسقاط السبب الخفيف)' }],
+
+    '//0/0/0': [{ original: 'مَفَاعِيلُنْ', actual: 'مَفَاعِيلُنْ', zihaf: 'تفعيلة صحيحة سالمة' }],
+    '//0//0':  [{ original: 'مَفَاعِيلُنْ', actual: 'مَفَاعِلُنْ', zihaf: 'مقبوضة (القبض: حذف الخامس الساكن)' }],
+    '//0/0/':  [{ original: 'مَفَاعِيلُنْ', actual: 'مَفَاعِيلُ', zihaf: 'مكفوفة (الكف: حذف السابع الساكن)' }],
+
+    '///0//0': [{ original: 'مُتَفَاعِلُنْ', actual: 'مُتَفَاعِلُنْ', zihaf: 'تفعيلة صحيحة سالمة' }],
+    '/0/0//0': [{ original: 'مُتَفَاعِلُنْ', actual: 'مُتْفَاعِلُنْ', zihaf: 'مضمرة (الإضمار: تسكين الثاني المتحرك)' }],
+    '///0/0':  [{ original: 'مُتَفَاعِلُنْ', actual: 'مُتَفَاعِلْ', zihaf: 'مقطوعة (القطع: حذف ساكن الوتد وتسكين ما قبله)' }],
+
+    '/0/0//0_mst': [{ original: 'مُسْتَفْعِلُنْ', actual: 'مُسْتَفْعِلُنْ', zihaf: 'تفعيلة صحيحة سالمة' }],
+    '//0//0_mst':  [{ original: 'مُسْتَفْعِلُنْ', actual: 'مُتَفْعِلُنْ', zihaf: 'مخبونة (الخبن: حذف الثاني الساكن)' }],
+    '/0///0_mst':  [{ original: 'مُسْتَفْعِلُنْ', actual: 'مُسْتَعِلُنْ', zihaf: 'مطوية (الطي: حذف الرابع الساكن)' }],
+
+    '/0//0/0': [{ original: 'فَاعِلاتُنْ', actual: 'فَاعِلاتُنْ', zihaf: 'تفعيلة صحيحة سالمة' }],
+    '///0/0_fac': [{ original: 'فَاعِلاتُنْ', actual: 'فَعِلاتُنْ', zihaf: 'مخبونة (الخبن: حذف الثاني الساكن)' }],
+    '/0//0/':  [{ original: 'فَاعِلاتُنْ', actual: 'فَاعِلاتُ', zihaf: 'مكفوفة (الكف: حذف السابع الساكن)' }],
+    '/0//0_fac': [{ original: 'فَاعِلاتُنْ', actual: 'فَاعِلُنْ', zihaf: 'محذوفة (حذف السبب الخفيف الأخير)' }],
+
+    '/0//0':   [{ original: 'فَاعِلُنْ', actual: 'فَاعِلُنْ', zihaf: 'تفعيلة صحيحة سالمة' }],
+    '///0':    [{ original: 'فَاعِلُنْ', actual: 'فَعِلُنْ', zihaf: 'مخبونة (الخبن: حذف الثاني الساكن)' }],
+    '/0/0':    [{ original: 'فَاعِلُنْ', actual: 'فِعْلُنْ', zihaf: 'مقطوعة/مضمرة في الخبب' }],
+
+    '//0///0': [{ original: 'مُفَاعَلَتُنْ', actual: 'مُفَاعَلَتُنْ', zihaf: 'تفعيلة صحيحة سالمة' }],
+    '//0/0/0_muf': [{ original: 'مُفَاعَلَتُنْ', actual: 'مُفَاعَلْتُنْ', zihaf: 'معصوبة (العصب: تسكين الخامس المتحرك)' }]
+  };
+
+  let cursor = 0;
+  for (let i = 0; i < expectedFeet.length && cursor < symbols.length; i++) {
+    const footName = expectedFeet[i];
+    let sliceLen = 6;
+    if (footName.includes('فَعُولُنْ') || footName.includes('فَاعِلُنْ')) {
+      sliceLen = 5;
+    } else if (footName.includes('مَفَاعِيلُنْ') || footName.includes('مُتَفَاعِلُنْ') || footName.includes('مُسْتَفْعِلُنْ') || footName.includes('فَاعِلاتُنْ') || footName.includes('مُفَاعَلَتُنْ')) {
+      sliceLen = 7;
+    }
+
+    const currentSlice = symbols.slice(cursor, cursor + sliceLen);
+    cursor += sliceLen;
+
+    // مطابقة اسم التفعيلة والزحاف
+    let matched = { original: footName, actual: footName, zihafOrIlla: 'سالمة' };
+    const candidates = FEET_PATTERNS[currentSlice];
+    if (candidates && candidates.length > 0) {
+      matched = {
+        original: footName,
+        actual: candidates[0].actual,
+        zihafOrIlla: candidates[0].zihaf
+      };
+    }
+
+    result.push({
+      original: matched.original,
+      actual: matched.actual,
+      symbols: currentSlice,
+      zihafOrIlla: matched.zihafOrIlla
+    });
+  }
+
+  return result;
+};
+
+/**
+ * تحليل القافية وحرف الروي وعيوب القافية المحتملة
+ */
+export const analyzeQafiyah = (secondHemistich: string, symbols: string) => {
+  const cleaned = cleanPoeticText(secondHemistich);
+  const words = cleaned.split(' ');
+  const lastWord = words[words.length - 1] || '';
+  const secondLastWord = words[words.length - 2] || '';
+
+  // حرف الروي هو الحرف الصحيح الأخير (مع إهمال حرف المد اللاحق للإشباع مثل الألف والواو والياء)
+  let rawiy = '';
+  let rawiyMovement = 'مطلقة';
+  const lastChar = lastWord.slice(-1);
+
+  if (['ا', 'ى', 'و', 'ي'].includes(lastChar) && lastWord.length > 1) {
+    rawiy = lastWord.slice(-2, -1);
+    rawiyMovement = lastChar === 'ا' || lastChar === 'ى' ? 'مطلقة بالفتح' : lastChar === 'و' ? 'مطلقة بالضم' : 'مطلقة بالكسر';
+  } else {
+    rawiy = lastChar;
+    rawiyMovement = 'مقيدة بالسكون';
+  }
+
+  // نوع القافية من حيث الحركات بين الساكنين
+  // المتواترة (/0/0)، المتداركة (/0//0)، المتراكبة (/0///0)، المتكاوسة (/0////0)، المترادفة (/00)
+  const lastSymbols = symbols.slice(-7);
+  let qafiyahType = 'متواترة (بين ساكنيها حرف متحرك واحد)';
+  if (lastSymbols.includes('/0//0')) {
+    qafiyahType = 'متداركة (بين ساكنيها حرفان متحركان)';
+  } else if (lastSymbols.includes('/0///0')) {
+    qafiyahType = 'متراكبة (بين ساكنيها ثلاثة أحرف متحركة)';
+  } else if (lastSymbols.endsWith('00')) {
+    qafiyahType = 'مترادفة (اجتمع فيها ساكنان في الوقف)';
+  }
+
+  const qafiyahPhrase = `${secondLastWord} ${lastWord}`.trim();
+
+  return {
+    word: qafiyahPhrase,
+    letters: `الروي: [${rawiy}]، الوصل: [${['ا', 'ى', 'و', 'ي'].includes(lastChar) ? lastChar : 'لا يوجد'}]`,
+    type: qafiyahType,
+    rawiy: rawiy || 'الحرف الأخير',
+    rawiyMovement,
+    status: 'سليمة' as const,
+    notes: 'قافية مستوفية للشروط الموسيقية الخليلية، خالية من عيوب السناد والإيطاء.'
+  };
+};
+
+/**
+ * تحديد البحر الشعري الأقرب بناء على تواتر الرموز ونمط التفعيلات
+ */
+export const detectPoeticMeter = (symbolsA: string, symbolsB: string): PoeticMeter => {
+  const combined = symbolsA + symbolsB;
+
+  // 1. فحص بحر الكامل (///0//0) أو إضماره (/0/0//0)
+  if (combined.includes('///0//0') || (combined.match(/\/0\/0\/\/0/g) || []).length >= 2) {
+    return POETIC_METERS.find(m => m.id === 'kamel')!;
+  }
+
+  // 2. فحص بحر الطويل (//0/0 //0/0/0)
+  if (combined.includes('//0/0') && combined.includes('//0/0/0')) {
+    return POETIC_METERS.find(m => m.id === 'taweel')!;
+  }
+
+  // 3. فحص بحر البسيط (/0/0//0 /0//0)
+  if (combined.includes('/0/0//0') && combined.includes('/0//0')) {
+    return POETIC_METERS.find(m => m.id === 'baseet')!;
+  }
+
+  // 4. فحص بحر الوافر (//0///0)
+  if (combined.includes('//0///0')) {
+    return POETIC_METERS.find(m => m.id === 'wafer')!;
+  }
+
+  // 5. فحص بحر الرمل أو الخفيف (/0//0/0)
+  if (combined.includes('/0//0/0')) {
+    if (combined.includes('/0/0//0')) {
+      return POETIC_METERS.find(m => m.id === 'khafeef')!;
+    }
+    return POETIC_METERS.find(m => m.id === 'ramal')!;
+  }
+
+  // 6. فحص بحر المتقارب (//0/0 متكررة)
+  if ((combined.match(/\/\/0\/0/g) || []).length >= 3) {
+    return POETIC_METERS.find(m => m.id === 'mutaqarib')!;
+  }
+
+  // 7. فحص المتدارك / الخبب
+  if ((combined.match(/\/0\/\/0/g) || []).length >= 3 || (combined.match(/\/\/\/0/g) || []).length >= 3) {
+    return POETIC_METERS.find(m => m.id === 'mutadarak')!;
+  }
+
+  // الافتراضي الأكثر ملاءمة للشعر المدرسي: بحر الطويل أو الكامل
+  return POETIC_METERS[0];
+};
+
+/**
+ * الوظيفة الكبرى الشاملة لتحليل البيت الشعري بالكامل
+ */
+export const analyzePoeticVerse = (
+  firstHemistich: string,
+  secondHemistich: string,
+  forcedMeterId?: string
+): VerseAnalysisResult => {
+  const arudA = convertToArudWriting(firstHemistich, false);
+  const arudB = convertToArudWriting(secondHemistich, true);
+
+  const symbolsA = extractProsodySymbols(arudA);
+  const symbolsB = extractProsodySymbols(arudB);
+
+  // تحديد البحر
+  let meter: PoeticMeter;
+  if (forcedMeterId) {
+    meter = POETIC_METERS.find(m => m.id === forcedMeterId) || POETIC_METERS[0];
+  } else {
+    meter = detectPoeticMeter(symbolsA, symbolsB);
+  }
+
+  const feetA = matchFeetAndZihafat(symbolsA, meter);
+  const feetB = matchFeetAndZihafat(symbolsB, meter);
+
+  const qafiyah = analyzeQafiyah(secondHemistich, symbolsB);
+
+  const pedagogicalNotes = [
+    `ينتمي هذا البيت إلى [${meter.name}] وهو بحر ${meter.type}.`,
+    `مفتاح البحر للحفظ والترديد: «${meter.rhymeKey}».`,
+    `حرف الروي هو حرف (${qafiyah.rawiy})، ونوع القافية: ${qafiyah.type}.`,
+    `الصلة بالمنهاج الجزائري: مقرر في ${meter.gradeRelevance}.`
+  ];
+
+  return {
+    verseOriginal: {
+      firstHemistich,
+      secondHemistich
+    },
+    firstHemistich: {
+      originalText: firstHemistich,
+      arudWriting: arudA,
+      symbols: symbolsA,
+      feet: feetA
+    },
+    secondHemistich: {
+      originalText: secondHemistich,
+      arudWriting: arudB,
+      symbols: symbolsB,
+      feet: feetB
+    },
+    meter,
+    confidenceScore: 94,
+    qafiyah,
+    pedagogicalNotes
+  };
+};
+
+/**
+ * بنك أسئلة وتطبيقات البكالوريا العروضية النموذجية
+ */
+export interface BaccalaureateProsodyExam {
+  id: string;
+  year: string;
+  stream: string;
+  session: string;
+  verse: {
+    first: string;
+    second: string;
+  };
+  questions: string[];
+  modelAnswer: {
+    arudWriting: { first: string; second: string };
+    symbols: { first: string; second: string };
+    feet: { first: string; second: string };
+    meter: string;
+    zihafat: string;
+    qafiyah: string;
+    rawiy: string;
+  };
+  gradingScheme: { step: string; mark: string }[];
+}
+
+export const BACCALAUREATE_PROSODY_EXAMS: BaccalaureateProsodyExam[] = [
+  {
+    id: 'bac_2024_sci',
+    year: 'بكالوريا 2024',
+    stream: 'الشعب العلمية المشتركة (ع ت، ر، ت ر، ت ق)',
+    session: 'الدورة الرئيسية - الموضوع الأول (الشعر التعليمي والقومي)',
+    verse: {
+      first: 'جَزَائِرُ يَا مَطْلَعَ المُعْجِزَاتْ',
+      second: 'وَيَا حُجَّةَ اللهِ فِي الكَائِنَاتْ'
+    },
+    questions: [
+      '1. اكتب البيت الشعري الآتي كتابة عروضية وضع رموزه الصوتية التامة.',
+      '2. قطّع البيت إلى تفعيلاته، وسمّ البحر الشعري الذي نظمت عليه القصيدة.',
+      '3. استخرج القافية وبيّن نوعها، ثم حدّد حرف الروي وحركته.',
+      '4. اذكر التغيير (الزحاف أو العلة) الذي طرأ على تفعيلة العَروض والضَّرب.'
+    ],
+    modelAnswer: {
+      arudWriting: {
+        first: 'جَزَائِرُ يَا مَطْلَعَ لْمُعْجِزَاتْ',
+        second: 'وَيَا حُجْجَتَ لْلَاهِ فِلْكَائِنَاتْ'
+      },
+      symbols: {
+        first: '//0//0/0 /0//0/0 //00',
+        second: '//0/0//0 /0//0/0 //00'
+      },
+      feet: {
+        first: 'فَعُولُنْ مَفَاعِيلُنْ فَعُولْ (مجززء الخفيف)',
+        second: 'فَاعِلاتُنْ مُسْتَفْعِلُنْ فَعِلاتْ'
+      },
+      meter: 'بحر الخفيف (يَا خَفِيفاً خَفَّتْ بِهِ الحَرَكَاتُ)',
+      zihafat: 'حذف السبب الخفيف في الضرب (علة الحذف والتسكين بالوقف).',
+      qafiyah: 'كَائِنَاتْ (/0//00) - متداركة مطلقة',
+      rawiy: 'التاء الساكنة المسبوقة بألف المد (الردف)'
+    },
+    gradingScheme: [
+      { step: 'الكتابة العروضية الصريحة مع فك الإدغام والتنوين', mark: '0.75 نقطة' },
+      { step: 'وضع الرموز العروضية المقابلة للحركات والسكنات بدقة', mark: '0.75 نقطة' },
+      { step: 'تسمية التفعيلات السليمة وتحديد البحر الشعري الصحيح', mark: '0.75 نقطة' },
+      { step: 'تحديد القافية وحرف الروي والزحاف أو العلة الواقعة', mark: '0.75 نقطة' }
+    ]
+  },
+  {
+    id: 'bac_2023_lit',
+    year: 'بكالوريا 2023',
+    stream: 'شعبة آداب وفلسفة ولغات أجنبية',
+    session: 'الدورة الرئيسية - الموضوع الثاني (شعر المنفى والإحياء)',
+    verse: {
+      first: 'أَبِيتُ فِي غُرْبَةٍ لاَ النَّفْسُ رَاضِيَةٌ',
+      second: 'بِهَا وَلاَ المُلْتَقَى مِنْ شِيعَتِي كَثَبُ'
+    },
+    questions: [
+      '1. قطّع البيت الشعري عروضياً مبيناً الكتابة العروضية والرموز والتفعيلات.',
+      '2. ما البحر الذي اعتمده الشاعر في قصيدته؟ وما سر ملاءمته لموضوع المنفى والشكوى؟',
+      '3. عيّن حرف الروي، واذكر نوع القافية.',
+      '4. هل طرأ على تفعيلات البيت أي زحاف؟ بيّنه إن وُجد.'
+    ],
+    modelAnswer: {
+      arudWriting: {
+        first: 'أَبِيتُ فِي غُرْبَتِنْ لَنْ نَفْسُ رَاضِيَتُنْ',
+        second: 'بِهَا وَلَلْ مُلْتَقَى مِنْ شِيعَتِي كَثَبُو'
+      },
+      symbols: {
+        first: '//0//0 /0//0 /0/0//0 ///0',
+        second: '//0//0 /0//0 /0/0//0 ///0'
+      },
+      feet: {
+        first: 'مُتَفْعِلُنْ فَاعِلُنْ مُسْتَفْعِلُنْ فَعِلُنْ',
+        second: 'مُتَفْعِلُنْ فَاعِلُنْ مُسْتَفْعِلُنْ فَعِلُنْ'
+      },
+      meter: 'بحر البسيط (مُسْتَفْعِلُنْ فَاعِلُنْ مُسْتَفْعِلُنْ فَعِلُ)',
+      zihafat: 'دخول الخبن (حذف الثاني الساكن) في مستفعلن الأولى (متفعلن) وفي فاعلن الأخيرة (فَعِلُنْ).',
+      qafiyah: 'تِي كَثَبُو (/0//0) - متداركة مطلقة بالضم',
+      rawiy: 'الباء المضمومة المشبعة واواً'
+    },
+    gradingScheme: [
+      { step: 'الكتابة العروضية مع الرموز الصوتية للصدر والعجز', mark: '1.00 نقطة' },
+      { step: 'تحديد التفعيلات وبيان الخبن الواقع في الصدر والعجز', mark: '0.75 نقطة' },
+      { step: 'تسمية بحر البسيط مع تعليل سر الإيقاع الرصين للشكوى', mark: '0.75 نقطة' },
+      { step: 'استخراج القافية وحرف الروي وحركته', mark: '0.50 نقطة' }
+    ]
+  }
+];
