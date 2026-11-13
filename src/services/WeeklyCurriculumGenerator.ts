@@ -16,6 +16,138 @@ import {
 import { getAlgerianMonthFromDate } from './JournalCurriculumService';
 import { v4 as uuidv4 } from 'uuid';
 
+export interface AlgerianMonthInfo {
+  id: string;
+  nameAr: string;
+  trimester: 1 | 2 | 3;
+  label: string;
+}
+
+export const ALGERIAN_SCHOOL_MONTHS: AlgerianMonthInfo[] = [
+  { id: 'sep', nameAr: 'سبتمبر', trimester: 1, label: 'سبتمبر (الدخول المدرسي والتقويم التشخيصي)' },
+  { id: 'oct', nameAr: 'أكتوبر', trimester: 1, label: 'أكتوبر (بناء التعلمات - المقطع الأول)' },
+  { id: 'nov', nameAr: 'نوفمبر', trimester: 1, label: 'نوفمبر (بناء التعلمات والفرض الأول)' },
+  { id: 'dec', nameAr: 'ديسمبر', trimester: 1, label: 'ديسمبر (اختبارات الفصل الأول وعطلة الشتاء)' },
+  { id: 'jan', nameAr: 'جانفي', trimester: 2, label: 'جانفي (انطلاق الفصل الثاني)' },
+  { id: 'feb', nameAr: 'فيفري', trimester: 2, label: 'فيفري (بناء التعلمات والفرض الثاني)' },
+  { id: 'mar', nameAr: 'مارس', trimester: 2, label: 'مارس (اختبارات الفصل الثاني وعطلة الربيع)' },
+  { id: 'apr', nameAr: 'أفريل', trimester: 3, label: 'أفريل (انطلاق الفصل الثالث)' },
+  { id: 'may', nameAr: 'ماي', trimester: 3, label: 'ماي (بكالوريا تجريبية وامتحانات نهاية السنة)' },
+  { id: 'jun', nameAr: 'جوان', trimester: 3, label: 'جوان (امتحان البكالوريا ومجالس الأقسام)' },
+];
+
+export interface AvailableWeekOption {
+  weekIndexInMonth: number; // 1, 2, 3, 4
+  globalWeekNumber: number;
+  monthNameAr: string;
+  unitNumber: number;
+  unitTitle: string;
+  theme: string;
+  literaryText: string;
+  grammar: string;
+  rhetoricOrProsody?: string;
+  guidedReading?: string;
+  writingOrIntegration: string;
+  isExamPeriod?: boolean;
+  isHoliday?: boolean;
+  holidayName?: string;
+}
+
+/**
+ * جلب قائمة كافة الأسابيع المبرمجة في قاعدة البيانات لشهر محدد
+ */
+export function getAvailableWeeksForMonth(
+  monthNameAr: string,
+  profile: TeacherProfile,
+  className?: string
+): AvailableWeekOption[] {
+  const cls = className || (profile.grades && profile.grades[0]) || '3AS1';
+  const is3AS = cls.includes('3') || cls.includes('3AS') || profile.level === 'SECONDARY';
+  const is2AS = cls.includes('2') || cls.includes('2AS');
+  const is1AS = cls.includes('1') || cls.includes('1AS');
+  const isLiterary = cls.includes('أدب') || cls.includes('فلسفة') || cls.includes('لغات') || cls.includes('آ ف');
+
+  let distribution: SyllabusDistribution | undefined;
+  if (is1AS) {
+    distribution = isLiterary 
+      ? OFFICIAL_SYLLABUS_DISTRIBUTIONS.find(d => d.id === '1as-literary-annual-2024')
+      : OFFICIAL_SYLLABUS_DISTRIBUTIONS.find(d => d.id === '1as-scientific-annual-2024');
+  } else if (is2AS) {
+    distribution = isLiterary
+      ? OFFICIAL_SYLLABUS_DISTRIBUTIONS.find(d => d.id === '2as-literary-annual-2024')
+      : OFFICIAL_SYLLABUS_DISTRIBUTIONS.find(d => d.id === '2as-scientific-annual-2024');
+  } else {
+    distribution = isLiterary
+      ? OFFICIAL_SYLLABUS_DISTRIBUTIONS.find(d => d.id === '3as-literary-annual-2024')
+      : OFFICIAL_SYLLABUS_DISTRIBUTIONS.find(d => d.id === '3as-scientific-annual-2024');
+  }
+
+  if (!distribution) {
+    distribution = OFFICIAL_SYLLABUS_DISTRIBUTIONS[0];
+  }
+
+  const results: AvailableWeekOption[] = [];
+
+  for (const tri of distribution.trimesters) {
+    for (const mon of tri.months) {
+      if (mon.monthNameAr === monthNameAr || mon.weeks.some(w => w.monthNameAr === monthNameAr)) {
+        mon.weeks.forEach((w, idx) => {
+          results.push({
+            weekIndexInMonth: idx + 1,
+            globalWeekNumber: w.weekNumber,
+            monthNameAr: mon.monthNameAr,
+            unitNumber: w.unitNumber,
+            unitTitle: w.unitTitle,
+            theme: w.theme,
+            literaryText: w.literaryText,
+            grammar: w.grammar,
+            rhetoricOrProsody: w.rhetoricOrProsody,
+            guidedReading: w.guidedReadingOrCommunicative,
+            writingOrIntegration: w.writingOrIntegration,
+            isExamPeriod: w.isExamPeriod,
+            isHoliday: w.isHoliday,
+            holidayName: w.holidayName,
+          });
+        });
+        break;
+      }
+    }
+    if (results.length > 0) break;
+  }
+
+  // إذا لم نجد أسبوعاً مناسباً، نعيد نماذج افتراضية
+  if (results.length === 0) {
+    return [
+      {
+        weekIndexInMonth: 1,
+        globalWeekNumber: 1,
+        monthNameAr,
+        unitNumber: 1,
+        unitTitle: 'الوحدة التعليمية 01',
+        theme: 'القيم الأخلاقية والإنسانية',
+        literaryText: 'دراسة نص أدبي تحليلي',
+        grammar: 'قواعد وبناء لغوي',
+        rhetoricOrProsody: 'بلاغة ونقد',
+        writingOrIntegration: 'وضعية إدماجية تقويمية',
+      },
+      {
+        weekIndexInMonth: 2,
+        globalWeekNumber: 2,
+        monthNameAr,
+        unitNumber: 1,
+        unitTitle: 'الوحدة التعليمية 01 (تابع)',
+        theme: 'القيم الأخلاقية والإنسانية',
+        literaryText: 'دراسة نص أدبي (حصة 2)',
+        grammar: 'تطبيقات نحوية وإعرابية',
+        rhetoricOrProsody: 'عروض وموسيقى الشعر',
+        writingOrIntegration: 'إنتاج كتابي موجه',
+      }
+    ];
+  }
+
+  return results;
+}
+
 export interface GenerateWeekParams {
   weekDates: { dateStr: string; dayIdx: number; dayNameAr: WeekdayNameAr }[];
   slots: TimetableSlot[];

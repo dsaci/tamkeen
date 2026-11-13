@@ -14,8 +14,9 @@ import {
   WEEK_DAYS,
   WeekdayNameAr
 } from '../../../services/WeeklyTimetableService';
-import { generateFullWeekSessions } from '../../../services/WeeklyCurriculumGenerator';
+import { generateFullWeekSessions, AvailableWeekOption } from '../../../services/WeeklyCurriculumGenerator';
 import { WeeklyTimetableModal } from './WeeklyTimetableModal';
+import { WeeklyCurriculumPacingModal } from './WeeklyCurriculumPacingModal';
 import {
   getDailyJournal,
   addSessionToJournal,
@@ -45,6 +46,7 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
   const [isGeneratingWeek, setIsGeneratingWeek] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isTimetableModalOpen, setIsTimetableModalOpen] = useState(false);
+  const [isPacingModalOpen, setIsPacingModalOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
   // Calculate the 5 school days (Sunday to Thursday)
@@ -105,8 +107,31 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
     setBaseDate(new Date().toISOString().split('T')[0]);
   };
 
-  // 1-Click Generate & Fill the Entire Week from Official Curriculum
-  const handleGenerateWholeWeek = async () => {
+  // 1-Click Generate & Fill the Entire Week: Open Pacing Question Dialog
+  const handleGenerateWholeWeek = () => {
+    if (!user?.id) return;
+    const stage = (profile?.level === 'PRIMARY' || profile?.level === 'MIDDLE' || profile?.level === 'SECONDARY')
+      ? profile.level
+      : 'SECONDARY';
+
+    const timetableConfig = weeklyTimetableService.getConfig(stage);
+
+    if (!timetableConfig.slots || timetableConfig.slots.length === 0) {
+      alert("الجدول الزمني فارغ حالياً! سنفتح نافذة ضبط الجدول أولاً لتحديده بنقرة واحدة.");
+      setIsTimetableModalOpen(true);
+      return;
+    }
+
+    // Open pacing selection dialog so the teacher can pick their actual progress/month/week
+    setIsPacingModalOpen(true);
+  };
+
+  // Confirmed Generation from Pacing Modal
+  const handleConfirmPacingGenerate = async (params: {
+    monthNameAr: string;
+    weekIndexInMonth: number;
+    selectedWeekData?: AvailableWeekOption;
+  }) => {
     if (!user?.id) return;
     setIsGeneratingWeek(true);
     try {
@@ -117,18 +142,20 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
       const timetableConfig = weeklyTimetableService.getConfig(stage);
 
       if (!timetableConfig.slots || timetableConfig.slots.length === 0) {
-        alert("الجدول الزمني فارغ حالياً! سنفتح نافذة ضبط الجدول أولاً لتحديده بنقرة واحدة.");
+        alert("الجدول الزمني فارغ حالياً! سنفتح نافذة ضبط الجدول أولاً.");
         setIsTimetableModalOpen(true);
+        setIsPacingModalOpen(false);
         setIsGeneratingWeek(false);
         return;
       }
 
-      // Generate the sessions
+      // Generate the sessions matching the teacher's selected pacing & month & week
       const generated = generateFullWeekSessions({
         weekDates: weekInfo.dates,
         slots: timetableConfig.slots,
         profile: profile,
-        monthNameAr: monthNameAr,
+        monthNameAr: params.monthNameAr,
+        weekIndexInMonth: params.weekIndexInMonth,
       });
 
       // Save to backend
@@ -137,8 +164,9 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
       }
 
       await fetchWeekSessions();
-      setSuccessToast(`✨ تم بنجاح توليد وتعبئة الأسبوع كاملاً (${generated.length} حصة) من التدرج السنوي الرسمي!`);
-      setTimeout(() => setSuccessToast(null), 4500);
+      setIsPacingModalOpen(false);
+      setSuccessToast(`✨ تم بنجاح توليد وتعبئة الأسبوع كاملاً (${generated.length} حصة) بناءً على تقدمك في شهر ${params.monthNameAr} (الأسبوع ${params.weekIndexInMonth}) من التدرج الرسمي!`);
+      setTimeout(() => setSuccessToast(null), 5000);
     } catch (err: any) {
       console.error('[WeeklyJournalView] Generation error:', err);
       alert('حدث خطأ أثناء التوليد الأسبوعي، يرجى التحقق من الاتصال.');
@@ -427,6 +455,17 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
           setSuccessToast("تم تحديث جدولك الزمني الأسبوعي بنجاح! يمكنك الآن الضغط على 'توليد وملء الأسبوع كاملاً'.");
           setTimeout(() => setSuccessToast(null), 4000);
         }}
+      />
+
+      {/* Interactive Curriculum Pacing Modal (Ahead/Behind/On-Schedule with Month and Week picker) */}
+      <WeeklyCurriculumPacingModal
+        isOpen={isPacingModalOpen}
+        onClose={() => setIsPacingModalOpen(false)}
+        profile={profile}
+        initialMonthNameAr={monthNameAr}
+        weekRangeText={`${weekInfo.dates[0]?.formatted.slice(0, 10)} ➔ ${weekInfo.dates[4]?.formatted.slice(0, 10)}`}
+        onConfirmGenerate={handleConfirmPacingGenerate}
+        isLoading={isGeneratingWeek}
       />
     </div>
   );
