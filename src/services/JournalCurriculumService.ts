@@ -89,12 +89,26 @@ export function getSmartCurriculumSuggestions(params: {
     // تحديد الشعبة/السنة المناسبة
     let targetDistributions = OFFICIAL_SYLLABUS_DISTRIBUTIONS;
     if (grade) {
+      const isLiterary = grade.includes('أدب') || grade.includes('ادب') || grade.includes('فلسفة') || grade.includes('لغات') || grade.includes('آ ف') || grade.includes('ل أ');
+      const isScientific = grade.includes('علوم') || grade.includes('علمي') || grade.includes('ع ت') || grade.includes('ت ر') || grade.includes('ر') || grade.includes('رياضيات') || grade.includes('تقني') || grade.includes('تسيير') || grade.includes('ج م ع ت');
+
+      let filteredByGrade = OFFICIAL_SYLLABUS_DISTRIBUTIONS;
       if (grade.includes('3AS') || grade.includes('3') || grade.includes('ثالثة')) {
-        targetDistributions = OFFICIAL_SYLLABUS_DISTRIBUTIONS.filter(d => d.grade.includes('الثالثة'));
+        filteredByGrade = OFFICIAL_SYLLABUS_DISTRIBUTIONS.filter(d => d.grade.includes('الثالثة'));
       } else if (grade.includes('2AS') || grade.includes('2') || grade.includes('ثانية')) {
-        targetDistributions = OFFICIAL_SYLLABUS_DISTRIBUTIONS.filter(d => d.grade.includes('الثانية'));
-      } else if (grade.includes('1AS') || grade.includes('1') || grade.includes('أولى')) {
-        targetDistributions = OFFICIAL_SYLLABUS_DISTRIBUTIONS.filter(d => d.grade.includes('الأولى'));
+        filteredByGrade = OFFICIAL_SYLLABUS_DISTRIBUTIONS.filter(d => d.grade.includes('الثانية'));
+      } else if (grade.includes('1AS') || grade.includes('1') || grade.includes('أولى') || grade.includes('جذع مشترك')) {
+        filteredByGrade = OFFICIAL_SYLLABUS_DISTRIBUTIONS.filter(d => d.grade.includes('الأولى'));
+      }
+
+      if (isScientific) {
+        const sci = filteredByGrade.filter(d => d.stream.includes('علمي') || d.stream.includes('علوم'));
+        targetDistributions = sci.length > 0 ? sci : filteredByGrade;
+      } else if (isLiterary) {
+        const lit = filteredByGrade.filter(d => d.stream.includes('آداب') || d.stream.includes('لغات') || d.stream.includes('أدبي'));
+        targetDistributions = lit.length > 0 ? lit : filteredByGrade;
+      } else {
+        targetDistributions = filteredByGrade;
       }
     }
 

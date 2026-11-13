@@ -75,7 +75,7 @@ export default function PlansView({ profile, lang, type }: { profile: TeacherPro
   };
 
   return (
-    <div className="space-y-6 font-['Cairo'] pb-32 animate-in" dir="rtl">
+    <div className="space-y-6 font-sans pb-32 animate-in" dir="rtl">
       {/* Header Banner */}
       <div className="bg-[#1b4332] text-white p-8 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 border-b-8 border-emerald-900">
         <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl -z-0"></div>

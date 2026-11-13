@@ -15,7 +15,7 @@ export const useTheme = () => useContext(ThemeContext);
 export const themeStyles = {
   v1: {
     // Ministry Professional
-    font: "font-['Cairo']",
+    font: "font-sans",
     rounded: "rounded-md",
     button: "shadow-sm hover:shadow active:shadow-none transition-all",
     card: "bg-white border border-slate-200 shadow-sm",
@@ -26,7 +26,7 @@ export const themeStyles = {
   },
   v2: {
     // Modern Soft
-    font: "font-['Cairo']",
+    font: "font-sans",
     rounded: "rounded-2xl",
     button: "shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300",
     card: "bg-white/80 backdrop-blur-xl border border-white/20 shadow-xl",
@@ -37,7 +37,7 @@ export const themeStyles = {
   },
   v3: {
     // Executive Dark Premium
-    font: "font-['Cairo']",
+    font: "font-sans",
     rounded: "rounded-lg",
     button: "shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:shadow-[0_0_25px_rgba(16,185,129,0.6)] border border-emerald-500/30 transition-all",
     card: "bg-slate-900 border border-slate-800 shadow-2xl",

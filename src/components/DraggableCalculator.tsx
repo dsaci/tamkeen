@@ -74,7 +74,7 @@ export function DraggableCalculator({ onClose }: { onClose: () => void }) {
   return (
     <div 
       ref={widgetRef}
-      className="fixed z-[999] bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col font-['Cairo']"
+      className="fixed z-[999] bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col font-sans"
       style={{ 
         left: position.x, 
         top: position.y,

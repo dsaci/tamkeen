@@ -62,11 +62,11 @@ export function getAvailableWeeksForMonth(
   profile: TeacherProfile,
   className?: string
 ): AvailableWeekOption[] {
-  const cls = className || (profile.grades && profile.grades[0]) || '3AS1';
-  const is3AS = cls.includes('3') || cls.includes('3AS') || profile.level === 'SECONDARY';
-  const is2AS = cls.includes('2') || cls.includes('2AS');
-  const is1AS = cls.includes('1') || cls.includes('1AS');
-  const isLiterary = cls.includes('أدب') || cls.includes('فلسفة') || cls.includes('لغات') || cls.includes('آ ف');
+  const cls = className || (profile.grades && profile.grades[0]) || '';
+  const is1AS = cls.includes('1') || cls.includes('1AS') || cls.includes('أولى') || cls.includes('ج م ع ت') || cls.includes('جذع مشترك');
+  const is2AS = cls.includes('2') || cls.includes('2AS') || cls.includes('ثانية');
+  const is3AS = cls.includes('3') || cls.includes('3AS') || cls.includes('ثالثة') || (!is1AS && !is2AS && profile.level === 'SECONDARY');
+  const isLiterary = cls.includes('أدب') || cls.includes('ادب') || cls.includes('فلسفة') || cls.includes('لغات') || cls.includes('آ ف') || cls.includes('ل أ');
 
   let distribution: SyllabusDistribution | undefined;
   if (is1AS) {
@@ -225,10 +225,11 @@ function resolveCurriculumForClass(
   writingOrIntegration: string;
 } {
   // تحديد المستوى من اسم القسم أو ملف الأستاذ
-  const is3AS = className.includes('3') || className.includes('3AS') || profile.level === 'SECONDARY';
-  const is2AS = className.includes('2') || className.includes('2AS');
-  const is1AS = className.includes('1') || className.includes('1AS');
-  const isLiterary = className.includes('أدب') || className.includes('فلسفة') || className.includes('لغات') || className.includes('آ ف');
+  const cls = className || (profile.grades && profile.grades[0]) || '';
+  const is1AS = cls.includes('1') || cls.includes('1AS') || cls.includes('أولى') || cls.includes('ج م ع ت') || cls.includes('جذع مشترك');
+  const is2AS = cls.includes('2') || cls.includes('2AS') || cls.includes('ثانية');
+  const is3AS = cls.includes('3') || cls.includes('3AS') || cls.includes('ثالثة') || (!is1AS && !is2AS && profile.level === 'SECONDARY');
+  const isLiterary = cls.includes('أدب') || cls.includes('ادب') || cls.includes('فلسفة') || cls.includes('لغات') || cls.includes('آ ف') || cls.includes('ل أ');
 
   // جلب التوزيع المناسب
   let distribution: SyllabusDistribution | undefined;

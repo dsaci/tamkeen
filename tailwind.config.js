@@ -8,7 +8,10 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Cairo', 'system-ui', 'sans-serif'],
+                sans: ['Alexandria', 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', 'system-ui', 'sans-serif'],
+                cairo: ['Cairo', 'sans-serif'],
+                alexandria: ['Alexandria', 'sans-serif'],
+                thmanyah: ['IBM Plex Sans Arabic', 'Alexandria', 'sans-serif'],
             },
             animation: {
                 'spin-slow': 'spin 3s linear infinite',
