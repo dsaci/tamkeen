@@ -1,5 +1,5 @@
 
-export type SchoolLevel = 'PRIMARY' | 'MIDDLE' | 'HIGH';
+export type SchoolLevel = 'PRIMARY' | 'MIDDLE' | 'SECONDARY' | 'HIGH';
 export type ShiftType = 'SINGLE' | 'PARTIAL' | 'FULL';
 export type AppLanguage = 'ar' | 'en' | 'fr';
 export type TeachingLanguage = 'ar' | 'en' | 'fr';
