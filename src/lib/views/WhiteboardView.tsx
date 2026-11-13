@@ -1310,7 +1310,7 @@ export default function WhiteboardView() {
   return (
     <div
       ref={containerRef}
-      className="h-[calc(100vh-4.5rem)] flex flex-col gap-2 font-['Cairo'] select-none animate-in fade-in duration-300"
+      className="h-[calc(100vh-4.5rem)] flex flex-col gap-2 font-sans select-none animate-in fade-in duration-300"
       dir="rtl"
     >
       {/* ═══════════ TOP HEADER BAR ═══════════ */}
@@ -2318,7 +2318,7 @@ export default function WhiteboardView() {
                   placeholder="اكتب مباشرة على السبورة هنا..."
                   dir={el.textAlign === 'left' ? 'ltr' : 'rtl'}
                   rows={Math.max(1, (el.text || '').split('\n').length)}
-                  className={`w-full p-2.5 rounded-2xl outline-none transition-all resize border-2 font-['Cairo'] leading-relaxed select-text ${
+                  className={`w-full p-2.5 rounded-2xl outline-none transition-all resize border-2 font-sans leading-relaxed select-text ${
                     el.hasBackground
                       ? 'bg-slate-900/95 text-white border-amber-400 shadow-2xl'
                       : 'bg-white/90 dark:bg-slate-900/90 border-dashed border-amber-400 text-slate-900 dark:text-white shadow-xl backdrop-blur-sm'
@@ -2669,7 +2669,7 @@ export default function WhiteboardView() {
                       fill={el.color}
                       fontSize={fontSize}
                       fontWeight={el.fontWeight || 'bold'}
-                      fontFamily="Cairo, sans-serif"
+                      fontFamily="'Alexandria', 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', sans-serif"
                       textAnchor={textAnchor}
                       data-element-id={el.id}
                       className="cursor-move select-none"

@@ -111,7 +111,7 @@ export default function RegistrationView({
   const Logo = PropTamkeenLogo || TamkeenLogo;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 font-['Cairo'] transition-colors duration-300" dir="rtl">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 font-sans transition-colors duration-300" dir="rtl">
       <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-slate-100 dark:border-slate-700 animate-in fade-in duration-500">
         <div className="p-8 md:p-12">
           <div className="flex flex-col items-center mb-8">

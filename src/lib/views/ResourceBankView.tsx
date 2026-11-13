@@ -141,7 +141,7 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
     ];
 
     return (
-        <div className="space-y-6 font-['Cairo'] pb-24" dir="rtl">
+        <div className="space-y-6 font-sans pb-24" dir="rtl">
             {/* Header */}
             <div className="bg-gradient-to-l from-indigo-900 via-indigo-950 to-slate-900 text-white p-8 rounded-[3rem] shadow-2xl relative overflow-hidden border-b-4 border-indigo-700">
                 <div className="absolute top-0 left-0 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl pointer-events-none"></div>

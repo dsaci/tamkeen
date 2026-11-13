@@ -132,7 +132,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ profile }) => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20 font-['Cairo']" dir="rtl">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20 font-sans" dir="rtl">
       {/* Print-specific style */}
       <style>{`
         @media print {
@@ -540,7 +540,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ profile }) => {
       {/* ========================================================================= */}
       {/* 🏛️ Official Print Layout (Appears exclusively when clicking Print / Ctrl+P) */}
       {/* ========================================================================= */}
-      <div className="print-only font-['Cairo'] text-black p-4" dir="rtl">
+      <div className="print-only font-sans text-black p-4" dir="rtl">
         {/* Ministry Header */}
         <div className="flex justify-between items-start border-b-2 border-black pb-3 mb-4">
           <div className="w-1/3 text-right">
@@ -670,7 +670,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ profile }) => {
       {/* 📄 Interactive Official Export Modal (نافذة التصدير الاحترافية المتقدمة) */}
       {/* ========================================================================= */}
       {showExportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 font-['Cairo']" dir="rtl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 font-sans" dir="rtl">
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 md:p-8 max-w-2xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">

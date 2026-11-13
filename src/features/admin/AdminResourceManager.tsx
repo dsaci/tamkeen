@@ -208,7 +208,7 @@ const AdminResourceManager: React.FC<Props> = ({ profile }) => {
     };
 
     return (
-        <div className="space-y-6 font-['Cairo']" dir="rtl">
+        <div className="space-y-6 font-sans" dir="rtl">
             {/* Header + Stats */}
             <div className="bg-[#0f172a] p-6 rounded-[2.5rem] text-white">
                 <div className="flex items-center justify-between mb-6">

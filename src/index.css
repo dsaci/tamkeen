@@ -5,17 +5,29 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Alexandria', 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-platform: 'Alexandria', 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-platform);
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  font-family: var(--font-platform);
   background-color: #f8fafc;
   /* bg-slate-50 */
   color: #0f172a;
   /* text-slate-900 */
+}
+
+input, button, select, textarea {
+  font-family: inherit;
+}
+
+@media print {
+  *, body, table, th, td, p, h1, h2, h3, h4, h5, h6, span, div {
+    font-family: 'Alexandria', 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+  }
 }
 
 .dark body {

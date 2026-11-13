@@ -109,7 +109,7 @@ export default function WhiteboardToolboxModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 font-['Cairo'] select-none">
+    <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 font-sans select-none">
       <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-5xl h-[85vh] shadow-2xl flex flex-col overflow-hidden text-white animate-in zoom-in-95 duration-200">
 
         {/* Modal Header */}

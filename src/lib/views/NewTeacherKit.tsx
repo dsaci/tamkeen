@@ -113,7 +113,7 @@ export default function NewTeacherKit() {
   ] as const;
 
   return (
-    <div className="animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto space-y-8 pb-20 font-['Cairo']" dir="rtl">
+    <div className="animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto space-y-8 pb-20 font-sans" dir="rtl">
       {/* Header */}
       <div className="relative bg-gradient-to-br from-emerald-700 via-teal-800 to-slate-900 rounded-[2.5rem] p-8 text-white overflow-hidden shadow-2xl border-b-4 border-emerald-600">
         <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>

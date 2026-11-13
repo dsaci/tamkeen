@@ -126,7 +126,7 @@ export default function PresentationOverlay({
     <>
       {/* ══════════════════ 1. CURTAIN (الستارة) ══════════════════ */}
       {showCurtain && (
-        <div className="fixed inset-0 z-[120] pointer-events-none select-none font-['Cairo']">
+        <div className="fixed inset-0 z-[120] pointer-events-none select-none font-sans">
           {/* Covered Curtain Area */}
           <div
             className="w-full bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950/95 border-b-4 border-amber-400 shadow-2xl relative pointer-events-auto transition-[height] duration-75 flex flex-col justify-end"
@@ -183,7 +183,7 @@ export default function PresentationOverlay({
 
       {/* ══════════════════ 2. SPOTLIGHT (كشاف الضوء) ══════════════════ */}
       {showSpotlight && (
-        <div className="fixed inset-0 z-[115] pointer-events-none select-none font-['Cairo']">
+        <div className="fixed inset-0 z-[115] pointer-events-none select-none font-sans">
           <svg className="w-full h-full block">
             <defs>
               <mask id="spotlight-mask">
@@ -239,7 +239,7 @@ export default function PresentationOverlay({
 
       {/* ══════════════════ 3. CLASSROOM TIMER (المؤقت) ══════════════════ */}
       {showTimer && (
-        <div className="fixed bottom-6 left-6 z-[125] font-['Cairo'] select-none animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-6 left-6 z-[125] font-sans select-none animate-in slide-in-from-bottom-5">
           <div className={`p-4 rounded-3xl border-2 shadow-2xl backdrop-blur-md flex flex-col gap-3 transition-all ${
             timerAlert
               ? 'bg-rose-950/95 border-rose-500 ring-4 ring-rose-500/40 animate-bounce'
@@ -323,7 +323,7 @@ export default function PresentationOverlay({
 
       {/* ══════════════════ 4. WHEEL / RANDOM PICKER (عجلة الأسماء) ══════════════════ */}
       {showPicker && (
-        <div className="fixed inset-0 z-[135] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 font-['Cairo'] select-none">
+        <div className="fixed inset-0 z-[135] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 font-sans select-none">
           <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl relative flex flex-col items-center gap-5 text-white">
             <button
               onClick={onClosePicker}

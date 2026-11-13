@@ -254,7 +254,7 @@ export default function ExamGenerator({ profile }: Props) {
         </div>
       )}
 
-      <div className="animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto space-y-8 pb-20 font-['Cairo']">
+      <div className="animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto space-y-8 pb-20 font-sans">
         <div className="text-center space-y-3 pb-6 border-b border-slate-100 dark:border-slate-800">
           <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-inner">
             <FileText size={32} />
@@ -356,7 +356,7 @@ export default function ExamGenerator({ profile }: Props) {
                     <span>الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية</span>
                     <span>{selectedTemplate.type}</span>
                   </div>
-                  <pre className="whitespace-pre-wrap font-['Cairo'] text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
+                  <pre className="whitespace-pre-wrap font-sans text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
                     {selectedTemplate.content}
                   </pre>
                 </div>

@@ -395,7 +395,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
   const labelCls = "text-[10px] font-black text-slate-400 uppercase pr-2";
 
   return (
-    <div className="space-y-6 font-['Cairo'] pb-32 animate-in" dir="rtl">
+    <div className="space-y-6 font-sans pb-32 animate-in" dir="rtl">
       {/* Header */}
       <div className="bg-[#1b4332] text-white p-8 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border-b-8 border-emerald-900">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -z-0"></div>
@@ -657,7 +657,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
                 </div>
 
                 {/* Printable Formatted Card */}
-                <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 overflow-x-auto text-sm space-y-5" style={{ fontFamily: 'Cairo' }}>
+                <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 overflow-x-auto text-sm space-y-5" style={{ fontFamily: 'var(--font-platform)' }}>
                   {/* Official Inspection Header */}
                   <div className="space-y-3 border-b-2 border-slate-900 pb-4">
                     <div className="flex justify-between items-start">
@@ -848,7 +848,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 text-sm space-y-6" style={{ fontFamily: 'Cairo' }}>
+                <div className="bg-white p-8 shadow-2xl border-2 border-slate-200 rounded-3xl text-slate-900 text-sm space-y-6" style={{ fontFamily: 'var(--font-platform)' }}>
                   <div className="text-center border-b-2 border-slate-900 pb-4">
                     <p className="font-black text-xs">الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية</p>
                     <h3 className="text-base font-black mt-2 text-indigo-900">{generatedExam?.title}</h3>

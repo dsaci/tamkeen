@@ -244,7 +244,7 @@ export default function BlogPage() {
         </div>
         <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-6 leading-tight">{selected.title}</h1>
         <div className="prose prose-slate dark:prose-invert max-w-none">
-          <pre className="whitespace-pre-wrap font-['Cairo'] text-slate-700 dark:text-slate-300 leading-relaxed text-base">{selected.content}</pre>
+          <pre className="whitespace-pre-wrap font-sans text-slate-700 dark:text-slate-300 leading-relaxed text-base">{selected.content}</pre>
         </div>
       </div>
     );

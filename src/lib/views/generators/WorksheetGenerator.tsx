@@ -267,7 +267,7 @@ export default function WorksheetGenerator({ profile }: Props) {
         </div>
       )}
 
-      <div className="animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto space-y-8 pb-20 font-['Cairo']">
+      <div className="animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto space-y-8 pb-20 font-sans">
         <div className="text-center space-y-3 pb-6 border-b border-slate-100 dark:border-slate-800">
           <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
             <FileEdit size={32} />
@@ -355,7 +355,7 @@ export default function WorksheetGenerator({ profile }: Props) {
                     <span>ورقة عمل بيداغوجية — الجمهورية الجزائرية الديمقراطية الشعبية</span>
                     <span>{selectedTemplate.level}</span>
                   </div>
-                  <pre className="whitespace-pre-wrap font-['Cairo'] text-sm text-slate-800 dark:text-slate-200 leading-relaxed">{selectedTemplate.content}</pre>
+                  <pre className="whitespace-pre-wrap font-sans text-sm text-slate-800 dark:text-slate-200 leading-relaxed">{selectedTemplate.content}</pre>
                 </div>
 
                 <div className="flex justify-end">

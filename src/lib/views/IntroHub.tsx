@@ -466,7 +466,7 @@ export default function IntroHub({ profile, onNavigate, onGoToLanding, darkMode,
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 font-['Cairo'] flex flex-col transition-colors duration-500 overflow-x-hidden relative selection:bg-amber-500 selection:text-white" dir="rtl">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 font-sans flex flex-col transition-colors duration-500 overflow-x-hidden relative selection:bg-amber-500 selection:text-white" dir="rtl">
 
       {/* ═══ TOP AMBER ACCENT BAR ═══ */}
       <div className="fixed top-0 left-0 w-full h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 z-50 shadow-sm shadow-amber-200/50"></div>

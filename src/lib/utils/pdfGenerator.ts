@@ -4,6 +4,8 @@ import html2canvas from 'html2canvas';
 import { Session, TeacherProfile } from '../../types';
 import { getTimetableTimingConfig } from './timetableConfig';
 
+export const PDF_EXPORT_FONT_FAMILY = "'Alexandria', 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', system-ui, -apple-system, sans-serif";
+
 // ============================================================================
 // 🏛️ Official Algerian Ministry Header Builder (ترويسة وزارة التربية الوطنية)
 // ============================================================================
@@ -24,7 +26,7 @@ export const getOfficialAlgerianHeaderHTML = (
         : (p.wilaya || '...................');
 
     return `
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; border-bottom: 2px solid #000; padding-bottom: 12px; font-family: 'Cairo', sans-serif;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; border-bottom: 2px solid #000; padding-bottom: 12px; font-family: ${PDF_EXPORT_FONT_FAMILY};">
         <!-- Right: Ministry & State Administration -->
         <div style="text-align: right; width: 33%;">
             <p style="font-weight: 800; font-size: 12px; margin: 0 0 3px 0; color: #000;">الجمهورية الجزائرية الديمقراطية الشعبية</p>
@@ -74,7 +76,7 @@ export const getOfficialAlgerianFooterHTML = (
 
     return `
     <!-- Signatures Grid -->
-    <div style="margin-top: 30px; padding-top: 18px; display: flex; justify-content: space-around; padding-left: 20px; padding-right: 20px; font-family: 'Cairo', sans-serif;">
+    <div style="margin-top: 30px; padding-top: 18px; display: flex; justify-content: space-around; padding-left: 20px; padding-right: 20px; font-family: ${PDF_EXPORT_FONT_FAMILY};">
         ${showTeacher ? `
         <div style="text-align: center; min-width: 140px;">
             <p style="font-weight: 800; font-size: 12px; margin-bottom: 55px; color: #000;">توقيع وختم الأستاذ(ة)</p>
@@ -101,7 +103,7 @@ export const getOfficialAlgerianFooterHTML = (
     </div>
 
     <!-- Official Security & Timestamp Bar -->
-    <div style="margin-top: 20px; text-align: center; border-top: 1px solid #999; padding-top: 6px; display: flex; justify-content: space-between; font-size: 9px; color: #444; font-family: 'Cairo', sans-serif;">
+    <div style="margin-top: 20px; text-align: center; border-top: 1px solid #999; padding-top: 6px; display: flex; justify-content: space-between; font-size: 9px; color: #444; font-family: ${PDF_EXPORT_FONT_FAMILY};">
         <span>منصة تمكين الرقمية للأستاذ الجزائري • وثيقة بيداغوجية رسمية صادرة آلياً</span>
         <span>المعرف الرقمي الموحد: ${profile.tamkeenId || 'TAMKEEN-PRO'}</span>
         <span>تاريخ وتوقيت الاستخراج: ${new Date().toLocaleDateString('ar-DZ')} — ${exportTime}</span>
@@ -194,7 +196,7 @@ export const exportDailyJournalToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     const sortedSessions = [...sessions].sort((a, b) => {
@@ -309,7 +311,7 @@ export const exportWeeklyJournalToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     const firstDate = weekDates[0]?.dateStr || '';
@@ -451,7 +453,7 @@ export const exportSmartMemoToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     let stepsHtml = '';
@@ -639,7 +641,7 @@ export const exportSyllabusDistributionToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '20px 25px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     let targetMonthName = '';
@@ -784,7 +786,7 @@ export const exportGradingSheetToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     let rowsHtml = '';
@@ -862,7 +864,7 @@ export const exportAbsenceReportToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     const presentCount = Object.values(attendanceMap).filter(s => s === 'PRESENT').length;
@@ -954,7 +956,7 @@ export const exportExamToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     container.innerHTML = `
@@ -974,7 +976,7 @@ export const exportExamToPDF = async (
           </div>
 
           <!-- Exam Content -->
-          <div style="border: 1px solid #000; padding: 16px; flex: 1; min-height: 400px; font-size: 12px; line-height: 1.8; white-space: pre-wrap; font-family: 'Cairo', sans-serif;">
+          <div style="border: 1px solid #000; padding: 16px; flex: 1; min-height: 400px; font-size: 12px; line-height: 1.8; white-space: pre-wrap; font-family: ${PDF_EXPORT_FONT_FAMILY};">
 ${content}
           </div>
 
@@ -1014,7 +1016,7 @@ export const exportWorksheetToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     container.innerHTML = `
@@ -1034,7 +1036,7 @@ export const exportWorksheetToPDF = async (
           </div>
 
           <!-- Worksheet Body -->
-          <div style="border: 1px solid #000; padding: 16px; flex: 1; font-size: 12px; line-height: 1.7; white-space: pre-wrap; font-family: 'Cairo', sans-serif;">
+          <div style="border: 1px solid #000; padding: 16px; flex: 1; font-size: 12px; line-height: 1.7; white-space: pre-wrap; font-family: ${PDF_EXPORT_FONT_FAMILY};">
 ${content}
           </div>
 
@@ -1080,7 +1082,7 @@ export const exportCustomOfficialDocumentToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     container.innerHTML = `
@@ -1160,7 +1162,7 @@ export const exportTimetableToPDF = async (
     container.style.color = '#000000';
     container.style.padding = isFlowers ? '20px 26px' : '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
     if (isFlowers) {
         container.style.border = '4px double #b45309';
@@ -1419,7 +1421,7 @@ export const exportTimetableToPDF = async (
           </div>
 
           <!-- Signatures Section (مساحة التوقيعات والأختام الثلاثية مع مسافة كافية للختم وبدون أي تداخل) -->
-          <div style="margin-top: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; padding: 0 40px; font-family: 'Cairo', sans-serif;">
+          <div style="margin-top: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; padding: 0 40px; font-family: ${PDF_EXPORT_FONT_FAMILY};">
               <div style="text-align: center; width: 220px;">
                   <p style="font-weight: 900; font-size: 11px; margin-bottom: 40px; color: #000;">توقيع وختم الأستاذ(ة)</p>
                   <p style="font-size: 10px; color: #888;">.........................................</p>
@@ -1435,7 +1437,7 @@ export const exportTimetableToPDF = async (
           </div>
 
           <!-- Official Security & Timestamp Bar -->
-          <div style="border-top: 1px solid #aaa; padding-top: 4px; display: flex; justify-content: space-between; font-size: 8px; color: #555; font-family: 'Cairo', sans-serif;">
+          <div style="border-top: 1px solid #aaa; padding-top: 4px; display: flex; justify-content: space-between; font-size: 8px; color: #555; font-family: ${PDF_EXPORT_FONT_FAMILY};">
               <span>منصة تمكين الرقمية للأستاذ الجزائري • وثيقة بيداغوجية رسمية صادرة آلياً</span>
               <span>المعرف الرقمي: ${profile.tamkeenId || 'TAMKEEN-PRO'}</span>
               <span>تاريخ وتوقيت الاستخراج: ${new Date().toLocaleDateString('ar-DZ')} — ${exportTime}</span>
@@ -1502,7 +1504,7 @@ export const exportTimetableToWord = async (
         <meta charset='utf-8'>
         <title>جدول التوقيت الأسبوعي الرسمي</title>
         <style>
-            body { font-family: 'Cairo', Arial, sans-serif; direction: rtl; text-align: right; }
+            body { font-family: ${PDF_EXPORT_FONT_FAMILY}; direction: rtl; text-align: right; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
             th, td { border: 1px solid #000; padding: 6px; font-size: 10pt; }
         </style>
@@ -1596,7 +1598,7 @@ export const exportEducationalMapToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '25px 30px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     container.innerHTML = `
@@ -1739,7 +1741,7 @@ export const exportOfficialSchoolCalendarToPDF = async (
     container.style.color = '#000000';
     container.style.padding = '22px 28px';
     container.style.direction = 'rtl';
-    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.fontFamily = PDF_EXPORT_FONT_FAMILY;
     container.style.zIndex = '-1000';
 
     // Titles & Subtitles based on Mode

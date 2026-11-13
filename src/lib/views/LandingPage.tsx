@@ -44,7 +44,7 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode, isLogge
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] font-['Cairo'] flex flex-col relative overflow-x-hidden transition-colors duration-500" dir="rtl">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] font-sans flex flex-col relative overflow-x-hidden transition-colors duration-500" dir="rtl">
 
       {/* ===== 1. شريط علوي ذهبي فاخر متوهج (نفس ذهبي اللوغو الشخصي) ===== */}
       <div className="absolute top-0 left-0 w-full h-1.5 z-[100] bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 shadow-md shadow-yellow-500/30"></div>

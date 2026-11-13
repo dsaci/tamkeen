@@ -122,7 +122,7 @@ export const ProfileCompletionForm: React.FC<ProfileCompletionFormProps> = ({ in
     }));
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 font-[Cairo]" dir="rtl">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 font-sans" dir="rtl">
             <div className="max-w-xl w-full">
                 {/* Header Decoration */}
                 <div className="flex flex-col items-center mb-8 text-center animate-in fade-in slide-in-from-top-4 duration-700">

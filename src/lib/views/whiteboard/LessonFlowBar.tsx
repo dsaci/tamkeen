@@ -116,7 +116,7 @@ export default function LessonFlowBar({
   const activeStageData = STAGES.find(s => s.id === currentStage) || STAGES[0];
 
   return (
-    <div className="w-full bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-800 text-white font-['Cairo'] select-none transition-all shadow-md z-30">
+    <div className="w-full bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-800 text-white font-sans select-none transition-all shadow-md z-30">
       {/* Stepper Bar Header */}
       <div className="px-4 py-2 flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
         <div className="flex items-center gap-2 shrink-0">

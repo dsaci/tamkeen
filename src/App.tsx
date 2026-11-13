@@ -330,7 +330,7 @@ const App: React.FC = () => {
     <>
       <AdminNotificationBanner />
       <div className={cn(
-        "min-h-screen transition-all duration-700 font-[Cairo] flex flex-row overflow-hidden",
+        "min-h-screen transition-all duration-700 font-sans flex flex-row overflow-hidden",
         lang === 'ar' ? 'rtl' : 'ltr',
         darkMode ? "dark bg-slate-950" : "bg-slate-50"
       )}>

@@ -327,7 +327,7 @@ const GradingView: React.FC<Props> = ({ profile }) => {
   };
 
   return (
-    <div className="space-y-6 font-['Cairo'] pb-20" dir="rtl">
+    <div className="space-y-6 font-sans pb-20" dir="rtl">
       {/* دليل الاستيراد الآمن */}
       <div className="bg-emerald-50 dark:bg-emerald-900/20 border-2 border-dashed border-emerald-200 p-6 rounded-[2.5rem] flex items-center gap-6 shadow-sm no-print">
         <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl text-emerald-600 shadow-sm"><Rocket size={24} /></div>
