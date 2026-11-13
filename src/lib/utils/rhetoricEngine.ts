@@ -194,6 +194,38 @@ const METAPHOR_COLLOCATIONS: Array<{
   }
 ];
 
+// ─── مصفوفات الكشف التركيبي العام للاستعارات المكنية (التشخيص والتجسيم التوليدي) ───
+const ABSTRACT_INANIMATE_NOUNS_SET = new Set([
+  'الدهر', 'الزمان', 'الايام', 'الأيام', 'الليل', 'النهار', 'الصباح', 'الفجر', 'المساء',
+  'الشمس', 'القمر', 'النجوم', 'الرياح', 'السحاب', 'الغيم', 'المطر', 'البحر', 'النهر',
+  'الجبل', 'الأرض', 'السماء', 'الديار', 'الأطلال', 'الوطن', 'التاريخ', 'المستقبل',
+  'الحلم', 'الأمل', 'اليأس', 'الحزن', 'الفرح', 'الشوق', 'الحب', 'الموت', 'المنية',
+  'الحرب', 'السلم', 'السلام', 'العدل', 'الظلم', 'الحق', 'الباطل',
+  'الصمت', 'الكلام', 'الضمير', 'الفكر', 'العلم', 'الجهل', 'الفقر', 'الغنى', 'القلم', 'السيف',
+  // بصيغة النكرة
+  'دهر', 'زمان', 'ايام', 'أيام', 'ليل', 'نهار', 'صباح', 'فجر', 'مساء',
+  'شمس', 'قمر', 'نجوم', 'رياح', 'سحاب', 'غيم', 'مطر', 'بحر', 'نهر',
+  'جبل', 'أرض', 'سماء', 'ديار', 'أطلال', 'وطن', 'تاريخ', 'مستقبل',
+  'حلم', 'أمل', 'يأس', 'حزن', 'فرح', 'شوق', 'حب', 'موت', 'منية',
+  'حرب', 'سلم', 'سلام', 'عدل', 'ظلم', 'حق', 'باطل',
+  'صمت', 'كلام', 'ضمير', 'فكر', 'علم', 'جهل', 'فقر', 'غنى', 'قلم', 'سيف'
+]);
+
+// أفعال وصفات التشخيص الإنساني
+const HUMAN_VERB_ROOTS = [
+  'ابتسم', 'تبسم', 'يبتسم', 'تتبسم', 'ضحك', 'يضحك', 'تضحك', 'بكى', 'يبكي', 'تبكي', 'دمع', 'تدمع', 'ناح', 'ينوح', 'تنوح',
+  'شكى', 'يشكو', 'تشكو', 'اشتكى', 'يشتكي', 'تألم', 'يتألم', 'صرخ', 'يصرخ', 'تصرخ', 'هتف', 'يهتف', 'تهتف', 'همس', 'يهمس', 'تهمس',
+  'نطق', 'ينطق', 'تنطق', 'خاطب', 'يخاطب', 'تخاطب', 'حدث', 'يحدث', 'تحدث', 'استغاث', 'يستغيث', 'رقص', 'يرقص', 'ترقص',
+  'انتشى', 'نام', 'ينام', 'تنام', 'غفا', 'يغفو', 'تغفو', 'استيقظ', 'يستيقظ', 'تستيقظ', 'صحا', 'يصحو', 'تصحو',
+  'مشى', 'يمشي', 'تمشي', 'ركض', 'يركض', 'تركض'
+];
+
+// أفعال وصفات التجسيم والافتراس
+const PREDATOR_VERB_ROOTS = [
+  'افترس', 'يفترس', 'تفترس', 'عض', 'يعض', 'تعض', 'نهش', 'ينهش', 'تنهش', 'أنشب', 'ينشب', 'تنشب', 'كشر', 'يكشر',
+  'يفتك', 'فتك', 'تفتك', 'طار', 'يطير', 'تطير', 'حلق', 'يحلق', 'تحلق', 'زأر', 'يزأر', 'عوى', 'يعوي'
+];
+
 // ─── بنك الكنايات الكبرى المعتمدة في المناهج ───
 const CURRICULUM_KINAYAH_PATTERNS: Array<{
   regex: RegExp;
@@ -973,6 +1005,82 @@ export const analyzeRhetoricLocally = (
           confidence: { level: 'high', reason: 'تركيب استعاري كلاسيكي معتمد في المنهاج الجزائري مع قرينة مانعة واضحة.' },
           status: 'certain'
         });
+      }
+    }
+
+    // ج. الاستعارات المكنية التركيبية العامة (التشخيص والتجسيم التوليدي لأي نص جديد خارج البنك)
+    const wordsList = stripped.split(/[\s,،؛;.؟!\\-]+/).filter(Boolean);
+    const existingQuotes = findings.map(f => f.span.quote);
+
+    for (let i = 0; i < wordsList.length; i++) {
+      const w = wordsList[i];
+      if (ABSTRACT_INANIMATE_NOUNS_SET.has(w)) {
+        for (let j = Math.max(0, i - 2); j <= Math.min(wordsList.length - 1, i + 2); j++) {
+          if (i === j) continue;
+          const targetWord = wordsList[j];
+
+          // 1. تشخيص توليدي
+          const hv = HUMAN_VERB_ROOTS.find(v => targetWord.startsWith(v) || targetWord.endsWith(v) || targetWord.includes(v));
+          if (hv) {
+            const pairQuote = i < j ? `${w} ${targetWord}` : `${targetWord} ${w}`;
+            if (!existingQuotes.some(q => q.includes(w) && (q.includes(targetWord) || q.includes(hv)))) {
+              const fullSpan = findTextSpan(clean, pairQuote);
+              findings.push({
+                id: 'finding-istiara-comp-' + findings.length,
+                category: 'bayaan',
+                categoryLabel: 'علم البيان (الصور البيانية)',
+                family: 'istiara',
+                type: 'makniya',
+                label: 'استعارة مكنية (تشخيص)',
+                span: fullSpan,
+                explanation: `شبّه (${w}) بإنسان حي، وحذف المشبه به ورَمز إليه بشيء من خصائصه وأفعاله وهو (${targetWord}) على سبيل الاستعارة المكنية.`,
+                evidence: [targetWord],
+                elements: {
+                  'المشبه (المستعار له)': w,
+                  'المشبه به المحذوف (المستعار منه)': 'إنسان ذو حياة وشعور',
+                  'القرينة المانعة واللازمة': `إسناد فعل (${targetWord}) إلى (${w})، و(${w}) جماد أو معنى مجرد لا يتأتى منه ذلك حقيقة`
+                },
+                effect: 'تشخيص المعنى المجرد أو مظهر الطبيعة وإضفاء الحيوية والمشاعر الوجدانية عليه لتقريبه من ذهن المتلقي.',
+                educationalNote: 'التشخيص هو بث الحياة الإنسانية والشعور في الجمادات والمعاني، ويُعد من أرقى صور الاستعارة المكنية.',
+                confidence: { level: 'high', reason: 'اقتران تركيبي بين اسم غير عاقل وفعل إنساني معنوي.' },
+                status: 'certain'
+              });
+              existingQuotes.push(pairQuote);
+              break;
+            }
+          }
+
+          // 2. تجسيم توليدي
+          const pv = PREDATOR_VERB_ROOTS.find(v => targetWord.startsWith(v) || targetWord.endsWith(v) || targetWord.includes(v));
+          if (pv) {
+            const pairQuote = i < j ? `${w} ${targetWord}` : `${targetWord} ${w}`;
+            if (!existingQuotes.some(q => q.includes(w) && (q.includes(targetWord) || q.includes(pv)))) {
+              const fullSpan = findTextSpan(clean, pairQuote);
+              findings.push({
+                id: 'finding-istiara-comp-' + findings.length,
+                category: 'bayaan',
+                categoryLabel: 'علم البيان (الصور البيانية)',
+                family: 'istiara',
+                type: 'makniya',
+                label: 'استعارة مكنية (تجسيم)',
+                span: fullSpan,
+                explanation: `شبّه (${w}) بكائن حي ذي جوارح وافتراس، وحذف المشبه به ورَمز إليه بشيء من لوازمه وهو (${targetWord}) على سبيل الاستعارة المكنية.`,
+                evidence: [targetWord],
+                elements: {
+                  'المشبه (المستعار له)': w,
+                  'المشبه به المحذوف (المستعار منه)': 'حيوان كاسر أو طائر ذو جوارح',
+                  'القرينة المانعة واللازمة': `إسناد فعل (${targetWord}) إلى (${w})`
+                },
+                effect: 'تجسيم المعنى وإبرازه في هيئة حسية مرئية ومتحركة تضاعف قوة التأثير والرهبة.',
+                educationalNote: 'التجسيم: تحويل المعنى المجرد إلى صورة حسية مجسمة أو كائن مادي له جوارح وحركة.',
+                confidence: { level: 'high', reason: 'اقتران تركيبي بين معنى مجرد وفعل كائن حسي/مفترس.' },
+                status: 'certain'
+              });
+              existingQuotes.push(pairQuote);
+              break;
+            }
+          }
+        }
       }
     }
 

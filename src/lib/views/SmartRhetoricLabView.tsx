@@ -25,7 +25,10 @@ import {
   ChevronUp,
   Cpu,
   BookmarkCheck,
-  SendHorizontal
+  SendHorizontal,
+  Key,
+  ExternalLink,
+  ShieldCheck
 } from 'lucide-react';
 import {
   RhetoricScope,
@@ -54,6 +57,30 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
   const [showHighlight, setShowHighlight] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'analyzer' | 'dictionary' | 'benchmarks'>('analyzer');
   const [copied, setCopied] = useState<boolean>(false);
+
+  // حالة مفتاح الذكاء الاصطناعي (Gemini)
+  const [apiKey, setApiKey] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('tamkeen_gemini_key') || '';
+    }
+    return '';
+  });
+  const [showKeyDrawer, setShowKeyDrawer] = useState<boolean>(false);
+  const [keyInput, setKeyInput] = useState<string>('');
+
+  const handleSaveApiKey = () => {
+    const trimmed = keyInput.trim();
+    if (typeof window !== 'undefined') {
+      if (trimmed) {
+        localStorage.setItem('tamkeen_gemini_key', trimmed);
+        setApiKey(trimmed);
+      } else {
+        localStorage.removeItem('tamkeen_gemini_key');
+        setApiKey('');
+      }
+    }
+    setShowKeyDrawer(false);
+  };
 
   // إدخال شواهد تجريبية سريعة
   const handleLoadSample = (sampleText: string) => {
@@ -328,12 +355,46 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
                   ))}
                 </div>
 
-                {/* زر التنفيذ */}
-                <div className="pt-2 flex justify-end">
+                {/* شريط حالة المحرك ومفتاح الذكاء الاصطناعي */}
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    {apiKey ? (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <ShieldCheck size={14} className="text-emerald-600" />
+                        <span>محرك الذكاء الاصطناعي (Gemini) نشط: يحلل أي نص جديد بلا حدود</span>
+                        <button
+                          onClick={() => {
+                            setKeyInput(apiKey);
+                            setShowKeyDrawer(!showKeyDrawer);
+                          }}
+                          className="mr-2 text-[11px] underline text-emerald-700 hover:text-emerald-900 font-black cursor-pointer"
+                        >
+                          تعديل
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-bold">
+                        <Cpu size={14} className="text-amber-600" />
+                        <span>النمط المحلي التوليدي (أوفلاين)</span>
+                        <button
+                          onClick={() => {
+                            setKeyInput('');
+                            setShowKeyDrawer(true);
+                          }}
+                          className="mr-2 px-2.5 py-1 rounded-lg bg-amber-500 text-white font-black hover:bg-amber-600 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+                        >
+                          <Key size={11} />
+                          <span>تفعيل Gemini لتحليل أي نص خارجي</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     onClick={handleAnalyze}
                     disabled={isLoading || !inputText.trim()}
-                    className={`px-8 py-3.5 rounded-2xl font-black text-sm text-white shadow-lg flex items-center gap-3 transition-all cursor-pointer ${
+                    className={`px-8 py-3.5 rounded-2xl font-black text-sm text-white shadow-lg flex items-center justify-center gap-3 transition-all cursor-pointer ${
                       isLoading || !inputText.trim()
                         ? 'bg-slate-400 cursor-not-allowed opacity-60'
                         : 'bg-gradient-to-r from-indigo-600 via-teal-600 to-emerald-600 hover:shadow-indigo-500/25 active:scale-95'
@@ -352,6 +413,51 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
                     )}
                   </button>
                 </div>
+
+                {/* درج إدخال مفتاح Gemini السريع */}
+                {showKeyDrawer && (
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-indigo-200 dark:border-indigo-900 animate-in slide-in-from-top-2 duration-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-black text-slate-800 dark:text-slate-200">
+                        <Key size={15} className="text-indigo-500" />
+                        <span>إعداد مفتاح Google Gemini للتحليل البلاغي الشامل</span>
+                      </div>
+                      <a
+                        href="https://aistudio.google.com/app/apikey"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                      >
+                        احصل على مفتاح مجاني من Google AI Studio
+                        <ExternalLink size={12} />
+                      </a>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      يُمكّن المفتاح المختبر من استيعاب وفهم وتحليل أي بيت شعري أو نص نثري حديث أو غير مسبوق بالذكاء التوليدي العميق دون التقيد بالقواعد المحفوظة.
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        value={keyInput}
+                        onChange={e => setKeyInput(e.target.value)}
+                        placeholder="الصق مفتاح API هنا (يبدأ بـ AIzaSy...)"
+                        className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button
+                        onClick={handleSaveApiKey}
+                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs transition-all cursor-pointer"
+                      >
+                        حفظ وتفعيل
+                      </button>
+                      <button
+                        onClick={() => setShowKeyDrawer(false)}
+                        className="px-3 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-300 transition-all cursor-pointer"
+                      >
+                        إلغاء
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
