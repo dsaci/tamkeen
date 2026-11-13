@@ -25,9 +25,9 @@ export default function DashboardView({ profile }: { profile: TeacherProfile }) 
                         هذه اللوحة مخصصة لمتابعة ومراقبة حسابات الأساتذة، حيث يمكنك رؤية كافة المدخلات، وتعديل الصلاحيات، ومتابعة آخر النشاطات على مستوى المنصة.
                      </p>
                   </div>
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl overflow-hidden border-2 border-white/40 shadow-2xl shrink-0 bg-white/10">
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl overflow-hidden border-2 border-white/50 shadow-2xl shrink-0 bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700">
                      <img
-                        src="/images/default_avatar.jpg"
+                        src="/images/default_avatar.png"
                         alt={profile.name}
                         className="w-full h-full object-cover object-top"
                      />
@@ -64,9 +64,9 @@ export default function DashboardView({ profile }: { profile: TeacherProfile }) 
                         </p>
                      </div>
                   </div>
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl overflow-hidden border-2 border-white/40 shadow-2xl shrink-0 bg-white/10">
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl overflow-hidden border-2 border-white/50 shadow-2xl shrink-0 bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700">
                      <img
-                        src="/images/default_avatar.jpg"
+                        src="/images/default_avatar.png"
                         alt={profile.name}
                         className="w-full h-full object-cover object-top"
                      />

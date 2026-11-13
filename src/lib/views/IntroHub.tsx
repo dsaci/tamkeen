@@ -603,9 +603,9 @@ export default function IntroHub({ profile, onNavigate, onGoToLanding, darkMode,
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             {/* Left: Teacher Info & Status with Avatar */}
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl overflow-hidden border-2 border-amber-400/50 shadow-lg shadow-amber-500/10 shrink-0 bg-slate-100 dark:bg-slate-800">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl overflow-hidden border-2 border-emerald-400/60 shadow-lg shadow-emerald-500/15 shrink-0 bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700">
                 <img
-                  src="/images/default_avatar.jpg"
+                  src="/images/default_avatar.png"
                   alt={profile.name}
                   className="w-full h-full object-cover object-top"
                 />

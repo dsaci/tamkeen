@@ -795,9 +795,9 @@ const App: React.FC = () => {
                     <div className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300"
                       style={{ background: 'linear-gradient(135deg, #10b981, #f59e0b, #6366f1)', borderRadius: '14px' }}></div>
                     {/* Avatar */}
-                    <div className="relative w-9 h-9 rounded-xl overflow-hidden border-2 border-white/80 dark:border-slate-600/60 shadow-inner bg-slate-100 dark:bg-slate-800">
+                    <div className="relative w-9 h-9 rounded-xl overflow-hidden border-2 border-white/80 dark:border-slate-600/60 shadow-inner bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700">
                       <img
-                        src="/images/default_avatar.jpg"
+                        src="/images/default_avatar.png"
                         alt={profile.name}
                         className="w-full h-full object-cover object-top"
                       />
@@ -835,9 +835,9 @@ const App: React.FC = () => {
                     <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white dark:bg-slate-900 border-t border-r border-slate-100 dark:border-slate-700/60 rotate-[-45deg] mt-px"></span>
 
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-md bg-slate-100 dark:bg-slate-800 shrink-0">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-emerald-500/40 shadow-md bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700 shrink-0">
                         <img
-                          src="/images/default_avatar.jpg"
+                          src="/images/default_avatar.png"
                           alt={profile.name}
                           className="w-full h-full object-cover object-top"
                         />
@@ -987,9 +987,9 @@ const App: React.FC = () => {
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
                 <div className="absolute -bottom-10 right-0 left-0 flex justify-center">
                   <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full p-1.5 shadow-xl border-2 border-emerald-400">
-                    <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex items-center justify-center">
+                    <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700">
                       <img
-                        src="/images/default_avatar.jpg"
+                        src="/images/default_avatar.png"
                         alt={profile.name}
                         className="w-full h-full object-cover object-top"
                       />

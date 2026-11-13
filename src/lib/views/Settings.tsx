@@ -314,9 +314,9 @@ export default function SettingsView({ profile, onUpdate, darkMode, setDarkMode 
 
                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-center gap-4">
-                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl overflow-hidden border-2 border-white/50 shadow-xl bg-white/20 shrink-0">
+                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl overflow-hidden border-2 border-white/50 shadow-xl bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700 shrink-0">
                         <img
-                           src="/images/default_avatar.jpg"
+                           src="/images/default_avatar.png"
                            alt={name || profile.name}
                            className="w-full h-full object-cover object-top"
                         />
