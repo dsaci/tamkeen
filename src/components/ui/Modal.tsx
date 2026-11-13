@@ -1,4 +1,4 @@
-import React, { HTMLAttributes } from 'react';
+import React, { HTMLAttributes, ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { useTheme, themeStyles } from '../../utils/theme';
 import { cn } from '../../lib/utils';
@@ -9,6 +9,8 @@ interface ModalProps extends HTMLAttributes<HTMLDivElement> {
     onClose: () => void;
     title?: string;
     size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+    children?: ReactNode;
+    className?: string;
 }
 
 export const Modal = ({ isOpen, onClose, title, size = 'md', children, className, ...props }: ModalProps) => {

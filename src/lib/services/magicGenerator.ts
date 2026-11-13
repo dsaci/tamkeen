@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { Session } from '../types';
+import { Session } from '../../types';
 
 export async function generateMagicSession(
   subject: string,

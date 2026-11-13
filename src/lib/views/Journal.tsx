@@ -116,7 +116,7 @@ export default function JournalView({ profile, lang, useBackend, userId }: Props
         if (!editingSessionId) {
           const lastSession = sorted.filter(s => s.timing.category === 'LESSON').pop();
           if (lastSession) {
-            setFormData(prev => ({ ...prev, sessionNumber: (lastSession.sessionNumber || 0) + 1 }));
+            setFormData(prev => ({ ...prev, sessionNumber: (lastSession.sectionNumber || 0) + 1 }));
           }
         }
       } else {

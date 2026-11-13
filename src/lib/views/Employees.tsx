@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Search, UserPlus, FileUp, FileText, MoreHorizontal, Download, Trash2, Edit } from 'lucide-react';
-import { Employee } from '../types';
+import { Employee } from '../../types';
 
 const EmployeesView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');

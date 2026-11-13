@@ -2107,11 +2107,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق سلم التنقيط المعتمد والمعايير البيداغوجية التفتيشية",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة النتائج",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الأول",
+                "writingOrIntegration": "اختبارات الفصل الأول",
+                "hours": 3,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -2146,7 +2146,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "تسليم كشوف النقاط ومجالس الأساتذة ونهاية الثلاثي الأول"
               ],
               "writing": [
-                3,
+                "اختبارات ومداولات الفصل",
                 "بداية عطلة الشتاء المدرسية الرسمية"
               ]
             },
@@ -2387,11 +2387,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق كافة معايير المفتشية العامة في الأسئلة وسلم التنقيط",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي التفتيشي ومناقشة السلالم",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الثاني",
+                "writingOrIntegration": "اختبارات الفصل الثاني",
+                "hours": 3,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -2426,7 +2426,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "تسليم كشوف النقاط للثلاثي الثاني + مجالس الأساتذة للمؤسسة"
               ],
               "writing": [
-                3,
+                "اختبارات ومداولات الفصل",
                 "بداية عطلة الربيع المدرسية"
               ]
             },
@@ -2580,11 +2580,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق المقاييس الرسمية المعتمدة في التقويم والامتحانات",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة النتائج",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الثالث",
+                "writingOrIntegration": "اختبارات الفصل الثالث",
+                "hours": 3,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -2623,7 +2623,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
               ],
               "writing": [
                 "إنتاج وضعيات إدماجية تبرز نضج الفكر اللغوي للمتعلم",
-                3,
+                "اختبارات ومداولات الفصل",
                 "اختتام السنة الدراسية رسميا"
               ]
             },
@@ -2647,10 +2647,10 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "إعداد الحصيلة السنوية لنشاطات المادة وتوصيات مجلس التعليم",
                 "rhetoricOrProsody": "المشاركة في تأطير امتحانات شهادة البكالوريا والتعليم المتوسط الرسمية",
                 "guidedReadingOrCommunicative": "إسدال الستار رسميا على الموسم الدراسي 2024/2025",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": true,
-                "isHoliday": "نهاية الموسم",
+                "writingOrIntegration": "نهاية الموسم الدراسي",
+                "hours": 3,
+                "isExamPeriod": false,
+                "isHoliday": true,
                 "holidayName": "نهاية الموسم الدراسي",
                 "notes": ""
               }
@@ -2666,7 +2666,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "المشاركة في تأطير امتحانات شهادة البكالوريا والتعليم المتوسط الرسمية"
               ],
               "writing": [
-                3
+                "اختبارات ومداولات الفصل"
               ]
             },
             "examTitle": "نهاية الموسم الدراسي"
@@ -3452,11 +3452,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق كافة المقاييس الوزارية المعتمدة في التقويم التفتيشي الرسمي",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة السلالم وتوزيع العلامات",
-                "writingOrIntegration": 6,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الثالث",
+                "writingOrIntegration": "اختبارات الفصل الثالث",
+                "hours": 6,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -3495,7 +3495,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
               ],
               "writing": [
                 "إنتاج نصوص نقدية إدماجية تبرز النضج الفكري واللغوي للمتعلم",
-                6,
+                "اختبارات ومداولات الفصل",
                 "اختتام السنة الدراسية رسميا"
               ]
             },
@@ -3519,10 +3519,10 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "إعداد التقرير البيداغوجي السنوي لمادة اللغة العربية وآدابها بالثانوية",
                 "rhetoricOrProsody": "المشاركة في تأطير امتحانات شهادة البكالوريا والتعليم المتوسط الرسمية",
                 "guidedReadingOrCommunicative": "إسدال الستار رسميا على الموسم الدراسي 2024/2025",
-                "writingOrIntegration": 6,
-                "hours": true,
-                "isExamPeriod": true,
-                "isHoliday": "نهاية الموسم",
+                "writingOrIntegration": "نهاية الموسم الدراسي",
+                "hours": 6,
+                "isExamPeriod": false,
+                "isHoliday": true,
                 "holidayName": "نهاية الموسم الدراسي",
                 "notes": ""
               }
@@ -3538,7 +3538,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "المشاركة في تأطير امتحانات شهادة البكالوريا والتعليم المتوسط الرسمية"
               ],
               "writing": [
-                6
+                "اختبارات ومداولات الفصل"
               ]
             },
             "examTitle": "نهاية الموسم الدراسي"
@@ -3851,11 +3851,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق سلم التنقيط المعتمد والمعايير البيداغوجية التفتيشية",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة النتائج",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الأول",
+                "writingOrIntegration": "اختبارات الفصل الأول",
+                "hours": 3,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -3890,7 +3890,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "تسليم كشوف النقاط ومجالس الأساتذة ونهاية الثلاثي الأول"
               ],
               "writing": [
-                3,
+                "اختبارات ومداولات الفصل",
                 "بداية عطلة الشتاء المدرسية الرسمية"
               ]
             },
@@ -4131,11 +4131,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق كافة معايير المفتشية العامة في بناء الأسئلة وسلم التنقيط",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة السلالم",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الثاني",
+                "writingOrIntegration": "اختبارات الفصل الثاني",
+                "hours": 3,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -4170,7 +4170,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "تسليم كشوف النقاط للثلاثي الثاني ومجالس الأقسام"
               ],
               "writing": [
-                3,
+                "اختبارات ومداولات الفصل",
                 "بداية عطلة الربيع المدرسية الرسمية"
               ]
             },
@@ -4324,11 +4324,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق المقاييس الرسمية المعتمدة في التقويم التفتيشي وسلالم التنقيط",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة النتائج",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الثالث",
+                "writingOrIntegration": "اختبارات الفصل الثالث",
+                "hours": 3,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -4341,11 +4341,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "مداولات مجالس الأقسام وتوجيه التلاميذ للشعب الست في السنة الثانية ثانوي",
                 "rhetoricOrProsody": "تسليم كشوف النقاط السنوية لأولياء التلاميذ",
                 "guidedReadingOrCommunicative": "اختتام السنة الدراسية الأولى ثانوي رسميا",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "مجالس الأقسام ونهاية السنة",
+                "writingOrIntegration": "مجالس الأقسام ونهاية السنة",
+                "hours": 3,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               }
             ],
@@ -4367,7 +4367,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
               ],
               "writing": [
                 "إنتاج وضعية إدماجية ختامية تعكس نضج التفكير اللغوي لدى التلميذ",
-                3
+                "اختبارات ومداولات الفصل"
               ]
             },
             "examTitle": "اختبارات الفصل الثالث ونهاية السنة"
@@ -4390,10 +4390,10 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "إعداد التقرير البيداغوجي السنوي لمادة اللغة العربية وآدابها",
                 "rhetoricOrProsody": "المشاركة في تأطير امتحانات شهادة البكالوريا والتعليم المتوسط الرسمية",
                 "guidedReadingOrCommunicative": "إسدال الستار رسميا على الموسم الدراسي 2024/2025",
-                "writingOrIntegration": 3,
-                "hours": true,
-                "isExamPeriod": true,
-                "isHoliday": "نهاية الموسم",
+                "writingOrIntegration": "نهاية الموسم الدراسي",
+                "hours": 3,
+                "isExamPeriod": false,
+                "isHoliday": true,
                 "holidayName": "نهاية الموسم الدراسي",
                 "notes": ""
               }
@@ -4409,7 +4409,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "المشاركة في تأطير امتحانات شهادة البكالوريا والتعليم المتوسط الرسمية"
               ],
               "writing": [
-                3
+                "اختبارات ومداولات الفصل"
               ]
             },
             "examTitle": "نهاية الموسم الدراسي"
@@ -4722,11 +4722,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق سلم التنقيط المعتمد والمعايير البيداغوجية التفتيشية الرسمية",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة النتائج",
-                "writingOrIntegration": 5,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الأول",
+                "writingOrIntegration": "اختبارات الفصل الأول",
+                "hours": 5,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -4761,7 +4761,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "تسليم كشوف النقاط ومجالس الأساتذة ونهاية الثلاثي الأول"
               ],
               "writing": [
-                5,
+                "اختبارات ومداولات الفصل",
                 "بداية عطلة الشتاء المدرسية الرسمية"
               ]
             },
@@ -5002,11 +5002,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق كافة معايير المفتشية العامة في بناء الأسئلة وسلم التنقيط التفتيشي",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة السلالم وتوزيع العلامات",
-                "writingOrIntegration": 5,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الثاني",
+                "writingOrIntegration": "اختبارات الفصل الثاني",
+                "hours": 5,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -5041,7 +5041,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "تسليم كشوف النقاط للثلاثي الثاني ومجالس الأقسام للمؤسسة"
               ],
               "writing": [
-                5,
+                "اختبارات ومداولات الفصل",
                 "بداية عطلة الربيع المدرسية"
               ]
             },
@@ -5195,11 +5195,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "تطبيق المقاييس الرسمية المعتمدة في التقويم التفتيشي وسلالم التنقيط",
                 "rhetoricOrProsody": "مراجعة المكتسبات",
                 "guidedReadingOrCommunicative": "التصحيح النموذجي ومناقشة النتائج",
-                "writingOrIntegration": 5,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "اختبارات الفصل الثالث",
+                "writingOrIntegration": "اختبارات الفصل الثالث",
+                "hours": 5,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               },
               {
@@ -5212,11 +5212,11 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "مداولات مجالس الأقسام وتوجيه التلاميذ لشعبتي الآداب والفلسفة واللغات الأجنبية",
                 "rhetoricOrProsody": "تسليم كشوف النقاط السنوية لأولياء التلاميذ",
                 "guidedReadingOrCommunicative": "اختتام السنة الدراسية الأولى ثانوي رسميا",
-                "writingOrIntegration": 5,
-                "hours": true,
-                "isExamPeriod": false,
-                "isHoliday": "",
-                "holidayName": "مجالس الأقسام ونهاية السنة",
+                "writingOrIntegration": "مجالس الأقسام ونهاية السنة",
+                "hours": 5,
+                "isExamPeriod": true,
+                "isHoliday": false,
+                "holidayName": "",
                 "notes": ""
               }
             ],
@@ -5238,7 +5238,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
               ],
               "writing": [
                 "إنتاج نصوص نقدية إدماجية تعكس نضج التفكير الأدبي واللغوي لدى التلميذ",
-                5
+                "اختبارات ومداولات الفصل"
               ]
             },
             "examTitle": "اختبارات الفصل الثالث ونهاية السنة"
@@ -5261,10 +5261,10 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "grammar": "إعداد التقرير البيداغوجي السنوي لمادة اللغة العربية وآدابها للثانوية",
                 "rhetoricOrProsody": "المشاركة في تأطير امتحانات شهادة البكالوريا والتعليم المتوسط الرسمية",
                 "guidedReadingOrCommunicative": "إسدال الستار رسميا على الموسم الدراسي 2024/2025",
-                "writingOrIntegration": 5,
-                "hours": true,
-                "isExamPeriod": true,
-                "isHoliday": "نهاية الموسم",
+                "writingOrIntegration": "نهاية الموسم الدراسي",
+                "hours": 5,
+                "isExamPeriod": false,
+                "isHoliday": true,
                 "holidayName": "نهاية الموسم الدراسي",
                 "notes": ""
               }
@@ -5280,7 +5280,7 @@ export const OFFICIAL_SYLLABUS_DISTRIBUTIONS: SyllabusDistribution[] = [
                 "المشاركة في تأطير امتحانات شهادة البكالوريا والتعليم المتوسط الرسمية"
               ],
               "writing": [
-                5
+                "اختبارات ومداولات الفصل"
               ]
             },
             "examTitle": "نهاية الموسم الدراسي"

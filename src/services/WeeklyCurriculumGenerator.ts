@@ -404,7 +404,7 @@ function buildSequencedSession(params: {
       startTime: slot.startTime,
       endTime: slot.endTime,
       holidayName: holidayName,
-      examType: examType,
+      examType: examType as any,
     }
   };
 }

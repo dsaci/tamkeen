@@ -1260,12 +1260,12 @@ export default function WhiteboardView() {
   };
 
   const handleInsertBlankAlgeriaMap = () => {
-    const asset = EDUCATIONAL_ASSETS.find(a => a.id === 'algeria-map-blank') || EDUCATIONAL_ASSETS.find(a => a.category === 'maps');
+    const asset = EDUCATIONAL_ASSETS.find(a => a.id === 'algeria-map-blank') || EDUCATIONAL_ASSETS.find(a => (a.category as any) === 'maps');
     if (asset) handleAddAsset(asset);
   };
 
   const handleInsertWilayasMap = () => {
-    const asset = EDUCATIONAL_ASSETS.find(a => a.id === 'algeria-map-wilayas') || EDUCATIONAL_ASSETS.find(a => a.category === 'maps');
+    const asset = EDUCATIONAL_ASSETS.find(a => a.id === 'algeria-map-wilayas') || EDUCATIONAL_ASSETS.find(a => (a.category as any) === 'maps');
     if (asset) handleAddAsset(asset);
   };
 

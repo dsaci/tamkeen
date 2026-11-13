@@ -26,6 +26,16 @@ export interface TeacherProfile {
   pedagogicalDistrict?: string;
   administrativeDistrict?: string;
   deletedSubjects?: string[];
+  phone?: string;
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  position: string;
+  nationalId: string;
+  joinDate: string;
+  status: 'ACTIVE' | 'SUBSTITUTE' | 'ON_LEAVE';
 }
 
 // --- UNIFIED JOURNAL MODEL (Strict Structure) ---

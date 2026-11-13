@@ -26,5 +26,6 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": ["legacy_unused", "src/legacy_components"]
 }

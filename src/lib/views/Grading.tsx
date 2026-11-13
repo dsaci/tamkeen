@@ -316,7 +316,7 @@ const GradingView: React.FC<Props> = ({ profile }) => {
 
     const current = newCont.find(c => c.studentId === studentId && c.term === activeTerm);
     if (current) {
-      const total = Object.values(current.criteria).reduce((a, b) => a + b, 0);
+      const total: number = Number((Object.values(current.criteria) as any[]).reduce((a: number, b: any) => a + Number(b || 0), 0));
       updateScore(studentId, 'cont_calculated', total);
     }
     saveToLocal(students, scores, newCont);
@@ -555,7 +555,7 @@ const GradingView: React.FC<Props> = ({ profile }) => {
               <div className="text-white">
                 <p className="text-xs font-black text-slate-400 uppercase italic">العلامة الإجمالية للتقويم المستمر:</p>
                 <p className="text-4xl font-black text-emerald-400 mt-1">
-                  {(Object.values(contEval.find(c => c.studentId === showEvalModal && c.term === activeTerm)?.criteria || {}).reduce((a, b) => a + b, 0)).toFixed(2)}
+                  {Number((Object.values(contEval.find(c => c.studentId === showEvalModal && c.term === activeTerm)?.criteria || {}) as any[]).reduce((a: number, b: any) => a + Number(b || 0), 0)).toFixed(2)}
                   <span className="text-sm text-white">/ 20</span>
                 </p>
               </div>
