@@ -120,6 +120,32 @@ const SERVICES: ServiceItem[] = [
     tags: ['تقطيع عروضي', 'بحور الشعر', 'بكالوريا جزائرية', 'الفراهيدي']
   },
   {
+    id: '/rhetoric',
+    title: 'المختبر البلاغي الذكي',
+    subtitle: 'تحليل الصور البيانية والمحسنات البديعية والأساليب',
+    category: 'ai',
+    categoryLabel: 'الذكاء واللغة',
+    icon: Compass,
+    gradient: 'from-indigo-600 via-teal-600 to-emerald-600',
+    glowColor: 'rgba(99, 102, 241, 0.4)',
+    accentBorder: 'border-indigo-400/40',
+    isAi: true,
+    isHot: true,
+    overview: 'مختبر بيداغوجي متكامل لتحليل النصوص العربية سياقياً، رصد الصور البيانية (استعارة، تشبيه، كناية، مجاز) والمحسنات البديعية وأساليب علم المعاني، مع تفكيك الأركان وتوضيح القرائن وصياغة الإجابة النموذجية للبكالوريا.',
+    benefits: [
+      'تحديد مواضع الظواهر بدقة وتظليلها تفاعلياً على النص الأصلي.',
+      'تفكيك الأركان والقرائن المانعة وشرح الأثر البلاغي والجمالي.',
+      'توجيهات بيداغوجية لتفادي الخلط الشائع في الامتحانات الرسمية.'
+    ],
+    steps: [
+      { num: '1', text: 'إدخال النص أو الشاهد', detail: 'اكتب أو الصق بيتاً شعرياً أو آية أو فقرة نثرية.' },
+      { num: '2', text: 'تحديد النطاق والمستوى', detail: 'اختر التحليل الشامل أو علم البيان أو البديع ومستوى التلميذ أو الأستاذ.' },
+      { num: '3', text: 'معاينة التقرير والبطاقات', detail: 'تصفح البطاقات المفككة أو انسخ واطبع ورقة العمل النموذجية.' }
+    ],
+    proTip: 'احرص في أسئلة البكالوريا على ذكر [نوع الصورة + أركانها + قرينتها المانعة + أثرها البلاغي] لضمان العلامة الكاملة.',
+    tags: ['بلاغة عربية', 'صور بيانية', 'علم البديع', 'علم المعاني', 'بكالوريا']
+  },
+  {
     id: '/whiteboard',
     title: 'السبورة التفاعلية',
     subtitle: 'مساحة شرح صفي وأدوات هندسية',
@@ -652,6 +678,14 @@ export default function IntroHub({ profile, onNavigate, onGoToLanding, darkMode,
                 >
                   <Zap size={13} className="text-violet-500" />
                   <span>تحضير مذكرة</span>
+                </button>
+
+                <button
+                  onClick={() => onNavigate('/rhetoric')}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/60 transition-all shadow-sm"
+                >
+                  <Compass size={13} className="text-indigo-500" />
+                  <span>المختبر البلاغي</span>
                 </button>
 
                 <button

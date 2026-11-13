@@ -42,6 +42,7 @@ import PresentationStepper from './lib/views/generators/PresentationStepper';
 import WhiteboardView from './lib/views/WhiteboardView';
 import NewTeacherKit from './lib/views/NewTeacherKit';
 import FaraheedyProsodyView from './lib/views/FaraheedyProsodyView';
+import { SmartRhetoricLabView } from './lib/views/SmartRhetoricLabView';
 import { QRCodeCanvas } from 'qrcode.react';
 import InspirationBanner from './legacy_components/InspirationBanner';
 import LoadingScreen from './legacy_components/LoadingScreen';
@@ -171,6 +172,7 @@ const App: React.FC = () => {
     if (path === '/timetable') return 'timetable';
     if (path === '/calendar') return 'calendar';
     if (path === '/copilot') return 'copilot';
+    if (path === '/rhetoric') return 'rhetoric';
     if (path === '/faraheedy') return 'faraheedy';
     if (path === '/exam-generator') return 'exam-generator';
     if (path === '/worksheet-generator') return 'worksheet-generator';
@@ -463,10 +465,11 @@ const App: React.FC = () => {
                 title: 'الذكاء الاصطناعي والمحتوى',
                 icon: Sparkles,
                 color: 'text-indigo-500 bg-indigo-500/10',
-                badge: '7 أدوات',
+                badge: '8 أدوات',
                 items: [
                   { id: '/copilot', label: 'المساعد الذكي', icon: Sparkles },
                   { id: '/mothakira-thakiya', label: t.memo, icon: Zap },
+                  { id: '/rhetoric', label: 'المختبر البلاغي الذكي', icon: Compass },
                   { id: '/faraheedy', label: 'ميزان تمكين العروضي', icon: Feather },
                   { id: '/whiteboard', label: 'السبورة التفاعلية', icon: Sparkles },
                   { id: '/exam-generator', label: 'مولد الاختبارات', icon: PenLine },
@@ -914,6 +917,7 @@ const App: React.FC = () => {
                 <Route path="/timetable" element={<TimetableDashboard profile={profile} />} />
                 <Route path="/calendar" element={<CalendarView profile={profile} />} />
                 <Route path="/copilot" element={<Copilot />} />
+                <Route path="/rhetoric" element={<SmartRhetoricLabView profile={profile} />} />
                 <Route path="/faraheedy" element={<FaraheedyProsodyView profile={profile} />} />
                 <Route path="/exam-generator" element={<ExamGenerator profile={profile} />} />
                 <Route path="/worksheet-generator" element={<WorksheetGenerator profile={profile} />} />
