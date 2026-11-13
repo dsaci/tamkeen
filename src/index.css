@@ -9,6 +9,25 @@
   font-family: var(--font-platform);
 }
 
+/* ==========================================================================
+   Arabic Typography & Layout Safety Rules
+   ========================================================================== */
+[dir="rtl"], [dir="rtl"] *, .rtl, .rtl * {
+  /* Prevent horizontal squishing and broken ligatures in connected Arabic script */
+  letter-spacing: normal !important;
+}
+
+/* Ensure safe vertical breathing room for multi-line Arabic headings */
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+  line-height: 1.5;
+}
+
+/* Prevent clipped gradient text descenders and dots in Arabic fonts */
+.bg-clip-text {
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
 html, body {
   margin: 0;
   padding: 0;

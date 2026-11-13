@@ -86,7 +86,7 @@ export default function PlansView({ profile, lang, type }: { profile: TeacherPro
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black italic tracking-tighter">التوزيع السنوي والشهري للمنهاج</h1>
+                <h1 className="text-2xl font-black leading-normal">التوزيع السنوي والشهري للمنهاج</h1>
                 <span className="bg-emerald-400 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow">
                   تدرجات 2024/2025 الرسمية
                 </span>

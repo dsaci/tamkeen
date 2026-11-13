@@ -645,7 +645,7 @@ const App: React.FC = () => {
                 {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
               <div>
-                <h2 className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{t[activeTab]}</h2>
+                <h2 className="text-lg md:text-xl font-black text-slate-900 dark:text-white leading-normal">{t[activeTab]}</h2>
                 <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mt-0.5">المنصة التربوية الشاملة للأستاذ الجزائري</p>
               </div>
             </div>
@@ -947,7 +947,7 @@ const App: React.FC = () => {
               <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/10 animate-bounce">
                 <Sparkles size={40} className="fill-emerald-600" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-4 leading-tight">
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-4 leading-normal">
                 مرحباً بأستاذنا <span className="text-emerald-600">العبقري!</span>
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-300 font-bold mb-8 leading-relaxed">

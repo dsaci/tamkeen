@@ -152,9 +152,9 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode, isLogge
               </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white leading-[1.3] tracking-tight">
-              <span className="block text-slate-800 dark:text-slate-100">نحن نبني الأدوات،</span>
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 font-black drop-shadow-sm mt-1">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white leading-[1.5] lg:leading-[1.6]">
+              <span className="block text-slate-800 dark:text-slate-100 pb-1.5">نحن نبني الأدوات،</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 font-black drop-shadow-sm mt-2 pb-1.5">
                 وأنت تبني الأجيال.
               </span>
             </h1>
@@ -343,9 +343,9 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode, isLogge
                 <span>الركيزة الأساسية للأستاذ — اجتماع كل الخدمات</span>
               </div>
 
-              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-[1.4] sm:leading-[1.5]">
                 الكراس اليومي الرقمي:<br />
-                انضباط <span className="text-yellow-300">ودقة واحترافية</span>
+                <span className="inline-block mt-2">انضباط <span className="text-yellow-300">ودقة واحترافية</span></span>
               </h2>
 
               <p className="text-emerald-100 text-sm sm:text-base md:text-lg leading-relaxed font-medium">
@@ -398,7 +398,7 @@ export default function LandingPage({ onEnter, darkMode, toggleDarkMode, isLogge
                   <span>التعليم رسالة وأمل — تكريم خاص للمعلمات</span>
                 </div>
 
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 dark:text-white leading-tight">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 dark:text-white leading-[1.4] md:leading-[1.5]">
                   للمعلمات اللاتي يقدن التغيير التربوي
                 </h3>
 

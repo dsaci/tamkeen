@@ -593,13 +593,13 @@ export default function IntroHub({ profile, onNavigate, onGoToLanding, darkMode,
                 )}
               </div>
 
-              <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                طاب يومك البيداغوجي، أستاذ{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-[1.5] sm:leading-[1.6] my-2">
+                <span>طاب يومك البيداغوجي، أستاذ</span>{' '}
+                <span className="inline-block text-amber-500 dark:text-amber-400 font-black py-0.5">
                   {profile.name}
                 </span>
               </h1>
-              <p className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">
+              <p className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl pt-1">
                 بوابتك الرقمية المهنية: اختر الخدمة للبدء المباشر، أو انقر على زر دليل الاستخدام لعرض نافذة الشرح البيداغوجية الشفافة.
               </p>
             </div>

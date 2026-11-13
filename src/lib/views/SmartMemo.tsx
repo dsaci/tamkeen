@@ -405,7 +405,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
           </div>
           <div>
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-black italic tracking-tighter">مساعد تمكين البيداغوجي الذكي</h2>
+              <h2 className="text-2xl font-black leading-normal">مساعد تمكين البيداغوجي الذكي</h2>
               <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow">
                 محلي • مفتوح المصدر • برصيد غير منتهي
               </span>

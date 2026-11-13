@@ -156,7 +156,7 @@ const ResourceBankView: React.FC<Props> = ({ profile }) => {
                                     وزارة التربية الوطنية • المفتشية العامة للبيداغوجيا
                                 </span>
                             </div>
-                            <h2 className="text-3xl font-black tracking-tight">بنك الموارد والأدلة البيداغوجية</h2>
+                            <h2 className="text-3xl font-black leading-normal">بنك الموارد والأدلة البيداغوجية</h2>
                             <p className="text-violet-200/80 text-sm font-bold mt-1">
                                 قاعدة المعرفة المعتمدة للتعليم الجزائري — الأدلة الرسمية، المناهج، التشريع، وبنك الدروس
                             </p>

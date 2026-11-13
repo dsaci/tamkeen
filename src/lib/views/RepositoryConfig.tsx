@@ -134,7 +134,7 @@ export const RepositoryConfig: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white leading-normal flex items-center gap-3">
                         <BookOpen className="text-emerald-600" size={32} />
                         المستودع التربوي الرقمي
                     </h2>
