@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Session,
     SessionCategory,
@@ -14,7 +13,8 @@ import { useTheme, themeStyles } from '../../../utils/theme';
 import { useJournalStore } from '../store/journalStore';
 import {
     BookOpen, Clock, GraduationCap, Zap, Briefcase, Layers, CalendarDays,
-    X, Save, Loader2, Sparkles, AlertCircle, Info, Database, ChevronDown
+    X, Save, Loader2, Sparkles, AlertCircle, Info, Database, ChevronDown,
+    CheckCircle2, Search, Filter, Wand2, FileText, BookMarked, ArrowRight
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardContent } from '../../../components/ui/Card';
@@ -22,6 +22,12 @@ import { cn } from '../../../lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { curriculumRepository } from '../../../services/CurriculumRepository';
 import { listResources } from '../../../services/resourceBankService';
+import {
+    getSmartCurriculumSuggestions,
+    searchCurriculumLessons,
+    getAlgerianMonthFromDate,
+    CurriculumSuggestionItem
+} from '../../../services/JournalCurriculumService';
 
 const CATEGORIES: { id: SessionCategory; label: string; icon: any; color: string; activeColor: string }[] = [
     { id: 'LESSON', label: 'حصة عادية', icon: BookOpen, color: 'bg-indigo-50 text-indigo-600', activeColor: 'bg-indigo-600 text-white' },
@@ -73,12 +79,21 @@ export const SessionModal: React.FC<SessionModalProps> = ({
 }) => {
     const { theme } = useTheme();
     const styles = themeStyles[theme];
-    const { selectedDate, selectedClass } = useJournalStore();
+    const { selectedDate, selectedClass, selectedLevel, selectedGrade } = useJournalStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [resourceSuggestions, setResourceSuggestions] = useState<Resource[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
+
+    // Curriculum Suggestions & Explorer State
+    const [curriculumSuggestions, setCurriculumSuggestions] = useState<CurriculumSuggestionItem[]>([]);
+    const [isCurriculumExplorerOpen, setIsCurriculumExplorerOpen] = useState(false);
+    const [curriculumSearchQuery, setCurriculumSearchQuery] = useState('');
+    const [curriculumGradeFilter, setCurriculumGradeFilter] = useState<'ALL' | '1AS' | '2AS' | '3AS' | 'MIDDLE' | 'PRIMARY'>('ALL');
+    const [curriculumActivityFilter, setCurriculumActivityFilter] = useState<'ALL' | 'texts' | 'grammar' | 'rhetoric' | 'reading' | 'writing'>('ALL');
+    const [justAutoFilled, setJustAutoFilled] = useState(false);
+    const [autoFilledTitle, setAutoFilledTitle] = useState('');
 
     const [formData, setFormData] = useState<Partial<Session>>({
         subject: '',
@@ -116,17 +131,30 @@ export const SessionModal: React.FC<SessionModalProps> = ({
         }
     }, [isOpen, initialData, selectedDate]);
 
+    // Load curriculum suggestions whenever modal opens or date/grade changes
+    useEffect(() => {
+        if (isOpen) {
+            const suggestions = getSmartCurriculumSuggestions({
+                level: selectedLevel,
+                grade: selectedGrade,
+                dateStr: formData.timing?.date || selectedDate,
+                subject: formData.subject || 'اللغة العربية'
+            });
+            setCurriculumSuggestions(suggestions);
+        }
+    }, [isOpen, selectedLevel, selectedGrade, formData.timing?.date, selectedDate, formData.subject]);
+
     // Auto-fetch suggestions when subject or activity changes
     useEffect(() => {
         if (formData.subject && formData.activity) {
-            curriculumRepository.getSuggestions(formData.subject, formData.activity, 'PRIMARY')
+            curriculumRepository.getSuggestions(formData.subject, formData.activity, selectedLevel || 'SECONDARY')
                 .then(data => {
                     if (data.tools.length > 0 && !formData.tools) {
                         setFormData(prev => ({ ...prev, tools: data.tools.join('، ') }));
                     }
                 });
         }
-    }, [formData.subject, formData.activity]);
+    }, [formData.subject, formData.activity, selectedLevel]);
 
     // Auto-search resource bank when subject/activity/title changes
     useEffect(() => {
@@ -164,6 +192,105 @@ export const SessionModal: React.FC<SessionModalProps> = ({
         }));
         setShowSuggestions(false);
     }, []);
+
+    // 1-Click Instant Auto-Fill from Official Curriculum
+    const applyCurriculumSuggestion = useCallback((item: CurriculumSuggestionItem) => {
+        setFormData(prev => ({
+            ...prev,
+            subject: item.subject || prev.subject || 'اللغة العربية وآدابها',
+            activity: item.activity || prev.activity,
+            title: item.title || prev.title,
+            sectionNumber: item.sectionNumber || prev.sectionNumber || 1,
+            sectionName: item.sectionName || prev.sectionName || 'الوحدة التعليمية',
+            unityNumber: item.unityNumber || prev.unityNumber || 1,
+            objective: item.objective || prev.objective,
+            tools: item.tools || prev.tools,
+            content: item.content || prev.content,
+            notes: item.notes || prev.notes,
+        }));
+        setAutoFilledTitle(item.title);
+        setJustAutoFilled(true);
+        setTimeout(() => setJustAutoFilled(false), 4500);
+        setIsCurriculumExplorerOpen(false);
+    }, []);
+
+    // Generate pedagogical 3-phase content dynamically if user wrote a custom title
+    const handleGeneratePedagogicalContent = () => {
+        const title = formData.title?.trim() || 'الدرس المنهجي';
+        const activity = formData.activity?.trim() || 'أدب ونصوص';
+        const subject = formData.subject?.trim() || 'اللغة العربية وآدابها';
+
+        const isGrammar = activity.includes('قواعد') || activity.includes('نحو') || activity.includes('صرف');
+        const isRhetoric = activity.includes('بلاغة') || activity.includes('عروض');
+        const isWriting = activity.includes('تعبير') || activity.includes('إدماج');
+
+        let dynamicObjective = '';
+        let dynamicTools = '';
+        let dynamicContent = '';
+        let dynamicNotes = 'تحقق مؤشر الكفاءة ومشاركة إيجابية من معظم المتعلمين.';
+
+        if (isGrammar) {
+            dynamicObjective = `أن يكتشف المتعلم أحكام وقواعد "${title}"، ويستنتج ضوابط إعرابها، ويوظفها توظيفاً سليماً مشافهة وكتابة.`;
+            dynamicTools = 'الكتاب المدرسي، السبورة، بطاقات الشواهد، كراس الأنشطة';
+            dynamicContent = `1. وضعيّة الانطلاق (05 د): استحضار شواهد لغوية من النص الأدبي ذات صلة بـ "${title}".\n` +
+                             `2. وضعيّة بناء التعلّمات (35 د):\n` +
+                             `   - ملاحظة الشواهد، استقراء الظاهرة وتفكيك عناصرها التركيبية.\n` +
+                             `   - استخلاص وضبط أحكام قاعدة "${title}" وتدوينها مرحلياً على السبورة.\n` +
+                             `3. وضعيّة الاستثمار والتقييم (20 د): إنجاز تمارين تطبيقية ونماذج إعرابية لتثبيت المكتسبات.`;
+        } else if (isRhetoric) {
+            dynamicObjective = `أن يتعرف المتعلم على أبعاد وجماليات "${title}"، ويدرك أثرها البلاغي في توضيح المعنى وتأكيد الفكرة.`;
+            dynamicTools = 'الكتاب المدرسي، السبورة، شواهد بلاغية مختارة، نصوص شعرية ونثرية';
+            dynamicContent = `1. وضعيّة الانطلاق (05 د): التمهيد بشواهد بيانية تثير المقارنة والتذوق الجمالي.\n` +
+                             `2. وضعيّة بناء التعلّمات (35 د): تحليل عناصر الصورة أو المحسن البديعي واستخراج سر الفصاحة والبلاغة.\n` +
+                             `3. وضعيّة الاستثمار والتقييم (20 د): تطبيقات استخراجية ونقدية على نصوص إضافية.`;
+        } else if (isWriting) {
+            dynamicObjective = `أن ينتج المتعلم نصاً متناسقاً وفق معايير النمط المطلوب موظفاً الموارد المكتسبة حول "${title}".`;
+            dynamicTools = 'سند الوضعية المشكلة، شبكة التقويم الذاتي، السبورة';
+            dynamicContent = `1. تحليل الوضعية المشكلة وتعليماتها ومعايير الإنجاز (10 د).\n` +
+                             `2. التحرير الفردي على المسودات مع التوجيه والمرافقة التربوية (35 د).\n` +
+                             `3. العرض والتقويم التبادلي والتصويب وفق شبكة المؤشرات (15 د).`;
+        } else {
+            dynamicObjective = `أن يحلل المتعلم نص "${title}" مستخلصاً الأفكار الأساسية، الخصائص الفنية، ومؤشرات النمط النصي المناسب.`;
+            dynamicTools = 'الكتاب المدرسي المقرر، السبورة، السند الأدبي، مسلاط رقمي';
+            dynamicContent = `1. وضعيّة الانطلاق (10 د): التمهيد بمكتسبات قبلية ترتبط بموضوع النص وسياقه الأدبي والتاريخي.\n` +
+                             `2. وضعيّة بناء التعلّمات (35 د):\n` +
+                             `   - القراءة النموذجية والتلمذية، استخراج الفكرة العامة والأفكار الأساسية.\n` +
+                             `   - اكتشاف معطيات النص: الدلالات، الصور البيانية، والحقل المعجمي ومؤشرات النمط.\n` +
+                             `   - مناقشة وتحليل أبعاد النص الجمالية والإنسانية.\n` +
+                             `3. وضعيّة الاستثمار والتقييم (15 د): صياغة خلاصة تركيبية وتقويم مدى تحقق الكفاءة المستهدفة.`;
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            objective: prev.objective || dynamicObjective,
+            tools: prev.tools || dynamicTools,
+            content: dynamicContent,
+            notes: prev.notes || dynamicNotes,
+        }));
+        setAutoFilledTitle(title);
+        setJustAutoFilled(true);
+        setTimeout(() => setJustAutoFilled(false), 4500);
+    };
+
+    // Filtered explorer search results
+    const explorerResults = useMemo(() => {
+        let items = searchCurriculumLessons(curriculumSearchQuery, selectedLevel, selectedGrade);
+        if (curriculumGradeFilter !== 'ALL') {
+            if (curriculumGradeFilter === '1AS') items = items.filter(i => i.levelBadge.includes('الأولى') || i.id.includes('1as'));
+            if (curriculumGradeFilter === '2AS') items = items.filter(i => i.levelBadge.includes('الثانية') || i.id.includes('2as'));
+            if (curriculumGradeFilter === '3AS') items = items.filter(i => i.levelBadge.includes('الثالثة') || i.id.includes('3as'));
+            if (curriculumGradeFilter === 'MIDDLE') items = items.filter(i => i.source === 'middle_template');
+            if (curriculumGradeFilter === 'PRIMARY') items = items.filter(i => i.source === 'primary_template');
+        }
+        if (curriculumActivityFilter !== 'ALL') {
+            if (curriculumActivityFilter === 'texts') items = items.filter(i => i.activity.includes('نص') || i.activity.includes('أدب'));
+            if (curriculumActivityFilter === 'grammar') items = items.filter(i => i.activity.includes('قواعد') || i.activity.includes('نحو') || i.activity.includes('تركيب'));
+            if (curriculumActivityFilter === 'rhetoric') items = items.filter(i => i.activity.includes('بلاغة') || i.activity.includes('عروض'));
+            if (curriculumActivityFilter === 'reading') items = items.filter(i => i.activity.includes('مطالعة') || i.activity.includes('تواصلي'));
+            if (curriculumActivityFilter === 'writing') items = items.filter(i => i.activity.includes('إدماج') || i.activity.includes('تعبير'));
+        }
+        return items;
+    }, [curriculumSearchQuery, selectedLevel, selectedGrade, curriculumGradeFilter, curriculumActivityFilter]);
 
     // Auto-fetch holiday when date changes or category becomes holiday
     useEffect(() => {
@@ -231,7 +358,6 @@ export const SessionModal: React.FC<SessionModalProps> = ({
             onClose();
         } catch (error: any) {
             console.error("[Modal] Save error:", error);
-            // We use console warning but avoid jarring alerts now that the columns are fixed
         } finally {
             setIsSubmitting(false);
         }
@@ -240,50 +366,149 @@ export const SessionModal: React.FC<SessionModalProps> = ({
     if (!isOpen) return null;
 
     const currentCat = CATEGORIES.find(c => c.id === formData.timing?.category) || CATEGORIES[0];
+    const { monthNameAr } = getAlgerianMonthFromDate(formData.timing?.date || selectedDate);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in" dir="rtl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in" dir="rtl">
             <div className={cn(
-                "w-full max-w-4xl rounded-[3rem] shadow-2xl max-h-[92vh] overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800",
+                "w-full max-w-5xl rounded-[2.5rem] shadow-2xl max-h-[94vh] overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800 transition-all",
                 theme === 'v3' ? "bg-slate-900 text-white" : "bg-white text-slate-900"
             )}>
                 {/* Header */}
-                <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/60 dark:bg-slate-900/60">
                     <div className="flex items-center gap-4">
                         <div className={cn("p-4 rounded-3xl shadow-lg", currentCat.activeColor)}>
-                            <currentCat.icon size={28} />
+                            <currentCat.icon size={26} />
                         </div>
                         <div>
-                            <h3 className="text-2xl font-black">{initialData ? 'تعديل السجل' : 'إضافة تدوين رسمي'}</h3>
-                            <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mt-1">سجل الكراس اليومي - المنهاج الجزائري</p>
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-xl md:text-2xl font-black">{initialData ? 'تعديل السجل' : 'تدوين حصة جديدة'}</h3>
+                                <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 text-[11px] px-3 py-1 rounded-full font-black border border-emerald-300 dark:border-emerald-700">
+                                    تعبئة فورية ⚡
+                                </span>
+                            </div>
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">
+                                سجل الكراس اليومي الرسمي — منهاج وزارة التربية الوطنية (الجيل الثاني)
+                            </p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-3 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 rounded-2xl transition-all">
-                        <X size={24} />
+                        <X size={22} />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8">
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar space-y-6">
                     {/* 1. Category Selector */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
                         {CATEGORIES.map(cat => (
                             <button
                                 key={cat.id}
                                 onClick={() => setFormData({ ...formData, timing: { ...formData.timing!, category: cat.id } })}
                                 className={cn(
-                                    "flex flex-col items-center justify-center gap-3 p-4 rounded-[2rem] border-2 transition-all group",
+                                    "flex flex-col items-center justify-center gap-2 p-3.5 rounded-[1.8rem] border-2 transition-all group",
                                     formData.timing?.category === cat.id
                                         ? `${cat.activeColor} border-transparent shadow-xl scale-105`
                                         : `${cat.color} border-transparent hover:border-current/20`
                                 )}
                             >
-                                <cat.icon size={22} className="group-hover:scale-110 transition-transform" />
+                                <cat.icon size={20} className="group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-black uppercase whitespace-nowrap">{cat.label}</span>
                             </button>
                         ))}
                     </div>
 
-                    {/* 2. Content Cards */}
+                    {/* 2. ⚡ SMART 1-CLICK CURRICULUM GENERATOR BAR */}
+                    {formData.timing?.category === 'LESSON' && (
+                        <div className="relative p-5 md:p-6 rounded-[2.2rem] bg-gradient-to-br from-indigo-50/90 via-emerald-50/60 to-teal-50/80 dark:from-indigo-950/40 dark:via-emerald-950/30 dark:to-teal-950/40 border-2 border-indigo-200/80 dark:border-indigo-800/60 shadow-md space-y-4 animate-in fade-in">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-indigo-600 text-white rounded-2xl shadow-md shadow-indigo-600/30">
+                                        <Sparkles size={20} className="animate-spin text-amber-300" style={{ animationDuration: '6s' }} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-black text-indigo-950 dark:text-indigo-200 flex items-center gap-2">
+                                            <span>مقترحات التدرج السنوي والمنهاج الرسمي الجزائري</span>
+                                            <span className="text-[10px] bg-indigo-200/80 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-full">
+                                                بنقرة واحدة بدون كتابة
+                                            </span>
+                                        </h4>
+                                        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                                            توليد فوري لكافة الحقول: المادة، النشاط، العنوان، المقطع، الأهداف، الوسائل، وسير الحصة بيداغوجياً.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-[11px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1.5">
+                                        <CalendarDays size={13} className="text-emerald-600" />
+                                        شهر: <span className="font-black text-emerald-700 dark:text-emerald-400">{monthNameAr}</span>
+                                    </span>
+                                    {selectedGrade && (
+                                        <span className="text-[11px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                            المستوى: <span className="font-black text-indigo-600 dark:text-indigo-400">{selectedGrade}</span>
+                                        </span>
+                                    )}
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => setIsCurriculumExplorerOpen(true)}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs px-3.5 py-1.5 shadow-sm"
+                                        leftIcon={<Search size={14} />}
+                                    >
+                                        تصفح كامل بنك الدروس
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Success Notification Alert */}
+                            {justAutoFilled && (
+                                <div className="p-3.5 bg-emerald-100/90 dark:bg-emerald-900/50 border border-emerald-300 dark:border-emerald-700 rounded-2xl flex items-center gap-2.5 text-emerald-900 dark:text-emerald-200 animate-in slide-in-from-top-2">
+                                    <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                    <span className="text-xs font-black">
+                                        تم بنجاح توليد وتعبئة بيانات الحصة بالكامل من التدرج الرسمي: "{autoFilledTitle}"
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* 1-Click Quick Chips Bar */}
+                            {curriculumSuggestions.length > 0 ? (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 px-1">
+                                        <span>اختر درساً لتعبئة الحصة فوراً:</span>
+                                        <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-black">
+                                            ({curriculumSuggestions.length} حصة متوفرة في تدرج الشهر)
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                                        {curriculumSuggestions.slice(0, 10).map((sug) => (
+                                            <button
+                                                key={sug.id}
+                                                type="button"
+                                                onClick={() => applyCurriculumSuggestion(sug)}
+                                                className="flex-shrink-0 group flex items-center gap-2 p-2.5 bg-white dark:bg-slate-800 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 rounded-2xl border border-indigo-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all text-right"
+                                                title={`انقر لتعبئة: ${sug.title} (${sug.activity})`}
+                                            >
+                                                <span className="text-[10px] px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 group-hover:bg-white/20 group-hover:text-white font-black whitespace-nowrap">
+                                                    {sug.activity}
+                                                </span>
+                                                <span className="text-xs font-black text-slate-800 dark:text-white group-hover:text-white whitespace-nowrap max-w-[200px] truncate">
+                                                    {sug.title}
+                                                </span>
+                                                <Zap size={14} className="text-amber-500 group-hover:text-amber-300 flex-shrink-0" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="p-3 bg-white/70 dark:bg-slate-800/70 rounded-2xl text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                                    <Info size={15} className="text-indigo-500" />
+                                    <span>اضغط على "تصفح كامل بنك الدروس" لاختيار أي درس رسمي من منهاج الثانوي أو المتوسط.</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* 3. Content Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* LEFT CARD: Timing & Logistics */}
                         <Card className="border-none shadow-sm bg-slate-50/50 dark:bg-slate-800/30">
@@ -429,9 +654,19 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                         {/* RIGHT CARD: Pedagogical Details */}
                         <Card className="border-none shadow-sm bg-slate-50/50 dark:bg-slate-800/30">
                             <CardContent className="p-6 space-y-6">
-                                <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400">
-                                    <BookOpen size={18} />
-                                    <h4 className="font-black text-sm uppercase tracking-wider">تفاصيل الحصة والمنهاج</h4>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                                        <BookOpen size={18} />
+                                        <h4 className="font-black text-sm uppercase tracking-wider">تفاصيل الحصة والمنهاج</h4>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCurriculumExplorerOpen(true)}
+                                        className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                                    >
+                                        <BookMarked size={12} />
+                                        <span>استعراض بنك المنهاج</span>
+                                    </button>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4">
@@ -441,16 +676,29 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                             className={cn("w-full p-4 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 shadow-inner", styles.input)}
                                             value={formData.subject}
                                             onChange={e => setFormData({ ...formData, subject: e.target.value })}
-                                            placeholder="مثال: لغة عربية"
+                                            placeholder="مثال: اللغة العربية وآدابها"
                                         />
                                     </div>
                                     <div className="relative">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">اسم الحصة / العنوان</label>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase block">اسم الحصة / العنوان</label>
+                                            {formData.title && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleGeneratePedagogicalContent}
+                                                    className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 px-2.5 py-0.5 rounded-full font-black flex items-center gap-1 hover:bg-emerald-200"
+                                                    title="توليد الهدف وسير الحصة بيداغوجياً لهذا العنوان"
+                                                >
+                                                    <Wand2 size={11} />
+                                                    <span>توليد سير الحصة بيداغوجياً ⚡</span>
+                                                </button>
+                                            )}
+                                        </div>
                                         <input
                                             className={cn("w-full p-4 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 shadow-inner", styles.input)}
                                             value={formData.title}
                                             onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                            placeholder="مثال: الجملة الاسمية"
+                                            placeholder="مثال: من الكرم العربي لحاتم الطائي"
                                         />
                                         {isSearching && (
                                             <div className="absolute left-4 top-1/2 translate-y-1">
@@ -475,6 +723,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                             {resourceSuggestions.map(res => (
                                                 <button
                                                     key={res.id}
+                                                    type="button"
                                                     onClick={() => applyResourceSuggestion(res)}
                                                     className="w-full text-right p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-emerald-400 hover:shadow-md transition-all group"
                                                 >
@@ -509,7 +758,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                                 className={cn("w-full p-3 rounded-xl border-none bg-emerald-50/30 dark:bg-emerald-900/10 focus:ring-1 focus:ring-emerald-500", styles.input)}
                                                 value={formData.sectionName}
                                                 onChange={e => setFormData({ ...formData, sectionName: e.target.value })}
-                                                placeholder="اسم المقطع"
+                                                placeholder="مثال: عصر الضعف والانحطاط"
                                             />
                                             {errors.sectionName && <p className="text-rose-500 text-[9px] mt-1 font-bold">{errors.sectionName}</p>}
                                         </div>
@@ -529,10 +778,10 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                         </Card>
                     </div>
 
-                    {/* 3. Full Width Content Card */}
+                    {/* 4. Full Width Pedagogical Content Card */}
                     <Card className="border-none shadow-sm bg-slate-50/50 dark:bg-slate-800/30">
-                        <CardContent className="p-8 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <CardContent className="p-6 md:p-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
                                     <div>
                                         <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">النشاط</label>
@@ -540,7 +789,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                             className={cn("w-full p-4 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 shadow-inner", styles.input)}
                                             value={formData.activity}
                                             onChange={e => setFormData({ ...formData, activity: e.target.value })}
-                                            placeholder="قراءة، تعبير، هندسة..."
+                                            placeholder="أدب ونصوص، قواعد لغة، بلاغة، مطالعة، وضعية إدماجية..."
                                         />
                                     </div>
                                     <div>
@@ -550,7 +799,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                             className={cn("w-full p-4 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 shadow-inner resize-none", styles.input)}
                                             value={formData.objective}
                                             onChange={e => setFormData({ ...formData, objective: e.target.value })}
-                                            placeholder="تحديد الهدف من الحصة..."
+                                            placeholder="تحديد الهدف الإجرائي من الحصة..."
                                         />
                                     </div>
                                 </div>
@@ -558,13 +807,13 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                     <div>
                                         <div className="flex justify-between items-center mb-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase block">الوسائل البيداغوجية</label>
-                                            <span className="text-[9px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-black">مقترح تلقائي</span>
+                                            <span className="text-[9px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 px-2 py-0.5 rounded-full font-black">مقترح تلقائي</span>
                                         </div>
                                         <input
                                             className={cn("w-full p-4 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 shadow-inner", styles.input)}
                                             value={formData.tools}
                                             onChange={e => setFormData({ ...formData, tools: e.target.value })}
-                                            placeholder="السبورة، الكتاب، جهاز العرض..."
+                                            placeholder="الكتاب المدرسي المقرر، السبورة، مسلاط رقمي..."
                                         />
                                     </div>
                                     <div>
@@ -574,26 +823,36 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                             className={cn("w-full p-4 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 shadow-inner resize-none", styles.input)}
                                             value={formData.notes}
                                             onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                                            placeholder="سير الحصة، تفاعل التلاميذ..."
+                                            placeholder="سير الحصة، تفاعل التلاميذ، مدى تحقق مؤشر الكفاءة..."
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-8">
-                                <label className="text-[10px] font-black text-slate-400 uppercase mb-4 block">سير الحصة والمحتوى التربوي</label>
+                            <div className="mt-6">
+                                <div className="flex justify-between items-center mb-3">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase block">سير الحصة والمحتوى التربوي (وفق المقاربة بالكفاءات)</label>
+                                    <button
+                                        type="button"
+                                        onClick={handleGeneratePedagogicalContent}
+                                        className="text-[11px] text-emerald-600 dark:text-emerald-400 font-black hover:underline flex items-center gap-1.5"
+                                    >
+                                        <Wand2 size={13} />
+                                        <span>توليد بيداغوجي ذاتي للمراحل الثلاث ⚡</span>
+                                    </button>
+                                </div>
                                 <textarea
                                     rows={5}
-                                    className={cn("w-full p-6 rounded-[2.5rem] border-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner leading-relaxed", styles.input)}
+                                    className={cn("w-full p-5 rounded-[2.2rem] border-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner leading-relaxed text-sm", styles.input)}
                                     value={formData.content}
                                     onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                    placeholder="اكتب هنا بالتفصيل مراحل الحصة وما تم تقديمه للتلاميذ..."
+                                    placeholder="وضعية الانطلاق (التمهيد) -> وضعية بناء التعلمات (الملاحظة والتحليل وبناء القاعدة) -> وضعية الاستثمار والتقييم..."
                                 />
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* 4. Holiday Info Section (Conditional) */}
+                    {/* 5. Holiday Info Section (Conditional) */}
                     {formData.timing?.category === 'HOLIDAY' && (
                         <div className="p-8 bg-green-50 dark:bg-green-900/20 rounded-[3rem] border border-green-200 dark:border-green-800 animate-in slide-in-from-bottom-5">
                             <div className="flex items-center gap-4 mb-4">
@@ -614,30 +873,212 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="p-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-between items-center">
+                <div className="p-6 md:p-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-3 text-slate-400">
                         <Info size={16} />
-                        <span className="text-[10px] font-bold">يتم الحفظ آلياً في قاعدة البيانات السحابية والمحلية</span>
+                        <span className="text-[10px] font-bold">يتم الحفظ والتسجيل آلياً في قاعدة البيانات السحابية والمحلية</span>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3 w-full sm:w-auto">
                         <Button
                             variant="secondary"
                             onClick={onClose}
-                            className="bg-white dark:bg-slate-800 px-8 rounded-2xl font-black"
+                            className="flex-1 sm:flex-none bg-white dark:bg-slate-800 px-6 rounded-2xl font-black"
                         >
                             إلغاء التعديل
                         </Button>
                         <Button
                             onClick={handleSave}
                             isLoading={isSubmitting}
-                            className={cn("px-12 rounded-2xl font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all text-lg", currentCat.activeColor)}
-                            leftIcon={<Save size={22} />}
+                            className={cn("flex-1 sm:flex-none px-10 rounded-2xl font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all text-base", currentCat.activeColor)}
+                            leftIcon={<Save size={20} />}
                         >
                             حفظ وتدوين
                         </Button>
                     </div>
                 </div>
             </div>
+
+            {/* CURRICULUM EXPLORER MODAL (Full Bank Explorer) */}
+            {isCurriculumExplorerOpen && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md animate-in fade-in" dir="rtl">
+                    <div className={cn(
+                        "w-full max-w-4xl max-h-[92vh] rounded-[2.5rem] shadow-2xl flex flex-col border border-slate-200 dark:border-slate-800 overflow-hidden",
+                        theme === 'v3' ? "bg-slate-900 text-white" : "bg-white text-slate-900"
+                    )}>
+                        {/* Explorer Header */}
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-800/70">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-md">
+                                    <BookMarked size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black">بنك دروس وتدرجات المنهاج الرسمي الجزائري</h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                        اختر أي درس رسمي لتعبئة كافة بيانات الحصة بضغطة زر واحدة (بدون كتابة)
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsCurriculumExplorerOpen(false)}
+                                className="p-2.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl transition-all"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Search & Filter Controls */}
+                        <div className="p-5 border-b border-slate-100 dark:border-slate-800 space-y-3 bg-slate-50/30 dark:bg-slate-900/30">
+                            <div className="relative">
+                                <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    type="text"
+                                    value={curriculumSearchQuery}
+                                    onChange={e => setCurriculumSearchQuery(e.target.value)}
+                                    placeholder="ابحث بالعنوان، الكاتب، النشاط أو الدرس (مثال: إعراب إذا، حاتم الطائي، مفدي زكريا، فلسطين، النمط الحجاجي...)"
+                                    className={cn("w-full pr-12 pl-4 py-3.5 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 shadow-inner text-sm", styles.input)}
+                                />
+                                {curriculumSearchQuery && (
+                                    <button
+                                        onClick={() => setCurriculumSearchQuery('')}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 text-xs font-bold"
+                                    >
+                                        مسح
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Filters Row */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                                {/* Level Tabs */}
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[11px] font-bold text-slate-400 ml-1">السنة:</span>
+                                    {(['ALL', '3AS', '2AS', '1AS', 'MIDDLE', 'PRIMARY'] as const).map(f => (
+                                        <button
+                                            key={f}
+                                            type="button"
+                                            onClick={() => setCurriculumGradeFilter(f)}
+                                            className={cn(
+                                                "px-3 py-1.5 rounded-xl font-black text-[11px] transition-all",
+                                                curriculumGradeFilter === f
+                                                    ? "bg-indigo-600 text-white shadow-sm"
+                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                                            )}
+                                        >
+                                            {f === 'ALL' && 'الكل'}
+                                            {f === '3AS' && 'السنة 3 ثانوي (بكالوريا)'}
+                                            {f === '2AS' && 'السنة 2 ثانوي'}
+                                            {f === '1AS' && 'السنة 1 ثانوي'}
+                                            {f === 'MIDDLE' && 'متوسط (CEM)'}
+                                            {f === 'PRIMARY' && 'ابتدائي'}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Activity Tabs */}
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[11px] font-bold text-slate-400 ml-1">النشاط:</span>
+                                    {(['ALL', 'texts', 'grammar', 'rhetoric', 'reading', 'writing'] as const).map(af => (
+                                        <button
+                                            key={af}
+                                            type="button"
+                                            onClick={() => setCurriculumActivityFilter(af)}
+                                            className={cn(
+                                                "px-2.5 py-1 rounded-lg font-bold text-[10px] transition-all",
+                                                curriculumActivityFilter === af
+                                                    ? "bg-emerald-600 text-white"
+                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200"
+                                            )}
+                                        >
+                                            {af === 'ALL' && 'كافة الأنشطة'}
+                                            {af === 'texts' && 'أدب ونصوص'}
+                                            {af === 'grammar' && 'قواعد لغة'}
+                                            {af === 'rhetoric' && 'بلاغة وعروض'}
+                                            {af === 'reading' && 'مطالعة وتواصل'}
+                                            {af === 'writing' && 'وضعية إدماجية'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Explorer Results List */}
+                        <div className="flex-1 overflow-y-auto p-5 space-y-3 custom-scrollbar">
+                            <div className="text-[11px] font-bold text-slate-400 px-1 flex justify-between">
+                                <span>النتائج المتطابقة:</span>
+                                <span>{explorerResults.length} درس مسجل</span>
+                            </div>
+
+                            {explorerResults.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                    {explorerResults.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-all flex flex-col justify-between group"
+                                        >
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="text-[10px] font-black bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-2.5 py-0.5 rounded-full truncate">
+                                                        {item.levelBadge}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                                        {item.activity}
+                                                    </span>
+                                                </div>
+
+                                                <h5 className="font-black text-sm text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                    {item.title}
+                                                </h5>
+
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                                    {item.objective}
+                                                </p>
+                                                {item.sectionName && (
+                                                    <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                                                        <span>المقطع:</span>
+                                                        <span className="font-bold text-slate-600 dark:text-slate-300">{item.sectionName}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700/60 flex items-center justify-end">
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => applyCurriculumSuggestion(item)}
+                                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs py-2 shadow-sm"
+                                                    leftIcon={<Zap size={14} className="text-amber-300" />}
+                                                >
+                                                    تعبئة الحصة فوراً بهذا الدرس ⚡
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-16 text-slate-400 space-y-2">
+                                    <BookOpen size={40} className="mx-auto opacity-40" />
+                                    <p className="font-bold">لم نجد دروساً تطابق بحثك: "{curriculumSearchQuery}"</p>
+                                    <p className="text-xs text-slate-500">جرب البحث بكلمة عامة مثل: "نص"، "إعراب"، "استعارة"، "إدماج".</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Explorer Footer */}
+                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/70 flex justify-between items-center text-xs">
+                            <span className="text-slate-500 dark:text-slate-400">
+                                قاعدة بيانات منهاج الجيل الثاني لوزارة التربية الوطنية
+                            </span>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => setIsCurriculumExplorerOpen(false)}
+                                className="rounded-xl px-5"
+                            >
+                                إغلاق
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

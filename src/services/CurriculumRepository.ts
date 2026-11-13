@@ -1,4 +1,3 @@
-
 import { SessionCategory, ExamType, SupportType, TrainingType, IntegrationType } from '../types';
 
 export interface CurriculumData {
@@ -33,30 +32,42 @@ class CurriculumRepository {
     }
 
     /**
-     * Get integrated suggestions for a session based on subject and activity
+     * Get integrated suggestions for a session based on subject, activity, and education level
      */
     public async getSuggestions(subject: string, activity: string, level: string): Promise<CurriculumData> {
-        // In a real app, this would query a local SQLite or remote Supabase DB
-        // For now, we provide core suggestions based on the Algerian curriculum patterns
-
         const data: CurriculumData = {
             objectives: [],
             tools: [],
             activities: []
         };
 
-        // Example logic for automated tools
+        const isSecondary = level === 'SECONDARY' || level === 'HIGH' || level?.includes('AS');
+        const isMiddle = level === 'MIDDLE' || level?.includes('AM');
+
         if (subject.includes('عربية')) {
-            data.tools = ['الكتاب المدرسي', 'السبورة', 'لوحات القراءة', 'دفتر الأنشطة', 'جهاز العرض الرقمي'];
-            data.activities = ['قراءة', 'تعبير شفوي', 'تراكيب نحوية', 'إملاء', 'خط'];
+            if (isSecondary) {
+                data.tools = ['الكتاب المدرسي المقرر', 'السبورة', 'مسلاط رقمي (Data Show)', 'بطاقات الشواهد النحوية', 'مطبوعات السند الشعري والنثري'];
+                data.activities = ['أدب ونصوص', 'قواعد اللغة', 'بلاغة ونقد', 'عروض وموسيقى الشعر', 'مطالعة موجهة', 'نص تواصلي', 'وضعية إدماجية / تعبير كتابي', 'مشروع بيداغوجي'];
+            } else if (isMiddle) {
+                data.tools = ['الكتاب المدرسي', 'السبورة', 'مسجل صوتي', 'كراس الأنشطة', 'أسناد بصرية ومطبوعات'];
+                data.activities = ['فهم المنطوق وإنتاجه', 'فهم المكتوب (قراءة ودراسة نص)', 'الظاهرة اللغوية (قواعد)', 'إنتاج المكتوب (تعبير كتابي)', 'مطالعة موجهة'];
+            } else {
+                data.tools = ['الكتاب المدرسي', 'السبورة', 'الألواح', 'دفتر الأنشطة', 'لوحات القراءة', 'مشاهد مصورة'];
+                data.activities = ['فهم المنطوق والتعبير الشفوي', 'قراءة وفهم نص', 'تراكيب نحوية', 'صيغ صرفية', 'إملاء ورسم كتابي', 'إنتاج كتابي'];
+            }
         } else if (subject.includes('رياضيات')) {
-            data.tools = ['المعداد', 'الأشكال الهندسية', 'المسطرة والمنقلة', 'لوحة الأعداد', 'دفتر الأنشطة'];
-            data.activities = ['أعداد وحساب', 'هندسة', 'قياس', 'تنظيم معطيات'];
+            data.tools = isSecondary 
+                ? ['الكتاب المدرسي', 'السبورة', 'الحاسبة العلمية والبيانية', 'برمجية جيوكيبرا / GeoGebra', 'أوراق مليمترية']
+                : ['المعداد', 'الأشكال الهندسية', 'المسطرة والمنقلة', 'لوحة الأعداد', 'دفتر الأنشطة'];
+            data.activities = isSecondary
+                ? ['دوال وعدد حقيقي', 'هندسة في الفضاء', 'احتمالات وإحصاء', 'متتاليات عددية', 'أعداد مركبة']
+                : ['أعداد وحساب', 'هندسة', 'قياس', 'تنظيم معطيات'];
         } else if (subject.includes('فرنسية') || subject.includes('Français')) {
             data.tools = ['Livre scolaire', 'Tableau', 'Flashcards', 'Cahier d\'activités', 'Projecteur'];
             data.activities = ['Compréhension orale', 'Production écrite', 'Grammaire', 'Conjugaison'];
         } else {
             data.tools = ['الكتاب المدرسي', 'السبورة', 'المجهر (علوم)', 'خرائط (جغرافيا)', 'وسائل إيضاح'];
+            data.activities = ['درس نظري', 'أشغال تطبيقية', 'تقويم تشخيصي', 'معالجة'];
         }
 
         return data;
@@ -73,10 +84,6 @@ class CurriculumRepository {
         // Solar holidays (Gregorian)
         const solarHoliday = ALGERIAN_HOLIDAYS.find(h => !h.isLunar && h.month === month && h.day === day);
         if (solarHoliday) return solarHoliday.name;
-
-        // Lunar holidays (Hijri) - In a production app, we'd use a library like 'hijri-converter'
-        // For this prototype, we return null unless solar matches. 
-        // We expect the user to confirm/adjust as per official announcement.
 
         return null;
     }

@@ -60,12 +60,12 @@ export default function PlansView({ profile, lang, type }: { profile: TeacherPro
     navigate(`/mothakira-thakiya?${params.toString()}`);
   };
 
-  // Export PDF
-  const handleExportPDF = async () => {
+  // Export PDF (Annual or Monthly)
+  const handleExportPDF = async (scope: 'annual' | 'monthly' = 'annual', monthId?: string) => {
     setIsExporting(true);
     try {
       const { exportSyllabusDistributionToPDF } = await import('../utils/pdfGenerator');
-      await exportSyllabusDistributionToPDF(profile, currentDist, activeTrimester);
+      await exportSyllabusDistributionToPDF(profile, currentDist, activeTrimester, scope, monthId);
     } catch (err: any) {
       console.error(err);
       alert('حدث خطأ أثناء إعداد وتصدير ملف التوزيع: ' + (err.message || 'يرجى المحاولة مجدداً'));
@@ -151,12 +151,23 @@ export default function PlansView({ profile, lang, type }: { profile: TeacherPro
           </button>
 
           <button
-            onClick={handleExportPDF}
+            onClick={() => handleExportPDF('annual')}
             disabled={isExporting}
-            className="bg-white hover:bg-emerald-50 text-slate-900 px-5 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center gap-2 active:scale-95 transition-all disabled:opacity-50 border border-emerald-200"
+            className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-4 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+            title="تصدير وثيقة التوزيع السنوي الشامل لجميع الفصول الثلاثة (PDF)"
           >
-            <Download size={16} className="text-emerald-700" />
-            {isExporting ? 'جاري تجهيز PDF...' : 'تصدير وثيقة التوزيع (PDF)'}
+            <Download size={15} />
+            {isExporting ? 'جاري التحضير...' : 'تصدير سنوي شامل (PDF)'}
+          </button>
+
+          <button
+            onClick={() => handleExportPDF('monthly')}
+            disabled={isExporting}
+            className="bg-white hover:bg-emerald-50 text-slate-900 px-4 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center gap-1.5 active:scale-95 transition-all disabled:opacity-50 border border-emerald-200"
+            title="تصدير التوزيع الشهري الرسمي (PDF)"
+          >
+            <Download size={15} className="text-emerald-700" />
+            {isExporting ? 'جاري التحضير...' : 'تصدير شهري (PDF)'}
           </button>
         </div>
       </div>
@@ -284,7 +295,7 @@ export default function PlansView({ profile, lang, type }: { profile: TeacherPro
                       }`}
                     >
                       {/* Month Top Header */}
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 flex-wrap gap-2">
                         <div className="flex items-center gap-2.5">
                           <div className={`p-2 rounded-xl ${month.isExamPeriod ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300' : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'}`}>
                             <Calendar size={18} />
@@ -299,11 +310,23 @@ export default function PlansView({ profile, lang, type }: { profile: TeacherPro
                           </div>
                         </div>
 
-                        {month.isExamPeriod && (
-                          <span className="text-[10px] bg-amber-100 text-amber-900 dark:bg-amber-900/60 dark:text-amber-200 font-black px-2.5 py-1 rounded-full border border-amber-300 dark:border-amber-700 flex items-center gap-1">
-                            <Sparkles size={11} /> {month.examTitle || 'فترة تقويم واختبارات'}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleExportPDF('monthly', month.id)}
+                            disabled={isExporting}
+                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-3 py-1.5 rounded-xl font-black text-[11px] border border-emerald-200 dark:border-emerald-800 transition flex items-center gap-1.5 shadow-sm"
+                            title={`تصدير وثيقة شهر ${month.monthNameAr} بصيغة PDF`}
+                          >
+                            <Download size={13} />
+                            تصدير شهر {month.monthNameAr} (PDF)
+                          </button>
+
+                          {month.isExamPeriod && (
+                            <span className="text-[10px] bg-amber-100 text-amber-900 dark:bg-amber-900/60 dark:text-amber-200 font-black px-2.5 py-1 rounded-full border border-amber-300 dark:border-amber-700 flex items-center gap-1">
+                              <Sparkles size={11} /> {month.examTitle || 'فترة تقويم واختبارات'}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Branch Summary Pills */}
