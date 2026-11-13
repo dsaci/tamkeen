@@ -13,14 +13,15 @@ export const getOfficialAlgerianHeaderHTML = (
     documentSubtitle: string,
     additionalMetaLeft: string = ''
 ): string => {
+    const p = profile || ({} as Partial<TeacherProfile>);
     const levelLabel =
-        profile.level === 'PRIMARY' ? 'التعليم الابتدائي' :
-        profile.level === 'MIDDLE' ? 'التعليم المتوسط' :
-        profile.level === 'HIGH' ? 'التعليم الثانوي' : 'التعليم العام';
+        p.level === 'PRIMARY' ? 'التعليم الابتدائي' :
+        p.level === 'MIDDLE' ? 'التعليم المتوسط' :
+        (p.level === 'HIGH' || p.level === 'SECONDARY') ? 'التعليم الثانوي' : 'التعليم العام';
 
-    const wilaya = profile.province
-        ? (profile.province.includes('-') ? profile.province.split('-')[1] : profile.province)
-        : (profile.wilaya || '...................');
+    const wilaya = p.province
+        ? (p.province.includes('-') ? p.province.split('-')[1] : p.province)
+        : (p.wilaya || '...................');
 
     return `
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; border-bottom: 2px solid #000; padding-bottom: 12px; font-family: 'Cairo', sans-serif;">
@@ -1681,4 +1682,211 @@ export const exportEducationalMapToPDF = async (
     `;
 
     await renderAndDownloadPDF(container, `خريطة_التنظيم_التربوي_${(metadata?.schoolName || 'المؤسسة').replace(/[\s/\\:]+/g, '_')}.pdf`, 'l');
+};
+
+// ============================================================================
+// 9️⃣ تصدير رزنامة الاختبارات الفصلية والعطل المدرسية الرسمية (Official School Calendar Export)
+// ============================================================================
+export const exportOfficialSchoolCalendarToPDF = async (
+    profile: TeacherProfile | undefined,
+    options: {
+        mode: 'both' | 'holidays' | 'exams';
+        selectedStage?: 'ALL' | 'PRIMARY' | 'MIDDLE' | 'SECONDARY';
+        customHeader?: {
+            institution?: string;
+            wilaya?: string;
+            teacherName?: string;
+            pedagogicalDistrict?: string;
+            administrativeDistrict?: string;
+            academicYear?: string;
+        };
+    }
+): Promise<void> => {
+    const {
+        OFFICIAL_MINISTERIAL_METADATA,
+        OFFICIAL_SCHOOL_HOLIDAYS_2026_2027,
+        OFFICIAL_EXAM_CALENDAR_2026_2027,
+        OFFICIAL_STAFF_LEAVE_2026_2027
+    } = await import('../../data/officialSchoolCalendar2026_2027');
+
+    const { mode, selectedStage = 'ALL', customHeader } = options;
+    const exportTime = new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
+
+    const safeProfile: TeacherProfile = {
+        tamkeenId: profile?.tamkeenId || 'TAMKEEN-PRO',
+        name: customHeader?.teacherName || profile?.name || 'الأستاذ(ة)',
+        email: profile?.email || '',
+        institution: customHeader?.institution || profile?.institution || 'المؤسسة التعليمية',
+        level: profile?.level || (selectedStage === 'ALL' ? 'SECONDARY' : selectedStage),
+        grades: profile?.grades || [],
+        academicYear: customHeader?.academicYear || profile?.academicYear || '2026-2027',
+        province: customHeader?.wilaya || profile?.province || profile?.wilaya || 'الجزائر',
+        wilaya: customHeader?.wilaya || profile?.wilaya || profile?.province || 'الجزائر',
+        preferredShift: profile?.preferredShift || 'SINGLE',
+        teachingLanguage: profile?.teachingLanguage || 'ar',
+        teachingSubject: profile?.teachingSubject || 'اللغة العربية وآدابها',
+        pedagogicalDistrict: customHeader?.pedagogicalDistrict || profile?.pedagogicalDistrict || '',
+        administrativeDistrict: customHeader?.administrativeDistrict || profile?.administrativeDistrict || ''
+    };
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    container.style.width = '1123px'; // A4 Landscape
+    container.style.minHeight = '794px';
+    container.style.backgroundColor = '#ffffff';
+    container.style.color = '#000000';
+    container.style.padding = '22px 28px';
+    container.style.direction = 'rtl';
+    container.style.fontFamily = "'Cairo', sans-serif";
+    container.style.zIndex = '-1000';
+
+    // Titles & Subtitles based on Mode
+    let docTitle = 'الرزنامة الرسمية للاختبارات الفصلية والعطل المدرسية';
+    let docSub = `تنفيذاً لأحكام القرار الوزاري رقم 41 (28 سبتمبر 2026) وبلاغ 05 أكتوبر 2026 — الموسم الدراسي ${safeProfile.academicYear}`;
+    let filename = `الرزنامة_الرسمية_والعطل_المدرسية_${safeProfile.academicYear.replace(/[/\\:]+/g, '-')}`;
+
+    if (mode === 'holidays') {
+        docTitle = 'رزنامة العطل المدرسية الرسمية وعطلة الموظفين';
+        docSub = `الموسم الدراسي ${safeProfile.academicYear} — معتمدة وفق القرار رقم 41 وبلاغ 05 أكتوبر 2026`;
+        filename = `العطل_المدرسية_الرسمية_${safeProfile.academicYear.replace(/[/\\:]+/g, '-')}`;
+    } else if (mode === 'exams') {
+        const stageLabel = selectedStage === 'ALL' ? 'لكافة الأطوار التعليمية (ابتدائي • متوسط • ثانوي)' :
+            selectedStage === 'PRIMARY' ? 'مرحلة التعليم الابتدائي' :
+            selectedStage === 'MIDDLE' ? 'مرحلة التعليم المتوسط' : 'مرحلة التعليم الثانوي';
+        docTitle = 'رزنامة الاختبارات الفصلية والامتحانات المدرسية الرسمية';
+        docSub = `${stageLabel} — الموسم الدراسي ${safeProfile.academicYear} (القرار رقم 41)`;
+        filename = `رزنامة_الاختبارات_الرسمية_${selectedStage}_${safeProfile.academicYear.replace(/[/\\:]+/g, '-')}`;
+    }
+
+    // Build Holidays HTML
+    let holidaysHtml = '';
+    if (mode === 'both' || mode === 'holidays') {
+        const rows = OFFICIAL_SCHOOL_HOLIDAYS_2026_2027.map((h, idx) => `
+            <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f9fafb'};">
+                <td style="padding: 7px 10px; border: 1px solid #000; font-weight: 900; font-size: 11px; text-align: center; width: 18%;">${h.title}</td>
+                <td style="padding: 7px 10px; border: 1px solid #000; font-size: 10.5px; text-align: center; width: 22%;">${h.startDate} (مساءً)</td>
+                <td style="padding: 7px 10px; border: 1px solid #000; font-weight: 900; font-size: 10.5px; text-align: center; color: #065f46; width: 22%;">${h.resumeDate} (صباحاً)</td>
+                <td style="padding: 7px 10px; border: 1px solid #000; font-size: 10px; width: 38%;">${h.description}</td>
+            </tr>
+        `).join('');
+
+        holidaysHtml = `
+            <div style="margin-bottom: 14px;">
+                <div style="background-color: #f1f5f9; border: 1.5px solid #000; border-bottom: none; padding: 5px 12px; font-weight: 900; font-size: 11px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>🏖️ جدول العطل المدرسية الرسمية (القرار الوزاري رقم 41)</span>
+                    <span style="font-size: 10px; color: #475569;">سارية على جميع المناطق والولايات</span>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #000;">
+                    <thead style="background-color: #e2e8f0; font-size: 10.5px; font-weight: 900;">
+                        <tr>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 18%;">العطلة المدرسية</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 22%;">تاريخ بداية العطلة (مساءً)</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 22%;">استئناف الدراسة (صباحاً)</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 38%;">التفاصيل والملاحظات التنظيمية</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Build Exams HTML
+    let examsHtml = '';
+    if (mode === 'both' || mode === 'exams') {
+        const filteredExams = selectedStage === 'ALL'
+            ? OFFICIAL_EXAM_CALENDAR_2026_2027
+            : OFFICIAL_EXAM_CALENDAR_2026_2027.filter(e => e.stage === selectedStage);
+
+        const rows = filteredExams.map((e, idx) => {
+            const stageName = e.stage === 'PRIMARY' ? 'ابتدائي' : e.stage === 'MIDDLE' ? 'متوسط' : 'ثانوي';
+            const isCert = e.isOfficialCertificate;
+            return `
+            <tr style="background-color: ${isCert ? '#fef3c7' : (idx % 2 === 0 ? '#ffffff' : '#f9fafb')};">
+                <td style="padding: 6px 8px; border: 1px solid #000; font-weight: 900; font-size: 10.5px; text-align: center; width: 9%;">الفصل ${e.trimester}</td>
+                <td style="padding: 6px 8px; border: 1px solid #000; font-size: 10px; text-align: center; font-weight: bold; width: 10%;">${stageName}</td>
+                <td style="padding: 6px 8px; border: 1px solid #000; font-size: 10px; font-weight: bold; width: 29%;">${e.title} ${isCert ? '⭐ (امتحان رسمي)' : ''}</td>
+                <td style="padding: 6px 8px; border: 1px solid #000; font-size: 10px; text-align: center; font-weight: 900; color: #047857; width: 24%;">${e.notes || `${e.startDate} إلى ${e.endDate}`}</td>
+                <td style="padding: 6px 8px; border: 1px solid #000; font-size: 9.5px; width: 28%;">${e.gradesDescription}</td>
+            </tr>
+            `;
+        }).join('');
+
+        examsHtml = `
+            <div style="margin-bottom: 14px;">
+                <div style="background-color: #f1f5f9; border: 1.5px solid #000; border-bottom: none; padding: 5px 12px; font-weight: 900; font-size: 11px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📝 جدول رزنامة الاختبارات الفصلية والامتحانات المدرسية الرسمية</span>
+                    <span style="font-size: 10px; color: #475569;">محددة وفق بلاغ 05 أكتوبر 2026 الملحق بالقرار 41</span>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #000;">
+                    <thead style="background-color: #e2e8f0; font-size: 10.5px; font-weight: 900;">
+                        <tr>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 9%;">الفصل</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 10%;">الطور</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 29%;">عنوان الاختبار / الامتحان</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 24%;">الفترة المحددة رسمياً</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 28%;">الأقسام والفئات المعنية</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Build Staff Leave HTML
+    let staffHtml = '';
+    if (mode === 'both' || mode === 'holidays') {
+        const rows = OFFICIAL_STAFF_LEAVE_2026_2027.map((st, idx) => `
+            <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f9fafb'};">
+                <td style="padding: 6px 8px; border: 1px solid #000; font-weight: 900; font-size: 10.5px; width: 24%;">${st.title}</td>
+                <td style="padding: 6px 8px; border: 1px solid #000; font-size: 10px; text-align: center; width: 26%;">${st.region}</td>
+                <td style="padding: 6px 8px; border: 1px solid #000; font-weight: 900; font-size: 10.5px; text-align: center; color: #1e3a8a; width: 20%;">${st.startDate} (مساءً)</td>
+                <td style="padding: 6px 8px; border: 1px solid #000; font-size: 9.5px; width: 30%;">${st.notes}</td>
+            </tr>
+        `).join('');
+
+        staffHtml = `
+            <div style="margin-bottom: 12px;">
+                <div style="background-color: #f1f5f9; border: 1.5px solid #000; border-bottom: none; padding: 5px 12px; font-weight: 900; font-size: 11px;">
+                    <span>👥 رزنامة العطلة السنوية للموظفين الإداريين والتربويين (صيف 2027)</span>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #000;">
+                    <thead style="background-color: #e2e8f0; font-size: 10.5px; font-weight: 900;">
+                        <tr>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 24%;">الفئة الوظيفية</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 26%;">المناطق والولايات المشمولة</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 20%;">تاريخ بداية العطلة</th>
+                            <th style="padding: 6px; border: 1px solid #000; text-align: center; width: 30%;">الشروط والتوجيهات التنظيمية</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+      <style>
+        * { color: #000 !important; border-color: #000 !important; box-sizing: border-box; }
+        @page { size: A4 landscape; margin: 8mm; }
+      </style>
+      <div style="display: flex; flex-direction: column; min-height: 100%; text-align: right; color: #000; background: #fff;">
+          ${getOfficialAlgerianHeaderHTML(safeProfile, docTitle, docSub, 'القرار الوزاري 41')}
+          ${holidaysHtml}
+          ${examsHtml}
+          ${staffHtml}
+          ${getOfficialAlgerianFooterHTML(safeProfile, { showTeacher: true, showDirector: true, showInspector: true, exportTime })}
+      </div>
+    `;
+
+    await renderAndDownloadPDF(container, `${filename}.pdf`, 'l');
 };
