@@ -39,14 +39,14 @@ export const PERIOD_HOURS_MAP = {
     morning: [
       { slotIndex: 1, start: '08:00', end: '09:00', label: 'الحصة 1 (08:00 - 09:00)' },
       { slotIndex: 2, start: '09:00', end: '10:00', label: 'الحصة 2 (09:00 - 10:00)' },
-      { slotIndex: 3, start: '10:10', end: '11:05', label: 'الحصة 3 (10:10 - 11:05)' },
-      { slotIndex: 4, start: '11:05', end: '12:00', label: 'الحصة 4 (11:05 - 12:00)' },
+      { slotIndex: 3, start: '10:00', end: '11:00', label: 'الحصة 3 (10:00 - 11:00) [راحة 5د]' },
+      { slotIndex: 4, start: '11:00', end: '12:00', label: 'الحصة 4 (11:00 - 12:00)' },
     ],
     afternoon: [
-      { slotIndex: 1, start: '13:00', end: '14:00', label: 'الحصة 5 (13:00 - 14:00)' },
-      { slotIndex: 2, start: '14:00', end: '15:00', label: 'الحصة 6 (14:00 - 15:00)' },
-      { slotIndex: 3, start: '15:00', end: '16:00', label: 'الحصة 7 (15:00 - 16:00)' },
-      { slotIndex: 4, start: '16:00', end: '17:00', label: 'الحصة 8 (16:00 - 17:00)' },
+      { slotIndex: 1, start: '13:30', end: '14:30', label: 'الحصة 5 (13:30 - 14:30)' },
+      { slotIndex: 2, start: '14:30', end: '15:30', label: 'الحصة 6 (14:30 - 15:30)' },
+      { slotIndex: 3, start: '15:30', end: '16:30', label: 'الحصة 7 (15:30 - 16:30) [راحة 5د]' },
+      { slotIndex: 4, start: '16:30', end: '17:30', label: 'الحصة 8 (16:30 - 17:30)' },
     ]
   },
   'two-shifts': {
@@ -111,6 +111,20 @@ class WeeklyTimetableService {
     } catch (e) {
       console.error('[WeeklyTimetableService] Save failed:', e);
     }
+  }
+
+  /**
+   * تصفير وتفريغ جميع الحصص في الجدول الأسبوعي
+   */
+  public clearAllSlots(stage: 'PRIMARY' | 'MIDDLE' | 'SECONDARY' = 'SECONDARY'): WeeklyScheduleConfig {
+    const config: WeeklyScheduleConfig = {
+      shiftSystem: stage === 'PRIMARY' ? 'one-shift' : 'middle-secondary',
+      stage,
+      slots: [],
+      lastUpdated: new Date().toISOString()
+    };
+    this.saveConfig(config);
+    return config;
   }
 
   /**

@@ -138,6 +138,17 @@ export const WeeklyTimetableModal: React.FC<WeeklyTimetableModalProps> = ({
     setConfig(defaultCfg);
   };
 
+  const handleClearAllSlots = () => {
+    if (config.slots.length === 0) {
+      alert("الجدول مفرّغ أصلاً!");
+      return;
+    }
+    if (confirm(`هل أنت متأكد من تصفير وتفريغ الجدول الأسبوعي بالكامل (حذف ${config.slots.length} حصة)؟ ستتمكن من بنائه من جديد أو استعادة النموذج الافتراضي.`)) {
+      const cleared = weeklyTimetableService.clearAllSlots(defaultStage);
+      setConfig(cleared);
+    }
+  };
+
   const handleSaveAll = () => {
     weeklyTimetableService.saveConfig({
       ...config,
@@ -188,68 +199,81 @@ export const WeeklyTimetableModal: React.FC<WeeklyTimetableModalProps> = ({
             <div>
               <h4 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2">
                 <Building size={16} className="text-indigo-600" />
-                <span>نظام الدوام بالمؤسسة:</span>
+                <span>نظام التوقيت وساعات الدوام:</span>
               </h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                يحدد توقيت الحصص وفترات الراحة الصباحية والمسائية
+                {defaultStage === 'PRIMARY'
+                  ? 'اختر نظام الدوام المعتمد بمدرستك الابتدائية (دوام واحد أو دوامين)'
+                  : 'التوقيت الوطني الموحد لجميع المتوسطات والثانويات الجزائرية'}
               </p>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setSelectedShift('middle-secondary')}
-                className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-black transition-all border",
-                  selectedShift === 'middle-secondary'
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-                )}
-              >
-                الدوام الكامل / الجزئي (متوسط وثانوي 08:00 - 17:00)
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedShift('two-shifts')}
-                className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-black transition-all border",
-                  selectedShift === 'two-shifts'
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-                )}
-              >
-                نظام الدوامين (ابتدائي 08:00 - 17:15)
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedShift('one-shift')}
-                className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-black transition-all border",
-                  selectedShift === 'one-shift'
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-                )}
-              >
-                نظام الدوام الواحد (ابتدائي 08:00 - 15:00)
-              </button>
-            </div>
+            {defaultStage === 'PRIMARY' ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setSelectedShift('one-shift')}
+                  className={cn(
+                    "px-3.5 py-2 rounded-xl text-xs font-black transition-all border",
+                    selectedShift === 'one-shift'
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                  )}
+                >
+                  نظام الدوام الواحد (ابتدائي 08:00 - 15:00)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedShift('two-shifts')}
+                  className={cn(
+                    "px-3.5 py-2 rounded-xl text-xs font-black transition-all border",
+                    selectedShift === 'two-shifts'
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                  )}
+                >
+                  نظام الدوامين (ابتدائي 08:00 - 17:15)
+                </button>
+              </div>
+            ) : (
+              <div className="px-4 py-2.5 bg-gradient-to-r from-indigo-50 to-emerald-50 dark:from-indigo-950/60 dark:to-emerald-950/50 text-indigo-950 dark:text-indigo-200 rounded-2xl text-xs font-black border border-indigo-200/80 dark:border-indigo-800/80 flex items-center gap-2 shadow-sm">
+                <span>🇩🇿 النظام الوطني الموحد:</span>
+                <span className="text-emerald-700 dark:text-emerald-300 font-black">الصباح (08:00 - 12:00)</span>
+                <span>•</span>
+                <span className="text-indigo-700 dark:text-indigo-300 font-black">المساء (13:30 - 17:30)</span>
+              </div>
+            )}
           </div>
 
-          {/* Quick Help & Stats */}
-          <div className="flex items-center justify-between text-xs px-1">
+          {/* Quick Help & Stats & Reset/Clear Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs px-1">
             <span className="font-bold text-slate-500 dark:text-slate-400">
               إجمالي الحصص المسجلة في الجدول: <span className="font-black text-indigo-600 dark:text-indigo-400">{config.slots.length} حصة أسبوعياً</span>
             </span>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleResetToDefault}
-              className="text-xs font-bold rounded-xl"
-              leftIcon={<RefreshCw size={13} />}
-            >
-              استعادة جدول افتراضي متوازن
-            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleClearAllSlots}
+                className="text-xs font-bold rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-200 dark:border-rose-800"
+                leftIcon={<Trash2 size={13} className="text-rose-600" />}
+              >
+                تصفير وتفريغ الجدول بالكامل 🗑️
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleResetToDefault}
+                className="text-xs font-bold rounded-xl"
+                leftIcon={<RefreshCw size={13} />}
+              >
+                استعادة جدول افتراضي متوازن
+              </Button>
+            </div>
           </div>
 
           {/* 5-Day Weekly Table Grid (Sunday to Thursday) */}

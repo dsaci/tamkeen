@@ -189,6 +189,53 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
     }
   };
 
+  // Zero-out / Clear all sessions for the active week
+  const handleClearWholeWeek = async () => {
+    if (!user?.id) return;
+    if (weekSessions.length === 0) {
+      alert("لا توجد حصص مسجلة في هذا الأسبوع لتصفيرها!");
+      return;
+    }
+
+    if (confirm(`هل أنت متأكد تماماً من تصفير ومسح جميع حصص هذا الأسبوع (${weekSessions.length} حصة من الأحد إلى الخميس)؟\n\nسيتم حذفها بالكامل لتتمكن من إعادة التوليد أو التعبئة من الصفر.`)) {
+      setIsLoading(true);
+      try {
+        for (const sess of weekSessions) {
+          await deleteSessionFromJournal(user.id, sess.timing.date, sess.id);
+        }
+        setWeekSessions([]);
+        setSuccessToast(`🗑️ تم بنجاح تصفير وتفريغ حصص الأسبوع بالكامل!`);
+        setTimeout(() => setSuccessToast(null), 4000);
+      } catch (e) {
+        console.error('[WeeklyJournalView] Clear week error:', e);
+        alert('حدث خطأ أثناء تصفير الحصص.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  // Zero-out / Clear sessions for a specific day
+  const handleClearDaySessions = async (dateStr: string, dayNameAr: string) => {
+    if (!user?.id) return;
+    const daySessions = weekSessions.filter(s => s.timing.date === dateStr);
+    if (daySessions.length === 0) return;
+
+    if (confirm(`هل تريد تصفير ومسح حصص يوم ${dayNameAr} (${daySessions.length} حصة)؟`)) {
+      try {
+        for (const s of daySessions) {
+          await deleteSessionFromJournal(user.id, dateStr, s.id);
+        }
+        setWeekSessions(prev => prev.filter(s => s.timing.date !== dateStr));
+        setSuccessToast(`تم مسح حصص يوم ${dayNameAr} بنجاح.`);
+        setTimeout(() => setSuccessToast(null), 3000);
+      } catch (e) {
+        console.error(e);
+        alert('حدث خطأ أثناء مسح حصص اليوم.');
+      }
+    }
+  };
+
   // Export Weekly Notebook to PDF
   const handleExportWeeklyPDF = async () => {
     if (!profile || weekSessions.length === 0) {
@@ -294,6 +341,17 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
           >
             ضبط وتعديل الجدول الأسبوعي
           </Button>
+
+          {/* Zero-Out / Clear Whole Week Button */}
+          <Button
+            variant="secondary"
+            onClick={handleClearWholeWeek}
+            disabled={weekSessions.length === 0 || isLoading}
+            className="rounded-2xl text-xs font-bold px-4 py-3 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-200 dark:border-rose-800 transition-all"
+            leftIcon={<Trash2 size={16} className="text-rose-600" />}
+          >
+            تصفير حصص الأسبوع 🗑️
+          </Button>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
@@ -352,9 +410,21 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
                       </span>
                       <span>يوم {day.dayNameAr}</span>
                     </span>
-                    <span className="text-[10px] font-black bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full">
-                      {daySessions.length} حصص
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-black bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full">
+                        {daySessions.length} حصص
+                      </span>
+                      {daySessions.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleClearDaySessions(day.dateStr, day.dayNameAr)}
+                          title={`تصفير ومسح حصص يوم ${day.dayNameAr}`}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-all"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <span className="text-[10px] font-bold text-slate-400 pr-7">
                     {day.formatted.slice(0, 16)}

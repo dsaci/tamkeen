@@ -14,6 +14,7 @@ import {
   SECONDARY_ARABIC_CURRICULUM 
 } from '../lib/ai/secondaryArabicCurriculumData';
 import { getAlgerianMonthFromDate } from './JournalCurriculumService';
+import { checkSchoolHoliday, checkExamPeriod } from '../data/officialSchoolCalendar2026_2027';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface AlgerianMonthInfo {
@@ -354,6 +355,36 @@ function buildSequencedSession(params: {
     notes = `حصة 5 للأسبوع لفوج ${className} - إنتاج نصوص تراعي النمط وتوظف الموارد المكتسبة بإتقان.`;
   }
 
+  // فحص العطل المدرسية وفترات الاختبارات الرسمية وفق القرار رقم 41
+  const holidayCheck = checkSchoolHoliday(sessionDate);
+  const stage = (profile?.level === 'PRIMARY' || profile?.level === 'MIDDLE' || profile?.level === 'SECONDARY')
+    ? profile.level
+    : 'SECONDARY';
+  const isCandidateClass = className.includes('4') || className.includes('4AM') || className.includes('3') || className.includes('3AS');
+  const examCheck = checkExamPeriod(sessionDate, stage, isCandidateClass);
+
+  let category: 'LESSON' | 'EXAM' | 'HOLIDAY' = 'LESSON';
+  let holidayName: string | undefined = undefined;
+  let examType: string | undefined = undefined;
+
+  if (holidayCheck.isHoliday) {
+    category = 'HOLIDAY';
+    holidayName = holidayCheck.holiday?.title;
+    activity = 'عطلة مدرسية رسمية';
+    title = `${holidayCheck.holiday?.title} (القرار رقم 41)`;
+    objective = holidayCheck.holiday?.description || 'عطلة مدرسية رسمية معتمدة من وزارة التربية الوطنية';
+    content = `عطلة مدرسية رسمية: ${holidayCheck.holiday?.description}`;
+    notes = `عطلة مدرسية رسمية - استئناف الدراسة صباح: ${holidayCheck.holiday?.resumeDate}`;
+  } else if (examCheck.isExam) {
+    category = 'EXAM';
+    examType = examCheck.exam?.title;
+    activity = examCheck.exam?.isOfficialCertificate ? 'امتحان شهادة رسمي' : 'اختبارات فصلية';
+    title = examCheck.exam?.title || 'اختبارات فصلية رسمية';
+    objective = `إجراء تقويمات واختبارات الثلاثي ${examCheck.exam?.trimester} لقياس مدى تملك الكفاءات الختامية المستهدفة.`;
+    content = `فترة إجراء الاختبارات الرسمية وفق الرزنامة الوزارية:\n- موضوع الاختبار والسلالم التنقيطية.\n- الحراسة والمتابعة البيداغوجية وسير الاختبارات.`;
+    notes = `فترة اختبارات رسمية معتمدة وفق القرار رقم 41.`;
+  }
+
   return {
     id: uuidv4(),
     subject: slot.subject || profile.teachingSubject || 'اللغة العربية وآدابها',
@@ -368,10 +399,12 @@ function buildSequencedSession(params: {
     notes: notes,
     timing: {
       date: sessionDate,
-      category: 'LESSON',
+      category: category,
       period: slot.period,
       startTime: slot.startTime,
       endTime: slot.endTime,
+      holidayName: holidayName,
+      examType: examType,
     }
   };
 }

@@ -33,6 +33,7 @@ import AboutPage from './lib/views/AboutPage';
 import BlogPage from './lib/views/BlogPage';
 import FAQPage from './lib/views/FAQPage';
 import TimetableDashboard from './lib/views/TimetableDashboard';
+import CalendarView from './lib/views/Calendar';
 import Copilot from './lib/views/Copilot';
 import ExamGenerator from './lib/views/generators/ExamGenerator';
 import WorksheetGenerator from './lib/views/generators/WorksheetGenerator';
@@ -166,6 +167,7 @@ const App: React.FC = () => {
     if (path === '/grading') return 'grading';
     if (path === '/absence') return 'absence';
     if (path === '/timetable') return 'timetable';
+    if (path === '/calendar') return 'calendar';
     if (path === '/copilot') return 'copilot';
     if (path === '/exam-generator') return 'exam-generator';
     if (path === '/worksheet-generator') return 'worksheet-generator';
@@ -442,7 +444,7 @@ const App: React.FC = () => {
                 title: 'الإدارة الصفية والوثائق',
                 icon: LayoutDashboard,
                 color: 'text-emerald-500 bg-emerald-500/10',
-                badge: '6 وحدات',
+                badge: '7 وحدات',
                 items: [
                   { id: '/dashboard', label: t.dashboard, icon: BarChart3 },
                   { id: '/korras-yawmi', label: t.journal, icon: LayoutDashboard },
@@ -450,6 +452,7 @@ const App: React.FC = () => {
                   { id: '/absence', label: t.absence, icon: UserCheck },
                   { id: '/timetable', label: 'جداول التوقيت', icon: Calendar },
                   { id: '/annual', label: 'التوزيع السنوي والشهري', icon: CalendarDays },
+                  { id: '/calendar', label: 'الرزنامة والعطل الرسمية', icon: CalendarDays },
                 ]
               },
               {
@@ -900,6 +903,7 @@ const App: React.FC = () => {
                 <Route path="/grading" element={<GradingView profile={profile} />} />
                 <Route path="/absence" element={<AbsenceView profile={profile} lang={lang} />} />
                 <Route path="/timetable" element={<TimetableDashboard profile={profile} />} />
+                <Route path="/calendar" element={<CalendarView profile={profile} />} />
                 <Route path="/copilot" element={<Copilot />} />
                 <Route path="/exam-generator" element={<ExamGenerator profile={profile} />} />
                 <Route path="/worksheet-generator" element={<WorksheetGenerator profile={profile} />} />

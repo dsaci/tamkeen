@@ -556,7 +556,19 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                         {(['MORNING', 'AFTERNOON'] as DayPeriod[]).map(p => (
                                             <button
                                                 key={p}
-                                                onClick={() => setFormData({ ...formData, timing: { ...formData.timing!, period: p } })}
+                                                type="button"
+                                                onClick={() => {
+                                                    const isAfternoon = p === 'AFTERNOON';
+                                                    setFormData({
+                                                        ...formData,
+                                                        timing: {
+                                                            ...formData.timing!,
+                                                            period: p,
+                                                            startTime: isAfternoon && (!formData.timing?.startTime || formData.timing?.startTime === '08:00') ? '13:30' : formData.timing?.startTime || '08:00',
+                                                            endTime: isAfternoon && (!formData.timing?.endTime || formData.timing?.endTime === '09:00') ? '14:30' : formData.timing?.endTime || '09:00'
+                                                        }
+                                                    });
+                                                }}
                                                 className={cn(
                                                     "flex-1 py-3 rounded-xl font-black text-xs transition-all",
                                                     formData.timing?.period === p

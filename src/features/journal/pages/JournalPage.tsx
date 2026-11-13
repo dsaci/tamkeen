@@ -10,7 +10,7 @@ import { useJournalStore } from '../store/journalStore';
 import { Button } from '../../../components/ui/Button';
 import {
     Plus, Loader2, FileText, CalendarDays, Calendar,
-    Sparkles, LayoutGrid, Layers, CheckCircle2
+    Sparkles, LayoutGrid, Layers, CheckCircle2, Trash2
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { Session } from '../../../types';
@@ -80,6 +80,19 @@ export const JournalPage = () => {
         setEditingSession(null);
         setTargetDateForNewSession(null);
         setIsModalOpen(true);
+    };
+
+    const handleClearCurrentDay = async () => {
+        if (entries.length === 0) {
+            alert("لا توجد حصص مسجلة في هذا اليوم لتصفيرها!");
+            return;
+        }
+        if (confirm(`هل أنت متأكد من تصفير ومسح جميع حصص اليوم (${entries.length} حصة)؟`)) {
+            for (const entry of entries) {
+                await deleteSession(entry.id);
+            }
+            await refresh();
+        }
     };
 
     // Triggered by Weekly View when clicking "+ حصة جديدة" on a specific day
@@ -159,7 +172,16 @@ export const JournalPage = () => {
 
                         <div className="flex justify-between items-center">
                             <h2 className={cn("text-2xl font-black", theme === 'v3' ? "text-white" : "text-slate-800")}>يومياتي (حصة بحصة)</h2>
-                            <div className="flex gap-3">
+                            <div className="flex gap-2 sm:gap-3 flex-wrap">
+                                <Button
+                                    onClick={handleClearCurrentDay}
+                                    disabled={entries.length === 0 || isLoading}
+                                    variant="secondary"
+                                    className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-200 dark:border-rose-800"
+                                    leftIcon={<Trash2 size={16} className="text-rose-600" />}
+                                >
+                                    تصفير اليوم 🗑️
+                                </Button>
                                 <Button
                                     onClick={handleExport}
                                     disabled={entries.length === 0 || isExporting}
