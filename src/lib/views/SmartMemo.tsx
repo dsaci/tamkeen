@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { PenTool, Zap, Download, RefreshCw, FileText, Sparkles, Layers, BookOpen, Target, CheckCircle2, Database, X, Loader2, ClipboardList, GraduationCap, Brain, Lightbulb, Wrench, BarChart3, HeartHandshake, StickyNote, Award, BookCheck, Cpu } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { PenTool, Zap, Download, RefreshCw, FileText, Sparkles, Layers, BookOpen, Target, CheckCircle2, Database, X, Loader2, ClipboardList, GraduationCap, Brain, Lightbulb, Wrench, BarChart3, HeartHandshake, StickyNote, Award, BookCheck, Cpu, Search } from 'lucide-react';
 import { TeacherProfile, Resource } from '../../types';
 import { TamkeenLogo } from '../../legacy_components/TamkeenLogo';
 import { addResource, listResources } from '../../services/resourceBankService';
@@ -135,6 +135,35 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
   const [resourceSuggestions, setResourceSuggestions] = useState<Resource[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [modalGradeFilter, setModalGradeFilter] = useState<string>('all');
+  const [modalSearchQuery, setModalSearchQuery] = useState<string>('');
+
+  const handleOpenCurriculumModal = () => {
+    if (formData.grade && formData.grade !== 'الكل') {
+      setModalGradeFilter(formData.grade);
+    } else {
+      setModalGradeFilter('all');
+    }
+    setModalSearchQuery('');
+    setShowCurriculumModal(true);
+  };
+
+  const filteredCurriculumLessons = useMemo(() => {
+    return SECONDARY_ARABIC_CURRICULUM.filter(lesson => {
+      const matchesGrade = modalGradeFilter === 'all' || 
+        lesson.grade === modalGradeFilter || 
+        (modalGradeFilter.includes('الأولى') && lesson.grade.includes('الأولى')) || 
+        (modalGradeFilter.includes('الثانية') && lesson.grade.includes('الثانية')) || 
+        (modalGradeFilter.includes('الثالثة') && lesson.grade.includes('الثالثة'));
+      const query = modalSearchQuery.trim().toLowerCase();
+      const matchesQuery = !query || 
+        lesson.topic.toLowerCase().includes(query) || 
+        lesson.unitTitle.toLowerCase().includes(query) || 
+        lesson.activity.toLowerCase().includes(query) || 
+        lesson.theme.toLowerCase().includes(query);
+      return matchesGrade && matchesQuery;
+    });
+  }, [modalGradeFilter, modalSearchQuery]);
 
   // Read URL query params when arriving from Syllabus Distribution / Plans page
   useEffect(() => {
@@ -444,8 +473,8 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
             </div>
             {/* Quick Picker from official curriculum */}
             <button
-              onClick={() => setShowCurriculumModal(true)}
-              className="bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition-all"
+              onClick={handleOpenCurriculumModal}
+              className="bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer"
             >
               <BookCheck size={14} /> دروس المنهاج المعتمد
             </button>
@@ -617,8 +646,8 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
                   اختر درساً من «دروس المنهاج المعتمد» أو أدخل عنوان الدرس ثم اضغط «توليد المذكرة»
                 </p>
                 <button
-                  onClick={() => setShowCurriculumModal(true)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg transition-all"
+                  onClick={handleOpenCurriculumModal}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg transition-all cursor-pointer"
                 >
                   <BookCheck size={16} /> تصفح وحدات ودروس المنهاج الثانوي
                 </button>
@@ -952,43 +981,167 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
       {/* Curriculum Lessons Modal */}
       {showCurriculumModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] max-w-3xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[85vh] flex flex-col">
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] max-w-3xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[88vh] flex flex-col">
+            {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-3">
-                <BookCheck className="text-emerald-600" size={24} />
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <BookCheck size={22} />
+                </div>
                 <div>
                   <h3 className="font-black text-base text-slate-800 dark:text-white">قاعدة بيانات المنهاج الرسمي للغة العربية (الطور الثانوي)</h3>
-                  <p className="text-xs text-slate-400 font-bold">انقر على أي درس لتعبئة المعطيات وتوليد المذكرة الرسمية فوراً</p>
+                  <p className="text-xs text-slate-400 font-bold">تغطية معتمدة لكل السنوات: الأولى والثانية والثالثة ثانوي بكافة الشعب</p>
                 </div>
               </div>
-              <button onClick={() => setShowCurriculumModal(false)} className="text-slate-400 hover:text-rose-500">
+              <button 
+                onClick={() => setShowCurriculumModal(false)} 
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+              >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="overflow-y-auto space-y-3 flex-1 pr-1">
-              {SECONDARY_ARABIC_CURRICULUM.map(lesson => (
-                <div 
-                  key={lesson.id} 
-                  onClick={() => selectCurriculumItem(lesson)}
-                  className="p-4 bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 transition-all cursor-pointer group space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-sm text-slate-800 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-                      {lesson.topic}
-                    </span>
-                    <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-black px-2.5 py-0.5 rounded-full">
-                      {lesson.grade} • {lesson.activity}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                    <strong>المحور:</strong> {lesson.unitTitle} ({lesson.stream})
-                  </p>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-1 italic">
-                    {lesson.competencyTarget}
-                  </p>
+            {/* Filter Bar: Level Tabs + Live Search */}
+            <div className="space-y-3 pt-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {/* Year Tabs */}
+                <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl text-xs font-black">
+                  <button
+                    type="button"
+                    onClick={() => setModalGradeFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                      modalGradeFilter === 'all'
+                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    جميع السنوات ({SECONDARY_ARABIC_CURRICULUM.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalGradeFilter('السنة الأولى ثانوي')}
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                      modalGradeFilter.includes('الأولى')
+                        ? 'bg-sky-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-sky-600'
+                    }`}
+                  >
+                    1 ثانوي ({SECONDARY_ARABIC_CURRICULUM.filter(l => l.grade.includes('الأولى')).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalGradeFilter('السنة الثانية ثانوي')}
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                      modalGradeFilter.includes('الثانية')
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-amber-600'
+                    }`}
+                  >
+                    2 ثانوي ({SECONDARY_ARABIC_CURRICULUM.filter(l => l.grade.includes('الثانية')).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalGradeFilter('السنة الثالثة ثانوي')}
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                      modalGradeFilter.includes('الثالثة')
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-emerald-600'
+                    }`}
+                  >
+                    3 ثانوي ({SECONDARY_ARABIC_CURRICULUM.filter(l => l.grade.includes('الثالثة')).length})
+                  </button>
                 </div>
-              ))}
+
+                <span className="text-[11px] text-slate-400 font-bold">
+                  النتائج: <strong className="text-emerald-600 dark:text-emerald-400">{filteredCurriculumLessons.length}</strong> درساً
+                </span>
+              </div>
+
+              {/* Instant Search Bar */}
+              <div className="relative">
+                <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={modalSearchQuery}
+                  onChange={(e) => setModalSearchQuery(e.target.value)}
+                  placeholder="ابحث بالعنوان، المحور، النشاط (نصوص، قواعد، بلاغة، عروض، وضعية)..."
+                  className="w-full pl-9 pr-10 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                />
+                {modalSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setModalSearchQuery('')}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 text-xs cursor-pointer"
+                  >
+                    مسح
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Lessons List */}
+            <div className="overflow-y-auto space-y-2.5 flex-1 pr-1 custom-scrollbar">
+              {filteredCurriculumLessons.length === 0 ? (
+                <div className="py-12 text-center space-y-2">
+                  <div className="w-12 h-12 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                    <BookOpen size={24} />
+                  </div>
+                  <p className="text-sm font-black text-slate-600 dark:text-slate-300">لا توجد دروس مطابقة لبحثك</p>
+                  <p className="text-xs text-slate-400 font-bold">جرّب اختيار سنة أخرى أو تغيير كلمة البحث</p>
+                  <button
+                    type="button"
+                    onClick={() => { setModalGradeFilter('all'); setModalSearchQuery(''); }}
+                    className="mt-2 text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                  >
+                    إعادة ضبط الفلاتر
+                  </button>
+                </div>
+              ) : (
+                filteredCurriculumLessons.map(lesson => {
+                  const is1AS = lesson.grade.includes('الأولى');
+                  const is2AS = lesson.grade.includes('الثانية');
+                  const badgeGradeColor = is1AS
+                    ? 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border-sky-200 dark:border-sky-800'
+                    : is2AS
+                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+
+                  return (
+                    <div 
+                      key={lesson.id} 
+                      onClick={() => selectCurriculumItem(lesson)}
+                      className="p-3.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/30 rounded-2xl border border-slate-200 dark:border-slate-700/80 hover:border-emerald-500 transition-all cursor-pointer group space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-black text-sm text-slate-800 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                          {lesson.topic}
+                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${badgeGradeColor}`}>
+                            {lesson.grade}
+                          </span>
+                          <span className="text-[10px] bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold px-2 py-0.5 rounded-md">
+                            {lesson.activity}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold">
+                        <span className="truncate">
+                          <strong>المحور:</strong> {lesson.unitTitle} ({lesson.stream})
+                        </span>
+                        <span className="text-[10px] text-slate-400 shrink-0 font-medium">
+                          {lesson.duration}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-1 italic">
+                        {lesson.competencyTarget}
+                      </p>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
