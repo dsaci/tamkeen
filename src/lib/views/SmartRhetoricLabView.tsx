@@ -67,13 +67,20 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
   const [userContext, setUserContext] = useState<string>('');
   const [showContextField, setShowContextField] = useState<boolean>(false);
 
-  // حالة مزود الذكاء الاصطناعي (محلي، Ollama مفتوح المصدر، Gemini)
+  // حالة مزود الذكاء الاصطناعي (خادم Render، محلي، Ollama مفتوح المصدر، Gemini)
   const [aiProvider, setAiProvider] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('tamkeen_ai_provider') || (localStorage.getItem('tamkeen_gemini_key') ? 'gemini' : 'local');
+      return localStorage.getItem('tamkeen_ai_provider') || 'render_ai';
     }
-    return 'local';
+    return 'render_ai';
   });
+  const [renderAiUrl, setRenderAiUrl] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('tamkeen_render_ai_url') || (import.meta as any).env?.VITE_RENDER_AI_URL || 'https://tamkeen-ai.onrender.com';
+    }
+    return 'https://tamkeen-ai.onrender.com';
+  });
+  const [renderServerStatus, setRenderServerStatus] = useState<'idle' | 'checking' | 'online' | 'offline'>('idle');
   const [apiKey, setApiKey] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('tamkeen_gemini_key') || '';
@@ -112,9 +119,24 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
   const [wizardGeneratedFinding, setWizardGeneratedFinding] = useState<RhetoricFinding | null>(null);
   const [wizardCopied, setWizardCopied] = useState<boolean>(false);
 
+  const handleCheckRenderHealth = async () => {
+    setRenderServerStatus('checking');
+    try {
+      const res = await fetch(`${renderAiUrl.trim()}/health`);
+      if (res.ok) {
+        setRenderServerStatus('online');
+      } else {
+        setRenderServerStatus('offline');
+      }
+    } catch {
+      setRenderServerStatus('offline');
+    }
+  };
+
   const handleSaveAIConfig = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('tamkeen_ai_provider', aiProvider);
+      localStorage.setItem('tamkeen_render_ai_url', renderAiUrl.trim());
       localStorage.setItem('tamkeen_ollama_url', ollamaUrl.trim());
       localStorage.setItem('tamkeen_ollama_model', ollamaModel.trim());
       const trimmed = keyInput.trim();
@@ -643,21 +665,40 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
                     </div>
 
                     {/* خيارات المزود */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       <div
-                        onClick={() => setAiProvider('local')}
+                        onClick={() => setAiProvider('render_ai')}
                         className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                          aiProvider === 'local'
-                            ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200'
+                          aiProvider === 'render_ai'
+                            ? 'border-teal-500 bg-teal-50/60 dark:bg-teal-950/40 text-teal-900 dark:text-teal-200 shadow-sm'
                             : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                         }`}
                       >
                         <div className="font-black text-xs flex items-center justify-between mb-1">
-                          <span>1. المحرك المحلي الصارم</span>
+                          <span className="flex items-center gap-1.5">
+                            <span>🚀 1. خادم Render السحابي</span>
+                          </span>
+                          {aiProvider === 'render_ai' && <Check size={14} className="text-teal-600" />}
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
+                          خادم ذكاء اصطناعي مفتوح المصدر مستقل على Render؛ لا يتطلب أي مفتاح API من الأستاذ.
+                        </p>
+                      </div>
+
+                      <div
+                        onClick={() => setAiProvider('local')}
+                        className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                          aiProvider === 'local'
+                            ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 shadow-sm'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="font-black text-xs flex items-center justify-between mb-1">
+                          <span>⚡ 2. المحرك المحلي الصارم</span>
                           {aiProvider === 'local' && <Check size={14} className="text-emerald-600" />}
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
-                          يعمل محلياً 100% بدون إنترنت ولا مفاتيح، مدعوماً بـ «المحقق التوجيهي» وقواعد الاستدلال التركيبي.
+                          يعمل محلياً 100% بدون إنترنت ولا مفاتيح، مدعوماً بـ «المحقق التوجيهي» وقواعد الاستدلال الجزائري.
                         </p>
                       </div>
 
@@ -665,16 +706,16 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
                         onClick={() => setAiProvider('local_ollama')}
                         className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                           aiProvider === 'local_ollama'
-                            ? 'border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200'
+                            ? 'border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 shadow-sm'
                             : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                         }`}
                       >
                         <div className="font-black text-xs flex items-center justify-between mb-1">
-                          <span>2. نموذج محلي مفتوح المصدر</span>
+                          <span>💻 3. نموذج محلي (Ollama)</span>
                           {aiProvider === 'local_ollama' && <Check size={14} className="text-purple-600" />}
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
-                          اتصال بخادم محلي (Ollama / Lumen / LM Studio) يعمل بالكامل على حاسوبك دون نقل بياناتك للخارج.
+                          اتصال بخادم محلي (Ollama / Lumen / LM Studio) يعمل بالكامل على حاسوبك دون نقل بياناتك.
                         </p>
                       </div>
 
@@ -682,19 +723,62 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
                         onClick={() => setAiProvider('gemini')}
                         className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                           aiProvider === 'gemini'
-                            ? 'border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200'
+                            ? 'border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 shadow-sm'
                             : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                         }`}
                       >
                         <div className="font-black text-xs flex items-center justify-between mb-1">
-                          <span>3. Google Gemini 2.5 Flash</span>
+                          <span>🔑 4. Google Gemini</span>
                           {aiProvider === 'gemini' && <Check size={14} className="text-indigo-600" />}
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
-                          تحليل سحابي متقدم عبر واجهة برمجية مجانية من Google AI Studio لتحليل أي نص أدبي في العالم.
+                          تحليل سحابي متقدم عبر واجهة برمجية شخصية مجانية من Google AI Studio بمفتاحك الخاص.
                         </p>
                       </div>
                     </div>
+
+                    {/* تفاصيل خادم Render الذكي */}
+                    {aiProvider === 'render_ai' && (
+                      <div className="p-3.5 bg-teal-50/60 dark:bg-teal-950/30 rounded-xl border border-teal-200 dark:border-teal-800 space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <label className="text-[11px] font-black text-teal-900 dark:text-teal-300">
+                            رابط خادم الذكاء الاصطناعي على Render (Render API URL):
+                          </label>
+                          <div className="flex items-center gap-2">
+                            {renderServerStatus === 'online' && (
+                              <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                متصل وجاهز للتحليل
+                              </span>
+                            )}
+                            {renderServerStatus === 'offline' && (
+                              <span className="text-[10px] font-black text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/60 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                                غير متاح (سيعمل المحرك المحلي تلقائياً)
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={handleCheckRenderHealth}
+                              disabled={renderServerStatus === 'checking'}
+                              className="text-[10px] font-black text-teal-700 dark:text-teal-300 bg-teal-100 dark:bg-teal-900/50 hover:bg-teal-200 px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                            >
+                              {renderServerStatus === 'checking' ? 'جاري الفحص...' : 'فحص الاتصال 📡'}
+                            </button>
+                          </div>
+                        </div>
+                        <input
+                          type="text"
+                          value={renderAiUrl}
+                          onChange={e => setRenderAiUrl(e.target.value)}
+                          placeholder="https://tamkeen-ai.onrender.com"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono"
+                        />
+                        <p className="text-[10px] text-teal-700 dark:text-teal-400 font-medium">
+                          💡 يعتمد هذا الخيار على خادم بايثون (FastAPI) المرفوع على Render؛ يقوم بالتحليل الدقيق تلقائياً، وإذا كان الخادم في وضع السبات ينوب عنه المحرك المحلي الصارم فوراً دون تعطيل عملك.
+                        </p>
+                      </div>
+                    )}
 
                     {/* تفاصيل النموذج المفتوح المصدر */}
                     {aiProvider === 'local_ollama' && (

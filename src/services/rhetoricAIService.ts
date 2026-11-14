@@ -111,6 +111,9 @@ export class RhetoricAIService {
     const provider = typeof window !== 'undefined'
       ? (localStorage.getItem('tamkeen_ai_provider') || (localStorage.getItem('tamkeen_gemini_key') ? 'gemini' : 'local'))
       : 'local';
+    const renderAiUrl = typeof window !== 'undefined'
+      ? (localStorage.getItem('tamkeen_render_ai_url') || (import.meta as any).env?.VITE_RENDER_AI_URL || 'https://tamkeen-ai.onrender.com')
+      : 'https://tamkeen-ai.onrender.com';
     const ollamaUrl = typeof window !== 'undefined'
       ? (localStorage.getItem('tamkeen_ollama_url') || 'http://localhost:11434')
       : 'http://localhost:11434';
@@ -119,6 +122,77 @@ export class RhetoricAIService {
       : 'qwen2.5';
 
     const apiKey = this.getApiKey();
+
+    // 0. تشغيل خادم الذكاء الاصطناعي على Render (مفتوح المصدر - سحابي بدون مفتاح للأستاذ)
+    if (provider === 'render_ai') {
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Render AI Timeout after 15s')), 15000)
+        );
+
+        const fetchPromise = fetch(`${renderAiUrl}/api/v1/rhetoric/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: trimmed,
+            scope,
+            level,
+            detail
+          })
+        }).then(async r => {
+          if (!r.ok) throw new Error(`Render AI HTTP ${r.status}`);
+          return r.json();
+        });
+
+        const data: any = await Promise.race([fetchPromise, timeoutPromise]);
+        if (data && Array.isArray(data.findings) && data.findings.length > 0) {
+          const verifiedFindings: RhetoricFinding[] = data.findings.map((f: any, i: number) => ({
+            id: f.id || `render-finding-${i + 1}`,
+            category: f.category || 'bayaan',
+            categoryLabel: f.categoryLabel || 'بلاغة عربية',
+            family: f.family || 'istiara',
+            type: f.type || 'makniya',
+            label: f.label || 'ظاهرة بلاغية',
+            span: findTextSpan(trimmed, f.quote || ''),
+            explanation: f.explanation || 'تحليل بلاغي سياقي عميق.',
+            evidence: Array.isArray(f.evidence) ? f.evidence : [f.evidence].filter(Boolean),
+            elements: f.elements && typeof f.elements === 'object' ? f.elements : {},
+            effect: f.effect || 'إبراز المعنى وتوضيحه وتأكيد الفكرة في ذهن القارئ.',
+            educationalNote: f.educationalNote,
+            alternatives: Array.isArray(f.alternatives) ? f.alternatives : [],
+            confidence: f.confidence || { level: 'high', reason: 'سياق صريح مدعوم بالقرائن اللفظية.' },
+            status: f.status || 'certain'
+          }));
+
+          return {
+            analysisId: 'render-ai-' + Date.now(),
+            timestamp: new Date().toISOString(),
+            originalText: trimmed,
+            scope,
+            level,
+            detail,
+            summary: data.summary || {
+              textTypeEstimate: 'نص أدبي',
+              totalFindings: verifiedFindings.length,
+              bayaanCount: verifiedFindings.filter(f => f.category === 'bayaan').length,
+              badiCount: verifiedFindings.filter(f => f.category === 'badi').length,
+              maaniCount: verifiedFindings.filter(f => f.category === 'maani').length,
+              usloobiCount: 0,
+              ambiguousCount: 0
+            },
+            findings: verifiedFindings,
+            warnings: Array.isArray(data.warnings) ? data.warnings : [],
+            pedagogicalAdvice: Array.isArray(data.pedagogicalAdvice) ? data.pedagogicalAdvice : [
+              'تم التحليل عبر خادم الذكاء الاصطناعي المفتوح المصدر (FastAPI on Render) دون الحاجة لأي مفتاح.'
+            ],
+            engineUsed: 'ai_deep_context'
+          };
+        }
+      } catch (renderErr) {
+        console.warn('[RhetoricService] Render AI service unreachable, falling back to local engine:', renderErr);
+        return analyzeRhetoricLocally(trimmed, scope, level, detail);
+      }
+    }
 
     // 1. في حال اختيار أو فرض المحرك المحلي البحت (بدون إنترنت وبدون أي نماذج)
     if (provider === 'local' || (!apiKey && provider !== 'local_ollama')) {
