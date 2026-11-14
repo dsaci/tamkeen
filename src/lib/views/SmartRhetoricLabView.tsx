@@ -569,7 +569,19 @@ export const SmartRhetoricLabView: React.FC<Props> = () => {
                 {/* شريط حالة المحرك ومفتاح الذكاء الاصطناعي */}
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    {aiProvider === 'gemini' && apiKey ? (
+                    {aiProvider === 'render_ai' ? (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 text-xs font-bold">
+                        <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                        <Cpu size={14} className="text-teal-600" />
+                        <span>خادم Render السحابي الذكي (مفتوح المصدر)</span>
+                        <button
+                          onClick={() => setShowKeyDrawer(true)}
+                          className="mr-2 text-[11px] underline text-teal-700 hover:text-teal-900 font-black cursor-pointer"
+                        >
+                          تخصيص
+                        </button>
+                      </div>
+                    ) : aiProvider === 'gemini' && apiKey ? (
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         <ShieldCheck size={14} className="text-emerald-600" />
