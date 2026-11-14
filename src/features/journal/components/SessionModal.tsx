@@ -523,9 +523,14 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                                         <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">اليوم</label>
                                         <input
                                             type="date"
+                                            min="2026-09-21"
                                             className={cn("w-full p-4 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 shadow-inner", styles.input)}
                                             value={formData.timing?.date}
-                                            onChange={e => setFormData({ ...formData, timing: { ...formData.timing!, date: e.target.value } })}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                const finalVal = val && val < '2026-09-21' ? '2026-09-21' : val;
+                                                setFormData({ ...formData, timing: { ...formData.timing!, date: finalVal } });
+                                            }}
                                         />
                                         {errors.date && <p className="text-rose-500 text-[10px] mt-1 font-bold">{errors.date}</p>}
                                     </div>

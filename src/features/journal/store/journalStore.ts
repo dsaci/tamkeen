@@ -16,15 +16,20 @@ interface JournalState {
     resetSelection: () => void;
 }
 
+const MIN_SCHOOL_DATE = '2026-09-21';
+
 export const useJournalStore = create<JournalState>()(
     persist(
         (set) => ({
-            selectedDate: new Date().toISOString().split('T')[0],
+            selectedDate: (() => {
+                const today = new Date().toISOString().split('T')[0];
+                return today < MIN_SCHOOL_DATE ? MIN_SCHOOL_DATE : today;
+            })(),
             selectedLevel: null,
             selectedGrade: null,
             selectedClass: null,
 
-            setSelectedDate: (date) => set({ selectedDate: date }),
+            setSelectedDate: (date) => set({ selectedDate: date < MIN_SCHOOL_DATE ? MIN_SCHOOL_DATE : date }),
             setSelectedLevel: (level) => set({ selectedLevel: level, selectedGrade: null, selectedClass: null }),
             setSelectedGrade: (grade) => set({ selectedGrade: grade, selectedClass: null }),
             setSelectedClass: (cls) => set({ selectedClass: cls }),

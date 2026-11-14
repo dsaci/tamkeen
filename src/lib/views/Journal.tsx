@@ -71,7 +71,10 @@ export default function JournalView({ profile, lang, useBackend, userId }: Props
   const currentUid = userId || user?.id;
 
   // --- STATE ---
-  const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return today < '2026-09-21' ? '2026-09-21' : today;
+  });
   const [entries, setEntries] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -323,8 +326,12 @@ export default function JournalView({ profile, lang, useBackend, userId }: Props
             </div>
             <input
               type="date"
+              min="2026-09-21"
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedDate(val && val < '2026-09-21' ? '2026-09-21' : val);
+              }}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
           </div>

@@ -20,10 +20,17 @@ import { WeeklyTimetableModal } from './WeeklyTimetableModal';
 import { WeeklyCurriculumPacingModal } from './WeeklyCurriculumPacingModal';
 import {
   getDailyJournal,
+  getMultipleDailyJournals,
   addSessionToJournal,
-  deleteSessionFromJournal
+  batchAddSessionsToJournal,
+  deleteSessionFromJournal,
+  batchDeleteSessionsFromJournal
 } from '../../../lib/services/dailyJournal.service';
 import { getAlgerianMonthFromDate } from '../../../services/JournalCurriculumService';
+
+// تاريخ انطلاق السنة الدراسية ودخول التلاميذ الرسمي (21 سبتمبر 2026)
+export const OFFICIAL_PUPIL_ENTRY_DATE = '2026-09-21';
+export const MIN_SCHOOL_WEEK_SUNDAY = '2026-09-20';
 
 interface WeeklyJournalViewProps {
   profile: TeacherProfile;
@@ -40,8 +47,11 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
   const { theme } = useTheme();
   const styles = themeStyles[theme];
 
-  // Current Base Date for the school week
-  const [baseDate, setBaseDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  // Current Base Date for the school week (يمنع البدء قبل دخول التلاميذ 21 سبتمبر 2026)
+  const [baseDate, setBaseDate] = useState<string>(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return today < OFFICIAL_PUPIL_ENTRY_DATE ? OFFICIAL_PUPIL_ENTRY_DATE : today;
+  });
   const [weekSessions, setWeekSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingWeek, setIsGeneratingWeek] = useState(false);
@@ -58,13 +68,16 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
 
   const { monthNameAr } = getAlgerianMonthFromDate(weekInfo.sunday);
 
-  // Fetch all sessions across Sunday-Thursday
+  // هل نحن في الأسبوع الأول للسنة الدراسية (أسبوع دخول التلاميذ 21 سبتمبر 2026)
+  const isFirstSchoolWeek = weekInfo.sunday <= MIN_SCHOOL_WEEK_SUNDAY;
+
+  // Fetch all sessions across Sunday-Thursday using fast multi-tier cache
   const fetchWeekSessions = useCallback(async () => {
     if (!user?.id) return;
     setIsLoading(true);
     try {
-      const promises = weekInfo.dates.map(d => getDailyJournal(user.id, d.dateStr));
-      const journals = await Promise.all(promises);
+      const dateStrings = weekInfo.dates.map(d => d.dateStr);
+      const journals = await getMultipleDailyJournals(user.id, dateStrings);
 
       const all: Session[] = [];
       journals.forEach((j) => {
@@ -92,10 +105,15 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
     fetchWeekSessions();
   }, [fetchWeekSessions]);
 
-  // Navigate Weeks
+  // Navigate Weeks (مع قفل الرجوع قبل 21 سبتمبر 2026)
   const handlePrevWeek = () => {
     const d = new Date(baseDate);
     d.setDate(d.getDate() - 7);
+    const prevSunday = weeklyTimetableService.getAlgerianSchoolWeekDates(d.toISOString().split('T')[0]).sunday;
+    if (prevSunday < MIN_SCHOOL_WEEK_SUNDAY) {
+      setBaseDate(OFFICIAL_PUPIL_ENTRY_DATE);
+      return;
+    }
     setBaseDate(d.toISOString().split('T')[0]);
   };
 
@@ -106,7 +124,12 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
   };
 
   const handleTodayWeek = () => {
-    setBaseDate(new Date().toISOString().split('T')[0]);
+    const today = new Date().toISOString().split('T')[0];
+    setBaseDate(today < OFFICIAL_PUPIL_ENTRY_DATE ? OFFICIAL_PUPIL_ENTRY_DATE : today);
+  };
+
+  const handleJumpToSchoolEntryWeek = () => {
+    setBaseDate(OFFICIAL_PUPIL_ENTRY_DATE);
   };
 
   // 1-Click Generate & Fill the Entire Week: Open Pacing Question Dialog
@@ -160,10 +183,8 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
         weekIndexInMonth: params.weekIndexInMonth,
       });
 
-      // Save to backend
-      for (const sess of generated) {
-        await addSessionToJournal(user.id, sess.timing.date, sess);
-      }
+      // Save to backend using fast bulk insert (< 300ms vs 25s loop)
+      await batchAddSessionsToJournal(user.id, generated);
 
       await fetchWeekSessions();
       setIsPacingModalOpen(false);
@@ -191,7 +212,7 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
     }
   };
 
-  // Zero-out / Clear all sessions for the active week
+  // Zero-out / Clear all sessions for the active week using single batch delete
   const handleClearWholeWeek = async () => {
     if (!user?.id) return;
     if (weekSessions.length === 0) {
@@ -202,9 +223,9 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
     if (confirm(`هل أنت متأكد تماماً من تصفير ومسح جميع حصص هذا الأسبوع (${weekSessions.length} حصة من الأحد إلى الخميس)؟\n\nسيتم حذفها بالكامل لتتمكن من إعادة التوليد أو التعبئة من الصفر.`)) {
       setIsLoading(true);
       try {
-        for (const sess of weekSessions) {
-          await deleteSessionFromJournal(user.id, sess.timing.date, sess.id);
-        }
+        const sessionIds = weekSessions.map(s => s.id);
+        const dates: string[] = Array.from(new Set<string>(weekSessions.map(s => s.timing.date)));
+        await batchDeleteSessionsFromJournal(user.id, sessionIds, dates);
         setWeekSessions([]);
         setSuccessToast(`🗑️ تم بنجاح تصفير وتفريغ حصص الأسبوع بالكامل!`);
         setTimeout(() => setSuccessToast(null), 4000);
@@ -217,7 +238,7 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
     }
   };
 
-  // Zero-out / Clear sessions for a specific day
+  // Zero-out / Clear sessions for a specific day using single batch delete
   const handleClearDaySessions = async (dateStr: string, dayNameAr: string) => {
     if (!user?.id) return;
     const daySessions = weekSessions.filter(s => s.timing.date === dateStr);
@@ -225,9 +246,8 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
 
     if (confirm(`هل تريد تصفير ومسح حصص يوم ${dayNameAr} (${daySessions.length} حصة)؟`)) {
       try {
-        for (const s of daySessions) {
-          await deleteSessionFromJournal(user.id, dateStr, s.id);
-        }
+        const sessionIds = daySessions.map(s => s.id);
+        await batchDeleteSessionsFromJournal(user.id, sessionIds, [dateStr]);
         setWeekSessions(prev => prev.filter(s => s.timing.date !== dateStr));
         setSuccessToast(`تم مسح حصص يوم ${dayNameAr} بنجاح.`);
         setTimeout(() => setSuccessToast(null), 3000);
@@ -305,12 +325,18 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
             <div>
               <div className="flex items-center gap-3">
                 <h3 className="text-xl md:text-2xl font-black">الاستظهار الأسبوعي الشامل للكراس اليومي</h3>
-                <span className="bg-amber-400 text-indigo-950 text-xs px-3 py-1 rounded-full font-black shadow-sm">
-                  النمط الأسبوعي المولد ⚡
-                </span>
+                {isFirstSchoolWeek ? (
+                  <span className="bg-amber-400 text-indigo-950 text-xs px-3 py-1 rounded-full font-black shadow-sm flex items-center gap-1">
+                    <span>🔔 أسبوع دخول التلاميذ: 21 سبتمبر 2026</span>
+                  </span>
+                ) : (
+                  <span className="bg-amber-400 text-indigo-950 text-xs px-3 py-1 rounded-full font-black shadow-sm">
+                    النمط الأسبوعي المولد ⚡
+                  </span>
+                )}
               </div>
               <p className="text-indigo-100 text-xs md:text-sm font-bold mt-1">
-                استعراض ومتابعة أيام التدريس الخمسة (الأحد إلى الخميس) وتوليد محتواها بيداغوجياً من التدرج السنوي
+                استعراض ومتابعة أيام التدريس الخمسة (الأحد إلى الخميس) بدءاً من تاريخ دخول التلاميذ (21 سبتمبر 2026)
               </p>
             </div>
           </div>
@@ -319,14 +345,25 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
           <div className="flex items-center gap-2 bg-black/25 backdrop-blur-md p-2 rounded-2xl border border-white/20 self-start md:self-auto">
             <button
               onClick={handlePrevWeek}
-              className="p-2 hover:bg-white/20 rounded-xl transition-all"
-              title="الأسبوع السابق"
+              disabled={isFirstSchoolWeek}
+              className={`p-2 rounded-xl transition-all ${
+                isFirstSchoolWeek
+                  ? 'opacity-30 cursor-not-allowed text-white/50'
+                  : 'hover:bg-white/20 text-white cursor-pointer'
+              }`}
+              title={
+                isFirstSchoolWeek
+                  ? 'الأسبوع الأول: انطلاق السنة الدراسية ودخول التلاميذ (21 سبتمبر 2026) — لا توجد دراسة قبل هذا التاريخ'
+                  : 'الأسبوع السابق'
+              }
             >
               <ChevronRight size={20} />
             </button>
 
             <div className="px-3 text-center">
-              <span className="text-[10px] text-indigo-200 block font-bold">شهر: {monthNameAr}</span>
+              <span className="text-[10px] text-indigo-200 block font-bold">
+                {isFirstSchoolWeek ? 'الأسبوع 01 (الدخول المدرسي)' : `شهر: ${monthNameAr}`}
+              </span>
               <span className="text-xs font-black text-white whitespace-nowrap">
                 {weekInfo.dates[0]?.formatted.slice(0, 10)} ➔ {weekInfo.dates[4]?.formatted.slice(0, 10)}
               </span>
@@ -334,15 +371,27 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
 
             <button
               onClick={handleNextWeek}
-              className="p-2 hover:bg-white/20 rounded-xl transition-all"
+              className="p-2 hover:bg-white/20 rounded-xl transition-all text-white cursor-pointer"
               title="الأسبوع القادم"
             >
               <ChevronLeft size={20} />
             </button>
 
             <button
+              onClick={handleJumpToSchoolEntryWeek}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ml-1 cursor-pointer ${
+                isFirstSchoolWeek
+                  ? 'bg-amber-400 text-indigo-950 shadow-sm'
+                  : 'bg-white/15 text-white hover:bg-white/25'
+              }`}
+              title="الانتقال المباشر لأسبوع دخول التلاميذ (21 سبتمبر 2026)"
+            >
+              أسبوع الدخول (21 سبت)
+            </button>
+
+            <button
               onClick={handleTodayWeek}
-              className="px-3 py-1.5 bg-white text-indigo-700 hover:bg-indigo-50 rounded-xl text-xs font-black transition-all ml-1"
+              className="px-3 py-1.5 bg-white text-indigo-700 hover:bg-indigo-50 rounded-xl text-xs font-black transition-all cursor-pointer"
             >
               اليوم
             </button>
@@ -474,6 +523,16 @@ export const WeeklyJournalView: React.FC<WeeklyJournalViewProps> = ({
                   <span className="text-[10px] font-bold text-slate-400 pr-7">
                     {day.formatted.slice(0, 16)}
                   </span>
+                  {day.dateStr === '2026-09-21' && (
+                    <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 px-2.5 py-0.5 rounded-full mt-1 w-fit flex items-center gap-1">
+                      <span>🎒 دخول التلاميذ الرسمي (21 سبتمبر)</span>
+                    </span>
+                  )}
+                  {day.dateStr === '2026-09-20' && (
+                    <span className="text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 px-2.5 py-0.5 rounded-full mt-1 w-fit flex items-center gap-1">
+                      <span>🏛️ استقبال وتحضير بيداغوجي</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Day Sessions List */}

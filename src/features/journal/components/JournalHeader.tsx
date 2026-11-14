@@ -39,6 +39,7 @@ export const JournalHeader = () => {
                     </div>
                     <input
                         type="date"
+                        min="2026-09-21"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
                         className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
