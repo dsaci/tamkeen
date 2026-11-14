@@ -94,27 +94,148 @@ export class RhetoricAIService {
   }
 
   /**
-   * تنفيذ التحليل البلاغي الشامل (محلي + سحابي ذكي)
+   * تنفيذ التحليل البلاغي الشامل (محلي + سحابي ذكي + نماذج مفتوحة المصدر محلية)
    */
   public static async analyze(
     text: string,
     scope: RhetoricScope = 'all',
     level: RhetoricLevel = 'secondary',
-    detail: RhetoricDetail = 'detailed'
+    detail: RhetoricDetail = 'detailed',
+    userContext?: string
   ): Promise<RhetoricAnalysisResult> {
     const trimmed = text.trim();
     if (!trimmed) {
       return analyzeRhetoricLocally(text, scope, level, detail);
     }
 
+    const provider = typeof window !== 'undefined'
+      ? (localStorage.getItem('tamkeen_ai_provider') || (localStorage.getItem('tamkeen_gemini_key') ? 'gemini' : 'local'))
+      : 'local';
+    const ollamaUrl = typeof window !== 'undefined'
+      ? (localStorage.getItem('tamkeen_ollama_url') || 'http://localhost:11434')
+      : 'http://localhost:11434';
+    const ollamaModel = typeof window !== 'undefined'
+      ? (localStorage.getItem('tamkeen_ollama_model') || 'qwen2.5')
+      : 'qwen2.5';
+
     const apiKey = this.getApiKey();
 
-    // في حال عدم توفر مفتاح الذكاء الاصطناعي، نلجأ فوراً للمحرك المحلي الدقيق
-    if (!apiKey) {
-      console.info('[RhetoricService] No API key detected; using deterministic local rule engine.');
+    // 1. في حال اختيار أو فرض المحرك المحلي البحت (بدون إنترنت وبدون أي نماذج)
+    if (provider === 'local' || (!apiKey && provider !== 'local_ollama')) {
       return analyzeRhetoricLocally(trimmed, scope, level, detail);
     }
 
+    const promptUser = `قم بالتحليل البلاغي الدقيق للنص التالي:
+النص المراد تحليله:
+"""
+${trimmed}
+"""
+
+${userContext && userContext.trim() ? `السياق والموضوع الموجه من المستخدم:
+"""
+${userContext.trim()}
+"""` : ''}
+
+معايير الطلب:
+- نطاق التحليل المطلوب: ${scope === 'all' ? 'تحليل شامل لجميع علوم البلاغة (بيان، بديع، معاني)' : scope}
+- المستوى التعليمي: ${
+        level === 'elementary' ? 'مبسط للمتعلم المبتدئ' :
+        level === 'middle' ? 'مدرسي لمرحلة التعليم المتوسط' :
+        level === 'secondary' ? 'مستوى البكالوريا والتعليم الثانوي وفق سلم التنقيط الجزائري' :
+        'أكاديمي موسع للأستاذ والمختصين'
+      }
+- نمط النتيجة: ${detail === 'concise' ? 'موجز ومركز' : 'مفصل مع التعليل والقرائن وتفكيك الأركان'}
+
+تأكد من إرجاع كائن JSON دقيق فقط يلتزم بالمخطط المطلوب ومطابقة عبارات النص 100%.`;
+
+    // 2. تشغيل نموذج محلي مفتوح المصدر (Ollama / Local LLM / LM Studio)
+    if (provider === 'local_ollama') {
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Local LLM Timeout after 15s')), 15000)
+        );
+
+        const fetchPromise = fetch(`${ollamaUrl}/v1/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: ollamaModel,
+            messages: [
+              { role: 'system', content: RHETORIC_SYSTEM_PROMPT },
+              { role: 'user', content: promptUser }
+            ],
+            temperature: 0.1,
+            response_format: { type: 'json_object' }
+          })
+        }).then(async r => {
+          if (!r.ok) throw new Error(`Ollama HTTP Error: ${r.status}`);
+          const json = await r.json();
+          return json.choices?.[0]?.message?.content || '{}';
+        });
+
+        const rawText: string = await Promise.race([fetchPromise, timeoutPromise]);
+        let parsedJson: any;
+        try {
+          parsedJson = JSON.parse(rawText);
+        } catch {
+          return analyzeRhetoricLocally(trimmed, scope, level, detail);
+        }
+
+        const verifiedFindings: RhetoricFinding[] = [];
+        const rawFindings = Array.isArray(parsedJson.findings) ? parsedJson.findings : [];
+        for (let i = 0; i < rawFindings.length; i++) {
+          const f = rawFindings[i];
+          const quote = (f.quote || '').trim();
+          if (!quote) continue;
+          verifiedFindings.push({
+            id: f.id || `local-finding-${i + 1}`,
+            category: f.category || 'bayaan',
+            categoryLabel: f.categoryLabel || 'بلاغة عربية',
+            family: f.family || 'istiara',
+            type: f.type || 'makniya',
+            label: f.label || 'ظاهرة بلاغية',
+            span: findTextSpan(trimmed, quote),
+            explanation: f.explanation || 'تحليل بلاغي سياقي.',
+            evidence: Array.isArray(f.evidence) ? f.evidence : [f.evidence].filter(Boolean),
+            elements: f.elements && typeof f.elements === 'object' ? f.elements : {},
+            effect: f.effect || 'إبراز المعنى وتوضيحه وتأكيد الفكرة.',
+            educationalNote: f.educationalNote,
+            alternatives: Array.isArray(f.alternatives) ? f.alternatives : [],
+            confidence: f.confidence || { level: 'high', reason: 'تحليل بنموذج محلي مفتوح المصدر.' },
+            status: f.status || 'certain'
+          });
+        }
+
+        return {
+          analysisId: 'local-llm-' + Date.now(),
+          timestamp: new Date().toISOString(),
+          originalText: trimmed,
+          scope,
+          level,
+          detail,
+          summary: {
+            textTypeEstimate: parsedJson.summary?.textTypeEstimate || 'نص أدبي',
+            totalFindings: verifiedFindings.length,
+            bayaanCount: verifiedFindings.filter(f => f.category === 'bayaan').length,
+            badiCount: verifiedFindings.filter(f => f.category === 'badi').length,
+            maaniCount: verifiedFindings.filter(f => f.category === 'maani').length,
+            usloobiCount: verifiedFindings.filter(f => f.category === 'usloobi').length,
+            ambiguousCount: verifiedFindings.filter(f => f.status === 'ambiguous').length
+          },
+          findings: verifiedFindings,
+          warnings: Array.isArray(parsedJson.warnings) ? parsedJson.warnings : [],
+          pedagogicalAdvice: Array.isArray(parsedJson.pedagogicalAdvice) ? parsedJson.pedagogicalAdvice : [
+            'تم التحليل بنموذج ذكاء اصطناعي مفتوح المصدر يعمل محلياً بالكامل على جهازك دون إنترنت.'
+          ],
+          engineUsed: 'ai_deep_context'
+        };
+      } catch (ollamaErr) {
+        console.warn('[RhetoricService] Local LLM unreachable, falling back to local rule engine:', ollamaErr);
+        return analyzeRhetoricLocally(trimmed, scope, level, detail);
+      }
+    }
+
+    // 3. تشغيل Google Gemini
     try {
       const { GoogleGenAI } = await import('@google/genai');
       const ai = new GoogleGenAI({ apiKey });

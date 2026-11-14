@@ -5,7 +5,7 @@
  * ============================================================================
  */
 
-import { analyzeRhetoricLocally } from '../src/lib/utils/rhetoricEngine.ts';
+import { analyzeRhetoricLocally, synthesizeDiagnosticFinding } from '../src/lib/utils/rhetoricEngine.ts';
 
 const tests = [
   {
@@ -100,6 +100,33 @@ const tests = [
   }
 ];
 
+// ─── فحص المحقق البلاغي التوجيهي (شجرة القرار التعليمية) ───
+const wizardFinding1 = synthesizeDiagnosticFinding(
+  'وإذا المنية أنشبت أظفارها ألفيت كل تميمة لا تنفع',
+  {
+    quote: 'المنية أنشبت أظفارها',
+    contextTopic: 'الحزن والموت',
+    expressionNature: 'figurative',
+    category: 'bayaan',
+    family: 'istiara',
+    subType: 'makniya_tajseem',
+    elements: {
+      mushabbah: 'المنية (الموت)',
+      mushabbahBih: 'حيوان مفترس كاسر',
+      qareena: 'أنشبت أظفارها',
+      relation: 'المشابهة'
+    }
+  },
+  'secondary'
+);
+
+const isWizard1Valid = wizardFinding1.family === 'istiara' &&
+  wizardFinding1.category === 'bayaan' &&
+  wizardFinding1.elements &&
+  wizardFinding1.elements['المشبه (المستعار له)'] === 'المنية (الموت)' &&
+  wizardFinding1.elements['القرينة المانعة واللازمة'] === 'أنشبت أظفارها' &&
+  wizardFinding1.explanation.includes('سبيل الاستعارة المكنية');
+
 console.log('═══════════════════════════════════════════════════════════════════');
 console.log('🧪 بدء تشغيل الاختبارات الآلية لـ «المختبر البلاغي الذكي»');
 console.log('═══════════════════════════════════════════════════════════════════\n');
@@ -131,11 +158,21 @@ for (const t of tests) {
   }
 }
 
+if (isWizard1Valid) {
+  passedCount++;
+  console.log(`✅ [نجاح]: 16. المحقق البلاغي التوجيهي (شجرة القرار وصياغة البكالوريا المعتمدة)`);
+  console.log(`   └─ الشرح المستنتج: "${wizardFinding1.explanation}"`);
+  console.log(`   └─ الأثر البلاغي: "${wizardFinding1.effect}"`);
+} else {
+  console.error(`❌ [فشل]: 16. المحقق البلاغي التوجيهي`);
+}
+
+const totalTestsCount = tests.length + 1;
 console.log('\n═══════════════════════════════════════════════════════════════════');
-console.log(`📊 النتيجة النهائية: تم اجتياز ${passedCount} من أصل ${tests.length} اختبار بنجاح! (${Math.round((passedCount / tests.length) * 100)}%)`);
+console.log(`📊 النتيجة النهائية: تم اجتياز ${passedCount} من أصل ${totalTestsCount} اختبار بنجاح! (${Math.round((passedCount / totalTestsCount) * 100)}%)`);
 console.log('═══════════════════════════════════════════════════════════════════');
 
-if (passedCount === tests.length) {
+if (passedCount === totalTestsCount) {
   process.exit(0);
 } else {
   process.exit(1);
