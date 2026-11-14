@@ -6,7 +6,7 @@ import {
   LogOut, ShieldCheck, Star, X, CheckCircle2,
   GraduationCap, ChevronRight, ChevronLeft, Play, Pause,
   Search, ArrowUpRight, Award, Compass, HeartHandshake,
-  FileCheck2, Shield, BellRing, Home, Users, Feather
+  FileCheck2, Shield, BellRing, Home, Users, Feather, School
 } from 'lucide-react';
 import { TeacherProfile, TabType } from '../../types';
 import { TamkeenLogoBrand as TamkeenLogo } from '../../components/ui/TamkeenLogo';
@@ -469,6 +469,12 @@ export default function IntroHub({ profile, onNavigate, onGoToLanding, darkMode,
     return 'التعليم العام';
   }, [profile.level]);
 
+  // تنميق واستخلاص اسم الأستاذ النقي
+  const cleanTeacherName = useMemo(() => {
+    if (!profile.name) return 'عبدالنور ساسي';
+    return profile.name.replace(/^(أستاذ|الأستاذ|أ\.)\s*/, '').trim() || profile.name;
+  }, [profile.name]);
+
   // Filtered services
   const visibleServices = useMemo(() => {
     return SERVICES.filter(service => {
@@ -622,102 +628,166 @@ export default function IntroHub({ profile, onNavigate, onGoToLanding, darkMode,
       <main className="flex-1 flex flex-col items-center max-w-7xl mx-auto w-full px-5 md:px-10 pb-20 z-10">
 
         {/* ═══ DAILY PRODUCTIVITY & TEACHER COCKPIT ═══ */}
-        <section className="w-full mt-6 mb-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] border border-slate-200/70 dark:border-slate-800 p-6 md:p-8 shadow-xl shadow-slate-200/30 dark:shadow-slate-950/40 relative overflow-hidden">
+        <section className="w-full mt-6 mb-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-[2.5rem] border border-slate-200/80 dark:border-slate-800 p-6 md:p-8 lg:p-9 shadow-xl shadow-slate-200/40 dark:shadow-slate-950/50 relative overflow-hidden">
           {/* Top subtle highlight */}
-          <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-emerald-500 via-amber-400 to-indigo-500 opacity-80"></div>
+          <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-emerald-500 via-amber-400 to-indigo-500 opacity-90"></div>
 
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            {/* Left: Teacher Info & Status with Avatar */}
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl overflow-hidden border-2 border-emerald-400/60 shadow-lg shadow-emerald-500/15 shrink-0 bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700">
-                <img
-                  src="/images/default_avatar.png"
-                  alt={profile.name}
-                  className="w-full h-full object-cover object-top"
-                />
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 lg:gap-8">
+            {/* Right: Teacher Info & Status with Avatar */}
+            <div className="flex-1 min-w-0 flex flex-col sm:flex-row items-start sm:items-center gap-5 md:gap-6">
+              {/* Avatar with prestige frame */}
+              <div className="relative shrink-0 group">
+                <div className="p-1 rounded-[2.2rem] bg-gradient-to-tr from-amber-400 via-emerald-400 to-teal-500 shadow-xl shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 md:w-24 md:h-24 rounded-[2rem] overflow-hidden bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700 border-2 border-white dark:border-slate-900 relative">
+                    <img
+                      src="/images/default_avatar.png"
+                      alt={profile.name}
+                      className="w-full h-full object-cover object-top"
+                    />
+                  </div>
+                </div>
+                {/* Active status indicator */}
+                <div
+                  className="absolute -bottom-1 -left-1 px-2.5 py-0.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 text-white text-[10px] font-black flex items-center gap-1 shadow-md"
+                  title="الحساب مفعل ونشط"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                  <span>متصل</span>
+                </div>
               </div>
-              <div className="space-y-2 text-right">
+
+              {/* Text & Badges */}
+              <div className="flex-1 min-w-0 space-y-3 text-right">
+                {/* Metadata Badges */}
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-xs font-black border border-amber-200 dark:border-amber-800">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-xs font-black border border-amber-200 dark:border-amber-800 shadow-xs">
                     <Star size={12} className="fill-amber-400 text-amber-400" />
                     <span>{dateInfo}</span>
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
-                    <FileCheck2 size={12} />
+
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800 shadow-xs">
+                    <FileCheck2 size={12} className="text-emerald-500" />
                     <span>{levelLabel}</span>
                   </span>
+
                   {profile.institution && (
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
-                      {profile.institution}
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-xs">
+                      <School size={12} className="text-indigo-500" />
+                      <span>{profile.institution}</span>
+                    </span>
+                  )}
+
+                  {profile.teachingSubject && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/50 px-3 py-1 rounded-full border border-violet-200 dark:border-violet-800 shadow-xs">
+                      <BookOpen size={12} className="text-violet-500" />
+                      <span>{profile.teachingSubject}</span>
                     </span>
                   )}
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-[1.5] sm:leading-[1.6] my-2">
-                  <span>طاب يومك البيداغوجي، أستاذ</span>{' '}
-                  <span className="inline-block text-amber-500 dark:text-amber-400 font-black py-0.5">
-                    {profile.name}
-                  </span>
-                </h1>
-                <p className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl pt-1">
-                  بوابتك الرقمية المهنية: اختر الخدمة للبدء المباشر، أو انقر على زر دليل الاستخدام لعرض نافذة الشرح البيداغوجية الشفافة.
+                {/* Welcoming Greeting & Embellished Teacher Name */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                    <span className="text-xs sm:text-sm font-extrabold text-slate-500 dark:text-slate-400 tracking-wide">
+                      طاب يومك البيداغوجي والتربوي،
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
+                    <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500/15 via-yellow-400/20 to-amber-500/10 dark:from-amber-400/20 dark:via-yellow-300/25 dark:to-amber-500/15 border-2 border-amber-400/60 dark:border-amber-400/70 shadow-lg shadow-amber-500/15 backdrop-blur-md">
+                      <Sparkles size={20} className="text-amber-500 dark:text-amber-400 animate-pulse shrink-0" />
+                      <span className="text-slate-800 dark:text-slate-100 font-extrabold text-base sm:text-lg md:text-xl">
+                        الأستاذ
+                      </span>
+                      <span className="bg-gradient-to-r from-amber-600 via-amber-700 to-yellow-600 dark:from-amber-300 dark:via-yellow-200 dark:to-amber-400 bg-clip-text text-transparent font-black text-2xl sm:text-3xl md:text-4xl tracking-tight drop-shadow-sm whitespace-nowrap">
+                        {cleanTeacherName}
+                      </span>
+                      <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-xs">
+                        <ShieldCheck size={12} />
+                        <span>معتمد</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl pt-0.5">
+                  بوابتك الرقمية المهنية: اختر إحدى خدمات المنظومة للبدء المباشر، أو انقر على دليل الاستخدام لعرض نافذة الشرح البيداغوجية الشفافة.
                 </p>
               </div>
             </div>
 
-            {/* Right: Quick Launch Shortcuts Bar */}
-            <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0">
-              <div className="text-xs font-black text-slate-400 flex items-center gap-1.5">
-                <Sparkles size={13} className="text-amber-500" />
-                <span>إجراءات الإنتاجية السريعة:</span>
+            {/* Left: Quick Launch Shortcuts Dock */}
+            <div className="w-full lg:w-[390px] xl:w-[420px] shrink-0 bg-slate-50/80 dark:bg-slate-950/60 p-4 sm:p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm backdrop-blur-md">
+              <div className="flex items-center justify-between mb-3 px-1">
+                <div className="text-xs font-black text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                  <span>إجراءات الإنتاجية السريعة</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-full border border-slate-200/60 dark:border-slate-800">
+                  وصول مباشر
+                </span>
               </div>
-              <div className="flex flex-wrap gap-2">
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <button
                   onClick={() => onNavigate('/mothakira-thakiya')}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-xs font-bold hover:bg-violet-100 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-800/60 transition-all shadow-sm"
+                  className="group flex items-center gap-2 p-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-violet-600 dark:hover:text-violet-400 border border-slate-200/80 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-md hover:shadow-violet-500/10 hover:scale-[1.02] transition-all cursor-pointer"
                 >
-                  <Zap size={13} className="text-violet-500" />
-                  <span>تحضير مذكرة</span>
+                  <div className="w-7 h-7 rounded-xl bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Zap size={14} />
+                  </div>
+                  <span className="text-xs font-black truncate">تحضير مذكرة</span>
                 </button>
 
                 <button
                   onClick={() => onNavigate('/rhetoric')}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/60 transition-all shadow-sm"
+                  className="group flex items-center gap-2 p-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md hover:shadow-indigo-500/10 hover:scale-[1.02] transition-all cursor-pointer"
                 >
-                  <Compass size={13} className="text-indigo-500" />
-                  <span>المختبر البلاغي</span>
+                  <div className="w-7 h-7 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Compass size={14} />
+                  </div>
+                  <span className="text-xs font-black truncate">المختبر البلاغي</span>
                 </button>
 
                 <button
                   onClick={() => onNavigate('/faraheedy')}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 transition-all shadow-sm"
+                  className="group flex items-center gap-2 p-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md hover:shadow-emerald-500/10 hover:scale-[1.02] transition-all cursor-pointer"
                 >
-                  <Feather size={13} className="text-emerald-500" />
-                  <span>ميزان العروض</span>
+                  <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Feather size={14} />
+                  </div>
+                  <span className="text-xs font-black truncate">ميزان العروض</span>
                 </button>
 
                 <button
                   onClick={() => onNavigate('/whiteboard')}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-bold hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 transition-all shadow-sm"
+                  className="group flex items-center gap-2 p-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 border border-slate-200/80 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.02] transition-all cursor-pointer"
                 >
-                  <Compass size={13} className="text-amber-500" />
-                  <span>السبورة التفاعلية</span>
+                  <div className="w-7 h-7 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Compass size={14} />
+                  </div>
+                  <span className="text-xs font-black truncate">السبورة التفاعلية</span>
                 </button>
 
                 <button
                   onClick={() => onNavigate('/korras-yawmi')}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 text-xs font-bold hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800/60 transition-all shadow-sm"
+                  className="group flex items-center gap-2 p-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-400 border border-slate-200/80 dark:border-slate-800 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-md hover:shadow-teal-500/10 hover:scale-[1.02] transition-all cursor-pointer"
                 >
-                  <BookOpenCheck size={13} className="text-teal-500" />
-                  <span>الكراس اليومي</span>
+                  <div className="w-7 h-7 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <BookOpenCheck size={14} />
+                  </div>
+                  <span className="text-xs font-black truncate">الكراس اليومي</span>
                 </button>
 
                 <button
                   onClick={() => onNavigate('/absence')}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs font-bold hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/60 transition-all shadow-sm"
+                  className="group flex items-center gap-2 p-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200/80 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-700 hover:shadow-md hover:shadow-rose-500/10 hover:scale-[1.02] transition-all cursor-pointer"
                 >
-                  <ClipboardList size={13} className="text-rose-500" />
-                  <span>رصد الغياب</span>
+                  <div className="w-7 h-7 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <ClipboardList size={14} />
+                  </div>
+                  <span className="text-xs font-black truncate">رصد الغياب</span>
                 </button>
               </div>
             </div>
