@@ -44,7 +44,7 @@ app.add_middleware(
 # Environment variables for optional open-source LLMs
 OPENSOURCE_AI_API_KEY = os.getenv("OPENSOURCE_AI_API_KEY", "")
 OPENSOURCE_AI_BASE_URL = os.getenv("OPENSOURCE_AI_BASE_URL", "https://api.groq.com/openai/v1")
-OPENSOURCE_AI_MODEL = os.getenv("OPENSOURCE_AI_MODEL", "llama-3.1-70b-versatile")
+OPENSOURCE_AI_MODEL = os.getenv("OPENSOURCE_AI_MODEL", "llama-3.3-70b-versatile")
 HF_TOKEN = os.getenv("HF_TOKEN", "")
 
 # =============================================================================
@@ -458,21 +458,39 @@ async def analyze_rhetoric(req: RhetoricRequest):
     # إذا كان هناك إعداد لنموذج مفتوح المصدر في الخادم (مثل Groq أو HuggingFace أو Ollama)
     if OPENSOURCE_AI_API_KEY and OPENSOURCE_AI_BASE_URL:
         try:
-            prompt = f"""أنت خبير وباحث في البلاغة العربية ومناهج وزارة التربية الجزائرية.
-قم بتحليل النص التالي بدقة:
+            prompt = f"""أنت خبير وباحث في البلاغة العربية ومناهج وزارة التربية والتعليم الجزائرية (الطور الثانوي والبكالوريا).
+قم بتحليل النص التالي بدقة بلاغية أكاديمية عميقة وشاملة:
 \"\"\"{text}\"\"\"
-استخرج الصور البيانية (تشبيه، استعارة، كناية) والمحسنات البديعية وأساليب المعاني.
-أرجع النتيجة بصيغة JSON حصراً تتضمن:
-summary, findings (quote, category, label, explanation, effect, elements, evidence), pedagogicalAdvice."""
 
-            async with httpx.AsyncClient(timeout=10.0) as client:
+استخرج جميع الصور البيانية (تشبيه بليغ/تمثيلي/ضمني/تناص نسبي، استعارة مكنية/تصريحية، كناية، مجاز مرسل/عقلي)، والمحسنات البديعية (طباق، مقابلة، جناس، سجع، تصريع)، وأساليب المعاني (إنشاء طلبي وغير طلبي، قصر، إيجاز/إطناب).
+
+أرجع النتيجة بصيغة JSON صالحة فقط بالهيكل التالي دون أي شروحات خارج الكود:
+{{
+  "summary": "خلاصة بلاغية موجزة للنص وقيمته الجمالية",
+  "findings": [
+    {{
+      "id": "finding-1",
+      "category": "bayaan",
+      "categoryLabel": "علم البيان (صورة بيانية)",
+      "label": "تشبيه بليغ",
+      "quote": "المقطع المستشهد به",
+      "explanation": "شرح الصورة وتفكيكها بدقة",
+      "effect": "أثرها البلاغي وقيمتها الجمالية وسر بلاغتها",
+      "elements": {{"المشبه": "...", "المشبه به": "...", "القرينة": "..."}},
+      "evidence": ["القرينة أو الدليل اللغوي"]
+    }}
+  ],
+  "pedagogicalAdvice": "توجيه منهجي لأساتذة وطلاب البكالوريا للإجابة النموذجية في الامتحان"
+}}"""
+
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 res = await client.post(
                     f"{OPENSOURCE_AI_BASE_URL}/chat/completions",
                     headers={"Authorization": f"Bearer {OPENSOURCE_AI_API_KEY}"},
                     json={
                         "model": OPENSOURCE_AI_MODEL,
                         "messages": [
-                            {"role": "system", "content": "أنت محلل بلاغي أكاديمي صارم. أرجع JSON فقط."},
+                            {"role": "system", "content": "أنت محلل بلاغي أكاديمي متخصص في مناهج اللغة العربية والبكالوريا الجزائرية. مخرجاتك JSON صالح 100% فقط."},
                             {"role": "user", "content": prompt}
                         ],
                         "temperature": 0.1
@@ -481,11 +499,19 @@ summary, findings (quote, category, label, explanation, effect, elements, eviden
                 if res.status_code == 200:
                     data = res.json()
                     content = data["choices"][0]["message"]["content"]
-                    # Clean markdown wrapper
                     cleaned = re.sub(r'```json\s*|\s*```', '', content).strip()
-                    parsed = json.loads(cleaned)
-                    parsed["engineUsed"] = f"render_opensource_llm ({OPENSOURCE_AI_MODEL})"
-                    return parsed
+                    try:
+                        parsed = json.loads(cleaned)
+                    except Exception:
+                        match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+                        if match:
+                            parsed = json.loads(match.group(0))
+                        else:
+                            raise ValueError("Could not extract valid JSON from LLM response")
+                    
+                    if isinstance(parsed, dict) and parsed.get("findings"):
+                        parsed["engineUsed"] = f"render_opensource_llm ({OPENSOURCE_AI_MODEL})"
+                        return parsed
         except Exception as e:
             logger.warning(f"Open-source LLM error on Render: {e}. Falling back to native engine.")
 
