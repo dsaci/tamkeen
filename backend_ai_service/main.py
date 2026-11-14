@@ -72,8 +72,8 @@ class MemoEnrichRequest(BaseModel):
 # Healthcheck
 # =============================================================================
 
-@app.get("/")
-@app.get("/health")
+@app.api_route("/", methods=["GET", "HEAD", "OPTIONS"])
+@app.api_route("/health", methods=["GET", "HEAD", "OPTIONS"])
 def healthcheck():
     has_external_llm = bool(OPENSOURCE_AI_API_KEY or HF_TOKEN)
     return {
