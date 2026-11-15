@@ -136,6 +136,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [modalGradeFilter, setModalGradeFilter] = useState<string>('all');
+  const [modalActivityFilter, setModalActivityFilter] = useState<string>('all');
   const [modalSearchQuery, setModalSearchQuery] = useState<string>('');
 
   const handleOpenCurriculumModal = () => {
@@ -144,6 +145,7 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
     } else {
       setModalGradeFilter('all');
     }
+    setModalActivityFilter('all');
     setModalSearchQuery('');
     setShowCurriculumModal(true);
   };
@@ -155,15 +157,22 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
         (modalGradeFilter.includes('الأولى') && lesson.grade.includes('الأولى')) || 
         (modalGradeFilter.includes('الثانية') && lesson.grade.includes('الثانية')) || 
         (modalGradeFilter.includes('الثالثة') && lesson.grade.includes('الثالثة'));
+
+      const matchesActivity = modalActivityFilter === 'all' || 
+        lesson.activity === modalActivityFilter ||
+        (modalActivityFilter === 'بلاغة' && (lesson.activity === 'بلاغة' || lesson.activity === 'عروض')) ||
+        (modalActivityFilter === 'مطالعة' && (lesson.activity === 'مطالعة موجهة' || lesson.activity === 'نص تواصلي')) ||
+        (modalActivityFilter === 'تعبير' && (lesson.activity === 'تعبير كتابي' || lesson.activity === 'وضعية إدماجية'));
+
       const query = modalSearchQuery.trim().toLowerCase();
       const matchesQuery = !query || 
         lesson.topic.toLowerCase().includes(query) || 
         lesson.unitTitle.toLowerCase().includes(query) || 
         lesson.activity.toLowerCase().includes(query) || 
         lesson.theme.toLowerCase().includes(query);
-      return matchesGrade && matchesQuery;
+      return matchesGrade && matchesActivity && matchesQuery;
     });
-  }, [modalGradeFilter, modalSearchQuery]);
+  }, [modalGradeFilter, modalActivityFilter, modalSearchQuery]);
 
   // Read URL query params when arriving from Syllabus Distribution / Plans page
   useEffect(() => {
@@ -1055,6 +1064,32 @@ const SmartMemoView: React.FC<{ profile: TeacherProfile }> = ({ profile }) => {
                 <span className="text-[11px] text-slate-400 font-bold">
                   النتائج: <strong className="text-emerald-600 dark:text-emerald-400">{filteredCurriculumLessons.length}</strong> درساً
                 </span>
+              </div>
+
+              {/* Activity Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-bold text-slate-400 ml-1">فرع النشاط:</span>
+                {[
+                  { id: 'all', label: 'الكل' },
+                  { id: 'أدب ونصوص', label: '📖 نصوص وأدب' },
+                  { id: 'قواعد اللغة', label: '📌 قواعد وإعراب' },
+                  { id: 'بلاغة', label: '⚖️ بلاغة وعروض' },
+                  { id: 'مطالعة', label: '📚 مطالعة وتواصل' },
+                  { id: 'تعبير', label: '✍️ تعبير وإدماج' }
+                ].map(act => (
+                  <button
+                    key={act.id}
+                    type="button"
+                    onClick={() => setModalActivityFilter(act.id)}
+                    className={`text-[10px] font-bold px-2.5 py-1 rounded-xl transition-all cursor-pointer ${
+                      modalActivityFilter === act.id
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'bg-slate-100 dark:bg-slate-800/70 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {act.label}
+                  </button>
+                ))}
               </div>
 
               {/* Instant Search Bar */}
